@@ -61,3 +61,5 @@ Ingresamos al IDE SQL Manager y nos vamos al explorador y presionamos database y
 
 ![image](https://user-images.githubusercontent.com/15756971/226461084-333e066b-51e5-4fe7-994d-28ac2199afc1.png)
 
+Buscamos la ruta de la base de datos y renombramos y filamente presionar ok.
+
