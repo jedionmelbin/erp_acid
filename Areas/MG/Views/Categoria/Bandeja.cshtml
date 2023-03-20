@@ -1,0 +1,599 @@
+@using eRPBusiness.Helpers
+@using eRPBusiness.Common
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label> Listado Categoria</label>
+        </nav>
+    </div>
+    <div class="col-lg-12">
+        <ul class="nav nav-tabs" role="tablist" id="myTabs">
+            <li role="presentation" class="active"><a href="#products" aria-controls="categoria" role="tab" data-toggle="tab">Categoria</a></li>
+            <li role="presentation"><a href="#caracterist" aria-controls="caracterist" role="tab" data-toggle="tab">Sub Categoria</a></li>
+            <li role="presentation"><a href="#detalle" aria-controls="detalle" role="tab" data-toggle="tab">Detalle Categoria</a></li>
+        </ul>
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="products">
+                <div class="row">
+                    <div class="col-md-12">
+                        @Html.CRM().MenuBar("CategoriaMenuBar", "onClickCategoriaMenuBar", new ItemMenuBar[]{
+                                               new ItemMenuBar(MenuBarButtonType.New,  false ),
+                                               new ItemMenuBar(MenuBarButtonType.Edit,false),
+                                               new ItemMenuBar(MenuBarButtonType.Save,true),
+                                               new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                                           }, MenuBarType.Small)
+                    </div>
+                    <div class="col-md-12" id="panel">
+                        <table id="jqGridBandeja"></table>
+                        <div id="jqGridPager"></div>
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="caracterist">
+                <div class="row">
+                    <div class="col-lg-12 form-horizontal">
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("SeachCategoriaId", null, @ViewBag.ListCategoria, "col-lg-4", "Categoria", "col-lg-2",new {@onchange="onChangeCateg(this)" })
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        @Html.CRM().MenuBar("CaractMenuBar", "onClickCaractMenuBar", new ItemMenuBar[]{
+                                                new ItemMenuBar(MenuBarButtonType.New,  false ),
+                                                new ItemMenuBar(MenuBarButtonType.Edit,false),
+                                                new ItemMenuBar(MenuBarButtonType.Delete,true)
+                                            }, MenuBarType.Small)
+                    </div>
+                    <div class="col-lg-12">
+                        <table id="jqGridSubCat"></table>
+                        <div id="jqGridPagerSubCat"></div>
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="detalle">
+                <div class="row">
+                    <div class="col-lg-12 form-horizontal">
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("SearchPanCategoriabId", null, @ViewBag.ListCategoria, "col-lg-4", "Categoria", "col-lg-2", new { @onchange = "onChangePanelCateg(this)" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("SearchSubCategoriabId", null, @ViewBag.ListCategoria, "col-lg-4", "Sub Categoria", "col-lg-2", new { @onchange = "onChangeDetCateg(this)" })
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        @Html.CRM().MenuBar("DetalleMenuBar", "onClickDetalleMenuBar", new ItemMenuBar[]{
+                                                new ItemMenuBar(MenuBarButtonType.New,  false ),
+                                                new ItemMenuBar(MenuBarButtonType.Edit,false),
+                                                new ItemMenuBar(MenuBarButtonType.Delete,true)
+                                            }, MenuBarType.Small)
+                    </div>
+                    <div class="col-lg-12">
+                        <table id="jqGridDetalle"></table>
+                        <div id="jqGridPagerDetalle"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" name="EditAction" id="EditAction" />
+    @Html.Hidden("esNuevo")
+</div>
+
+
+
+
+@using (Html.CRM().Popup("divCategoria", "Categoria", "onClickOkCategoria", SizePopup.Default))
+{
+    <div id="divCategoriaContent"></div>
+}
+
+@using (Html.CRM().Popup("divSubCategoria", "Sub Categoria", "onClickOkSubCategoria", SizePopup.Default))
+{
+    <div id="divSubCategoriaContent"></div>
+}
+
+@using (Html.CRM().Popup("divDetCategoria", "Sub Categoria", "onClickOkDetCategoria", SizePopup.Default))
+{
+    <div id="divDetCategoriaContent"></div>
+}
+
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridBandeja").jqGrid({
+            url: '@Url.Action("ListarBandeja", "Categoria", new { area = "mg" })',
+            postData:{
+
+            },
+            mtype: "POST",
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'CategoriaId', hidden: true },
+                { label: 'Codigo', name: 'Codigo', width: 10, edittype: 'text', editable: true, editoptions: { maxlength: 4, placeholder: "Código" } },
+                { label: 'Nombre', name: 'Nombre', width: 30, edittype: 'text', editable: true, editoptions: { placeholder: "Nombre" } },
+                { label: 'Estado', name: 'Estado', width: 30, edittype: 'text', editable: true },
+                {
+                      label: "Eliminar",
+                      name: "actions",
+                      width: 10,
+                      sortable: false,
+                      align: 'center',
+                      formatter: function (cellvalue, options, rowObject) {
+                          var _control = "";
+                          _control = "<a href='#' id='" + options.rowId + "' rel='" + rowObject.CategoriaId + "' onClick='fnDeleteCatRow(this)' ><span class='glyphicon glyphicon-trash'></span></a>";
+                          return _control;
+                      }
+
+                }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 300),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            onSelectRow: function (rowid) {
+            },
+            pager: "#jqGridPager"
+        });
+
+        $("#jqGridSubCat").jqGrid({
+            url: '@Url.Action("ListarSubCategoria", "Categoria", new { area = "mg" })',
+            postData:{
+                categoriaId: function () { return $("#SeachCategoriaId").val() },
+            },
+            mtype: "POST",
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'SubCategoriaId', hidden: true },
+                { label: 'Categoria', name: 'Categoria', width: 10, edittype: 'text', editable: false },
+                { label: 'Nombre', name: 'Nombre', width: 30, edittype: 'text', editable: true, editoptions: { placeholder: "Nombre" } },
+                {
+                    label: "Eliminar",
+                    name: "actions",
+                    width: 10,
+                    sortable: false,
+                    align: 'center',
+                    formatter: function (cellvalue, options, rowObject) {
+
+                        var _control = "";
+                        _control = "<a href='#' id='" + options.rowId + "' rel='" + rowObject.SubCategoriaId + "' onClick='fnDeleteSubRow(this)' ><span class='glyphicon glyphicon-trash'></span></a>";
+                        return _control;
+                    }
+
+                }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 300),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            onSelectRow: function (rowid) {
+
+
+            },
+            pager: "#jqGridPagerSubCat"
+          });
+
+        $("#jqGridDetalle").jqGrid({
+            url: '@Url.Action("ListarDetCategoria", "Categoria", new { area = "mg" })',
+            postData:{
+                categoriaId: function () { return $("#SearchPanCategoriabId").val() },
+                subCategoriaId: function () { return $("#SearchSubCategoriabId").val() },
+            },
+            mtype: "POST",
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'DetalleCategoriaId', hidden: true },
+                { label: 'Categoria', name: 'Categoria', width: 10, edittype: 'text', editable: false },
+                { label: 'Sub Categoria', name: 'SubCategoria', width: 10, edittype: 'text', editable: false },
+                { label: 'Nombre', name: 'Nombre', width: 30, edittype: 'text', editable: true, editoptions: { placeholder: "Nombre" } },
+                {
+                    label: "Eliminar",
+                    name: "actions",
+                    width: 10,
+                    sortable: false,
+                    align: 'center',
+                    formatter: function (cellvalue, options, rowObject) {
+
+                        var _control = "";
+                        _control = "<a href='#' id='" + options.rowId + "' rel='" + rowObject.DetalleCategoriaId + "' onClick='fnDeleteDetRow(this)' ><span class='glyphicon glyphicon-trash'></span></a>";
+                        return _control;
+                    }
+
+                }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 300),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            onSelectRow: function (rowid) {
+                $("#CategoriaMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.EDIT',
+                    disabled: false
+                });
+
+            },
+            pager: "#jqGridPagerDetalle"
+        });
+
+        $("#divCategoria").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            var row = getGridSelectedRow("jqGridBandeja");
+            var postData = {
+                editAction: $("#esNuevo").val(),
+                categoriaId: row.CategoriaId
+            };
+            controllerGetAction('@Url.Action("CategoriaEdit")', postData, 'divCategoriaContent', false, false, null);
+        });
+
+         $("#divSubCategoria").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+             var row = getGridSelectedRow("jqGridSubCat");
+            var postData = {
+                editAction: $("#esNuevo").val(),
+                subCategoriaId: row.SubCategoriaId
+            };
+            controllerGetAction('@Url.Action("SubCategoriaEdit")', postData, 'divSubCategoriaContent', false, false, null);
+         });
+
+         $("#divDetCategoria").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+           var row = getGridSelectedRow("jqGridDetalle");
+            var postData = {
+                editAction: $("#esNuevo").val(),
+                detalleId: row.DetalleCategoriaId
+            };
+            controllerGetAction('@Url.Action("DetCategoriaEdit")', postData, 'divDetCategoriaContent', false, false, null);
+         });
+
+        $('#divCategoria').on('hidden.bs.modal', function (e) {
+            $('#divCategoriaContent').empty();
+        });
+        $('#divSubCategoria').on('hidden.bs.modal', function (e) {
+            $('#divSubCategoriaContent').empty();
+        });
+        $('#divDetCategoria').on('hidden.bs.modal', function (e) {
+            $('#divDetCategoriaContent').empty();
+        });
+    });
+
+    function onChangeCateg() {
+        $("#jqGridSubCat").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+    }
+
+    function onChangePanelCateg(control) {
+        $("#jqGridDetalle").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+
+          $.post('@Url.Action("ListarSubDropListCategoria", "Categoria")',
+            {
+                categoriaId: control.value
+            }, function (response) {
+                $('#SearchSubCategoriabId').find('option').remove().end();
+                $("#SearchSubCategoriabId").addItems(response.data);
+                $("#SearchSubCategoriabId").prop("disabled", false);
+            });
+    }
+    function onChangeDetCateg() {
+        $("#jqGridDetalle").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+    }
+    function onClickCategoriaMenuBar(control) {
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                $("#esNuevo").val('@DigitosConstante.UNO');
+                //var newRowId = gridRowCount("jqGridBandeja");
+                //var parameters = {
+                //    rowID: newRowId + 1,
+                //    initdata: {
+                //    },
+                //    position: "first"
+                //};
+                //$("#jqGridBandeja").jqGrid('addRow', parameters);
+                //actionNuevo();
+                $("#divCategoria").modal('show');
+             break;
+            case "@ButtonMenuBarActionConstant.SAVE":
+                var rowId = getGridSelectedRowId('jqGridBandeja');
+                var row = getGridSelectedRow('jqGridBandeja');
+                if (isEmptyElement(rowId + "_Codigo", "Ingrese el campo codigo"))
+                    return false;
+
+                if (isEmptyElement(rowId + "_Nombre", "Ingrese el campo nombre"))
+                    return false;
+
+                $("#jqGridBandeja").jqGrid('saveRow', rowId, {url: 'clientArray', aftersavefunc: function (id, response, options){
+                    var row = getGridSelectedRow("jqGridBandeja");
+
+                    var postData = {
+                        Row: JSON.stringify(row),
+                        EditAction: $("#esNuevo").val()
+                    };
+                    controllerSaveResponse('@Url.Action("Create", "Categoria")', postData, true, true, function (response) {
+                        if (response.success) {
+                            MsgAlert(1, response.message);
+                            jQuery("#jqGridBandeja").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                        } else {
+                            MsgAlert(4, response.message);
+                        }
+                    });
+                }
+                });
+                actionSave();
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                $("#esNuevo").val('@DigitosConstante.DOS');
+                $("#divCategoria").modal('show');
+                break;
+            case '@ButtonMenuBarActionConstant.CANCEL':
+                actionCancel();
+                var rowid = getGridSelectedRowId("jqGridBandeja");
+                $('#jqGridBandeja').setGridParam({ datatype: 'json' });
+                $('#jqGridBandeja').trigger('reloadGrid');
+                lastsel = 0;
+                break;
+        }
+    }
+
+    function onClickCaractMenuBar(control) {
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                $("#esNuevo").val('@DigitosConstante.UNO');
+                $("#divSubCategoria").modal('show');
+             break;
+            case "@ButtonMenuBarActionConstant.SAVE":
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                $("#esNuevo").val('@DigitosConstante.DOS');
+                $("#divSubCategoria").modal('show');
+                break;
+            case '@ButtonMenuBarActionConstant.CANCEL':
+                break;
+        }
+     }
+    function onClickDetalleMenuBar(control) {
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                $("#esNuevo").val('@DigitosConstante.UNO');
+                $("#divDetCategoria").modal('show');
+             break;
+            case "@ButtonMenuBarActionConstant.SAVE":
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                $("#esNuevo").val('@DigitosConstante.DOS');
+                $("#divDetCategoria").modal('show');
+                break;
+            case '@ButtonMenuBarActionConstant.CANCEL':
+                break;
+        }
+     }
+
+    function onClickOkCategoria() {
+
+        if (isEmptyElement('Codigo', 'Ingrese codigo'))
+            return false;
+
+        if (isEmptyElement('Nombre', 'Ingrese nombre'))
+            return false;
+
+        var postData = {
+            Header: JSON.stringify($('#divCategoriaContent').serializeObject()),
+            EditAction: $("#esNuevo").val()
+        };
+
+        controllerSaveResponse('@Url.Action("Create", "Categoria")', postData, false, false, function (response) {
+            if (response.success) {
+                $("#jqGridBandeja").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                $("#divCategoria").modal('hide');
+                MsgAlert(1, response.message);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+    function onClickOkSubCategoria()
+    {
+
+        if (isEmptyElement('Nombre', 'Ingrese nombre'))
+            return false;
+
+        var postData = {
+            Header: JSON.stringify($('#divSubCategoriaContent').serializeObject()),
+            EditAction: $("#esNuevo").val()
+        };
+
+        controllerSaveResponse('@Url.Action("SubCategoriaCreate", "Categoria")', postData, false, false, function (response) {
+            if (response.success) {
+                $("#jqGridSubCat").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                $("#divSubCategoria").modal('hide');
+                MsgAlert(1, response.message);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+    function onClickOkDetCategoria()
+    {
+
+        if (isEmptyElement('Nombre', 'Ingrese nombre'))
+            return false;
+
+        var postData = {
+            Header: JSON.stringify($('#divDetCategoriaContent').serializeObject()),
+            EditAction: $("#esNuevo").val()
+        };
+
+        controllerSaveResponse('@Url.Action("DetCategoriaCreate", "Categoria")', postData, false, false, function (response) {
+            if (response.success) {
+                $("#jqGridDetalle").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                $("#divDetCategoria").modal('hide');
+                MsgAlert(1, response.message);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+    function fnDeleteCatRow(control) {
+         if (control.rel != "undefined") {
+            var jsonData = {
+                id: control.rel
+            };
+            var _succces = false;
+            controllerPostJsonSync('@Url.Action("DeleteCatItem")', jsonData, false, false, function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    $("#jqGridBandeja").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                    _succces = true;
+                } else {
+                    MsgAlert(3, response.message);
+                }
+            });
+            if (!_succces) {
+                return;
+            }
+        }
+
+    }
+
+    function fnDeleteSubRow(control) {
+          if (control.rel != "undefined") {
+            var jsonData = {
+                id: control.rel
+            };
+            var _succces = false;
+            controllerPostJsonSync('@Url.Action("DeleteSubItem")', jsonData, false, false, function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    $("#jqGridSubCat").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                    _succces = true;
+                } else {
+                    MsgAlert(3, response.message);
+                }
+            });
+            if (!_succces) {
+                return;
+            }
+        }
+
+    }
+
+
+    function fnDeleteDetRow(control) {
+          if (control.rel != "undefined") {
+            var jsonData = {
+                id: control.rel
+            };
+            var _succces = false;
+            controllerPostJsonSync('@Url.Action("DeleteDetItem")', jsonData, false, false, function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    $("#jqGridDetalle").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                    _succces = true;
+                } else {
+                    MsgAlert(3, response.message);
+                }
+            });
+            if (!_succces) {
+                return;
+            }
+        }
+
+    }
+
+    function actionNuevo()
+    {
+        $("#CategoriaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: true
+        });
+
+        $("#CategoriaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: true
+        });
+
+        $("#CategoriaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: false
+        });
+
+        $("#CategoriaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: false
+        });
+
+    }
+
+    function actionEdit() {
+        $("#CategoriaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: true
+        });
+        $("#CategoriaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: true
+        });
+
+        $("#CategoriaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: false
+        });
+
+        $("#CategoriaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: false
+        });
+    }
+
+    function actionSave() {
+         $("#CategoriaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: false
+        });
+        $("#CategoriaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: true
+        });
+        $("#CategoriaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: true
+        });
+        $("#CategoriaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: true
+        });
+    }
+
+        function actionCancel() {
+            $("#CategoriaMenuBar").menuBar({
+                button: '@ButtonMenuBarNameConstant.EDIT',
+                disabled: true
+            });
+
+            $("#CategoriaMenuBar").menuBar({
+                button: '@ButtonMenuBarNameConstant.SAVE',
+                disabled: true
+            });
+            $("#CategoriaMenuBar").menuBar({
+                button: '@ButtonMenuBarNameConstant.NEW',
+                disabled: false
+            });
+            $("#CategoriaMenuBar").menuBar({
+                button: '@ButtonMenuBarNameConstant.CANCEL',
+                disabled: true
+            });
+        }
+</script>
+

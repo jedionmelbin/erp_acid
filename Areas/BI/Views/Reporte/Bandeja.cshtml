@@ -1,0 +1,105 @@
+﻿@using eRPBusiness.Helpers
+@model eRPBusiness.Transport.VentaReporteDTO
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>Utilidad</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                                   new ItemMenuBar(MenuBarButtonType.ExportXls),
+                                                   new ItemMenuBar(MenuBarButtonType.Utility),
+                                               })
+<div class="row">
+
+    <div class="col-lg-12" id="seachPanel">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="col-lg-11" id="panelSeach">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                @Html.CRM().DateTimePicker("FechaInicio", Model.FechaInicio, "col-lg-4", "Fecha Inicio", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Inicio" })
+                                @Html.CRM().DateTimePicker("FechaFinal", Model.FechaFinal, "col-lg-4", "Fecha Final", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Final" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().Select2List("PersonalId", null, @ViewBag.PersonalList, "col-lg-4", "Tipo", "col-lg-2")
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                @Html.CRM().Select2List("PersonalId", null, @ViewBag.PersonalList, "col-lg-10", "Empleado", "col-lg-2")
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().Select2List("PersonalId", null, @ViewBag.PersonalList, "col-lg-4", "Almacen", "col-lg-2")
+                                @Html.CRM().Select2List("PersonalId", null, @ViewBag.PersonalList, "col-lg-4", "Categoria", "col-lg-2")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-1">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridBandeja').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('input:text').val(''); $('#jqGridBandeja').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-body" id="panel">
+                <table id="jqGridBandeja"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridBandeja").jqGrid({
+            url: '@Url.Action("ListarBandeja", "Reporte", new { area = "bi" })',
+            postData: {
+
+            },
+            mtype: "POST",
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'ReporteId', hidden: true },
+                { label: 'Tipo', name: 'Codigo', width: 10, },
+                { label: 'Serie', name: 'Nombre', width: 10,  },
+                { label: 'Cliente', name: 'Estado', width: 20 },
+                { label: 'Fecha', name: 'Estado', width: 10 },
+                { label: 'Cantidad', name: 'Estado', width: 10 },
+                { label: 'Costo', name: 'Estado', width: 10 },
+                { label: 'Importe', name: 'Estado', width: 10 },
+                { label: 'IGV', name: 'Estado', width: 10 },
+                { label: 'Descuento', name: 'Estado', width: 10 },
+                { label: 'Total Venta', name: 'Estado', width: 10 },
+                { label: 'Margen Utilidad', name: 'Estado', width: 10 },
+                { label: 'Utilidad', name: 'Estado', width: 10 },
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 300),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            onSelectRow: function (rowid) {
+            },
+            pager: "#jqGridPager"
+        });
+    });
+
+</script>

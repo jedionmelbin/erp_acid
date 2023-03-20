@@ -1,0 +1,316 @@
+@model eRPBusiness.Transport.EmpresaDTO
+@using eRPBusiness.Helpers
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>@ViewBag.Title</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                                   new ItemMenuBar(MenuBarButtonType.Save),
+                                                   new ItemMenuBar(MenuBarButtonType.Exit)
+
+                                               })
+<div class="row">
+    <div class="col-lg-12 col-md-12 col-sm-12">
+        @using (Html.BeginForm("", "", FormMethod.Post, new { @class = "form-horizontal", @id = "form1" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="panel panel-default">
+                <div class="panel-body form-horizontal">
+                    <div class="col-md-6 col-lg-6">
+                        <fieldset class="scheduler-border">
+                            <legend class="scheduler-border">Datos de la empresa</legend>
+                            <div class="form-group">
+                                @Html.CRM().Select2List("DocumentoIdentidadId", Model.DocumentoIdentidadId, @ViewBag.ListaDocIdenti, "col-lg-10", "Documento", "col-lg-2")
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxButtonFor(m => m.NumeroRuc, "col-lg-4", "RUC", "col-lg-2").OnButtonClick("onClickCliente(this)").FontButton("glyphicon glyphicon-search").Attributes(new { @placeholder = "RUC", @maxlength = "11" })
+                                <label class="control-label col-lg-2">Logo</label>
+                                <div class="col-lg-4">
+                                    <input type="file" id="Logo" name="Logo" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.RazonSocial, "col-lg-10", "Razon Social", "col-lg-2").Attributes(new { @placeholder = "Razón Social" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.Nombre, "col-lg-10", "Nombre", "col-lg-2").Attributes(new { @placeholder = "Nombre comercial" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.Direccion, "col-lg-10", "Dirección", "col-lg-2").Attributes(new { @placeholder = "Dirección" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.Urbanizacion, "col-lg-10", "Urbanización", "col-lg-2").Attributes(new { @placeholder = "Urbanización" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.Correo, "col-lg-10", "Correo", "col-lg-2").Attributes(new { @placeholder = "Correo" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.Telefono, "col-lg-4", "Teléfono", "col-lg-2").Attributes(new { @placeholder = "Telefono" })
+                                @Html.CRM().TextBox("Celular", null, "col-lg-4", "Celular", "col-lg-2").Attributes(new { @placeholder = "Celular" })
+                            </div>
+                            <div class="form-group">
+                                @if (ViewBag.IsNew)
+                                {
+                                    @Html.CRM().Select2List("PaisId", null, @ViewBag.PaisList, "col-lg-4", "Pais", "col-lg-2", new { @onchange = "onChangePais(this);" })
+                                    @Html.CRM().Select2List("DepartamentoId", null, @ViewBag.DepartamentoList, "col-lg-4", "Departamento", "col-lg-2", new { @onchange = "onChangeDepartamento(this);", @disabled = "disabled" })
+                                }
+                                else
+                                {
+                                    @Html.CRM().Select2List("PaisId", Model.DistritoDTO.ProvinciaDTO.DepartamentoDTO.PaisId, @ViewBag.PaisList, "col-lg-4", "Pais", "col-lg-2", new { @onchange = "onChangeProvincia(this);" })
+                                    @Html.CRM().Select2List("DepartamentoId", Model.DistritoDTO.ProvinciaDTO.DepartamentoId, @ViewBag.DepartamentoList, "col-lg-4", "Departamento", "col-lg-2", new { @onchange = "onChangeDepartamento(this);" })
+                                }
+                            </div>
+                            <div class="form-group">
+                                @if (ViewBag.IsNew)
+                                {
+                                    @Html.CRM().Select2List("ProvinciaId", null, @ViewBag.ProvinciaList, "col-lg-4", "Provincia", "col-lg-2", new { @onchange = "onChangeProvincia(this);", @disabled = "disabled" })
+                                    @Html.CRM().Select2List("DistritoId", null, @ViewBag.DistritoList, "col-lg-4", "Distrito", "col-lg-2", new { @disabled = "disabled" })
+                                }
+                                else
+                                {
+                                    @Html.CRM().Select2List("ProvinciaId", Model.DistritoDTO.ProvinciaDTO.ProvinciaId, @ViewBag.ProvinciaList, "col-lg-4", "Provincia", "col-lg-2", new { @onchange = "onChangeProvincia(this);" })
+                                    @Html.CRM().Select2List("DistritoId", Model.DistritoId, @ViewBag.DistritoList, "col-lg-4", "Distrito", "col-lg-2")
+                                }
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.PaginaWeb, "col-lg-10", "Pagina Web", "col-lg-2").Attributes(new { @placeholder = "Pagina Web" })
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="col-md-6 col-lg-6">
+                        <fieldset class="scheduler-border">
+                            <legend class="scheduler-border">Datos correo facturación</legend>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.AliasCorreo, "col-lg-10", "Alias", "col-lg-2").Attributes(new { @placeholder = "Alias" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.CorreoRemitente, "col-lg-10", "Correo", "col-lg-2").Attributes(new { @placeholder = "Correo" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.ServerSmtp, "col-lg-10", "SMTP", "col-lg-2").Attributes(new { @placeholder = "Servidor SMTP" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.Usuario, "col-lg-4", "Usuario", "col-lg-2").Attributes(new { @placeholder = "Usuario", @autocomplete = "off" })
+                                @Html.CRM().TextBoxFor(m => m.Contrasena, "col-lg-4", "Contraseña", "col-lg-2").Attributes(new { @placeholder = "Contraseña", @autocomplete = "off" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.PuertoSmtp, "col-lg-4", "Puerto", "col-lg-2").Attributes(new { @placeholder = "Puerto" })
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-2">SSL</label>
+                                @Html.CRM().CheckBoxFor(m => m.Seguridad, "col-lg-4", "")
+
+                                <label class="control-label col-md-2">Online</label>
+                                @Html.CRM().CheckBoxFor(m => m.ModoOnline, "col-lg-4", "")
+                                @*@Html.CRM().TextBoxFor(m => m.SeguridadSsl, "col-lg-4", "SSL", "col-lg-2").Attributes(new { @placeholder = "SSL", @maxlength = "1" })*@
+                            </div>
+                        </fieldset>
+                        <fieldset class="scheduler-border">
+                            <legend class="scheduler-border">Datos de usuario Sunat</legend>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.UsuarioSol, "col-lg-4", "Usuario", "col-lg-2").Attributes(new { @placeholder = "Usuario Sol", @autocomplete = "off" })
+                                @Html.CRM().PasswordFor(m => m.ClaveSol, "col-lg-4", "Clave Sol", "col-lg-2").Attributes(new { @placeholder = "Clave Sol", @autocomplete = "off" })
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-lg-2">Certificado</label>
+                                <div class="col-lg-10">
+                                    <input type="file" id="RutaFirma" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.ContrasenaFirma, "col-lg-4", "Contraseña", "col-lg-2").Attributes(new { @placeholder = "Contraseña Firma" })
+                            </div>
+                        </fieldset>
+                    </div>
+                   
+                </div>
+            </div>
+        
+            @Html.HiddenFor(m => m.EmpresaId)
+            @Html.HiddenFor(m => m.EditAction)
+        }
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+
+    });
+
+
+    function onClickMenuBar(control) {
+        switch (control) {
+            case '@ButtonMenuBarActionConstant.SAVE':
+                saveData(control);
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                controllerGetAction('@Url.Action("Bandeja", "Empresa", new { area = "AM" })', null, 'workspace', false, false, null);
+                break;
+        }
+
+    };
+
+
+
+
+    function saveData() {
+
+        if (isEmptyElement("DocumentoIdentidadId", "Seleccione documento identidad"))
+            return false;
+
+        if (isEmptyElement("NumeroRuc", "Ingrese el campo RUC"))
+            return false;
+
+        if (isEmptyElement("RazonSocial", "Ingrese el campo razon social"))
+            return false;
+
+
+        if (isEmptyElement("Nombre", "Ingrese nombre"))
+            return false;
+
+        if (isEmptyElement("Direccion", "Ingrese direccion"))
+            return false;
+
+        if (isEmptyElement("PaisId", "Seleccione País"))
+            return false;
+
+        if (isEmptyElement("DepartamentoId", "Seleccione Departamento"))
+            return false;
+
+        if (isEmptyElement("ProvinciaId", "Seleccione Provincia"))
+            return false;
+
+        if (isEmptyElement("DistritoId", "Seleccione Distrito"))
+            return false;
+
+        var formData = new FormData();
+
+        var rutaFirma = $("#RutaFirma").get(0);
+        var firma = rutaFirma.files[0];
+
+        var imageFile = $("#Logo").get(0);
+        var image = imageFile.files[0];
+
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        formData.append("__RequestVerificationToken", token);
+        formData.append("Header", JSON.stringify($('#form1').serializeObject()));
+        formData.append("EditAction", $("#EditAction").val());
+        formData.append("fileFirma", firma);
+        formData.append("fileImage", image);
+
+        $.ajax({
+            beforeSend: function () {
+                if (true) {
+                    $("#workspace").LoadingOverlay("show", {
+                        image: "",
+                        text: "Loading..."
+                    });
+                }
+
+            },
+            complete: function () {
+                if (true) {
+                    $("#workspace").LoadingOverlay("hide", true);
+                }
+            },
+            type: 'POST',
+            url: '@Url.Action("Create", "Empresa", new { area = "AM" })',
+            data: formData,
+            dataType: 'json',
+            contentType: false,
+            processData: false,
+            success: function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    controllerGetAction('@Url.Action("Bandeja", "Empresa", new { area = "am" })', null, 'workspace', false, false, null);
+                } else {
+                    MsgAlert(4, response.message);
+                }
+            },
+            error: function (error) {
+
+            }
+        });
+
+    }
+
+    function onChangePais(control) {
+        $.post('@Url.Action("GetDepartamento", "Empresa")',
+            {
+                paisId: control.value
+            }, function (response) {
+                $('#DepartamentoId').find('option').remove().end();
+                $("#DepartamentoId").addItems(response.data);
+                $("#DepartamentoId").prop("disabled", false);
+            });
+    };
+
+    function onChangeDepartamento(control) {
+
+        $.post('@Url.Action("GetProvincia", "Empresa")',
+         {
+             departamentoId: control.value
+         }, function (response) {
+             $('#ProvinciaId').find('option').remove().end();
+             $("#ProvinciaId").addItems(response.data);
+             $("#ProvinciaId").prop("disabled", false);
+         });
+    };
+
+    function onChangeProvincia(control) {
+
+        $.post('@Url.Action("GetDistrito", "Empresa")',
+         {
+             provinciaId: control.value
+         }, function (response) {
+             $('#DistritoId').find('option').remove().end();
+             $("#DistritoId").addItems(response.data);
+             $("#DistritoId").prop("disabled", false);
+         });
+    }
+
+     function onClickCliente(control) {
+        var value = $("#NumeroRuc").val();
+
+         if (isEmptyElement("NumeroRuc", "Ingrese el campo numero numero documento"))
+            return false;
+
+        let timerInterval
+        Swal.fire({
+            title: 'Espere estamos consultando !',
+            html: 'En unos momentos <strong></strong> se cerrara.',
+            timer: 2000,
+            onBeforeOpen: () => {
+                Swal.showLoading()
+            },
+            onClose: () => {
+            }
+        }).then((result) => {
+
+        });
+
+        $.post('@Url.Action("GetClienteSunat", "Cliente")', {
+            numeroruc: value,
+            tipoDoc: '27'
+        }, function (response) {
+            if (response.success) {
+                $("#RazonSocial").val(response.data.Nombre);
+                $("#Nombre").val(response.data.Nombre);
+                $("#NumeroRuc").val(response.data.NumeroDocumento);
+                $("#Direccion").val(response.data.Direccion);
+
+            } else {
+                var json = JSON.parse(response.data);
+                MsgAlert(3, json.error);
+            }
+        });
+    }
+</script>

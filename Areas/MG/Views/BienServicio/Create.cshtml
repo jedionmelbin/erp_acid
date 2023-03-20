@@ -1,0 +1,279 @@
+@model eRPBusiness.Transport.BienServicioDTO
+@using eRPBusiness.Helpers
+@{
+
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>@ViewBag.Title</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                       new ItemMenuBar(MenuBarButtonType.Save),
+                                       new ItemMenuBar(MenuBarButtonType.Exit)
+                                   })
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body" id="panel">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { @id = "form1" }))
+                {
+                    @Html.AntiForgeryToken()
+                <div class="col-lg-6 form-horizontal">
+                    <div class="form-group">
+                        @Html.CRM().TextBoxFor(m => m.Codigo, "col-lg-4", "Cod. Interno", "col-lg-2").Attributes(new { @placeholder = "Codigo interno", @readonly = "readonly" })
+                        @Html.CRM().TextBoxFor(m => m.CodigoComercial, "col-lg-4", "Cod. Producto", "col-lg-2").Attributes(new { @placeholder = "Codigo producto" })
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().Select2List("ClienteId", Model.ClienteId, @ViewBag.ProveedorList, "col-lg-10", "Proveedor", "col-lg-2")
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().TextBoxFor(m => m.Descripcion, "col-lg-10", "Descripcion", "col-lg-2").Attributes(new { @placeholder = "Descripcion" })
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().TextBoxFor(m => m.NombreCorto, "col-lg-10", "Nombre Corto", "col-lg-2").Attributes(new { @placeholder = "Nombre Corto" })
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().Select2List("TipoBienId", Model.TipoBienId, @ViewBag.TipoBienList, "col-lg-4", "Tipo bien", "col-lg-2")
+                        @Html.CRM().Select2List("CategoriaId", Model.CategoriaId, @ViewBag.ListCategoria, "col-lg-4", "Categoria", "col-lg-2")
+                    </div>
+                      <div class="form-group">
+                        @Html.CRM().Select2List("PlanContableId", Model.PlanContableId, @ViewBag.ListaPlanConta, "col-lg-10", "Plan Contable", "col-lg-2")
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().Select2List("TipoExistenciaId", Model.TipoExistenciaId, @ViewBag.ListExistencia, "col-lg-10", "T. Existencia", "col-lg-2")
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().Select2List("MarcaId", Model.MarcaId, @ViewBag.MarcaList, "col-lg-4", "Marca", "col-lg-2")
+                        @Html.CRM().TextBoxFor(m => m.Modelo, "col-lg-4", "Modelo", "col-lg-2").Attributes(new { @placeholder = "Modelo" })
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().Select2List("MonedaId", Model.MonedaId, @ViewBag.MonedaList, "col-lg-4", "Moneda", "col-lg-2")
+                        @Html.CRM().Select2List("LineaId", Model.LineaId, @ViewBag.LineaList, "col-lg-4", "Linea", "col-lg-2")
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().Select2List("UnidadMedidaId", Model.UnidadMedidaId, @ViewBag.UnidadMedidaList, "col-lg-4", "U. Medida", "col-lg-2")
+                    </div>
+                </div>
+                    <div class="col-lg-6 form-horizontal">
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Procedencia, "col-lg-9", "Procedencia", "col-lg-3").Attributes(new { @placeholder = "Procedencia" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().NumericTextBoxFor(m => m.StockMinimo, "col-lg-3", "Stock Minimo", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2)
+                            @Html.CRM().NumericTextBoxFor(m => m.StockMaximo, "col-lg-3", "Stock Maximo", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2)
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().NumericTextBoxFor(m => m.PrecioUnitario, "col-lg-3", "Costo Unitario", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2)
+                            @Html.CRM().NumericTextBoxFor(m => m.PrecioVenta, "col-lg-3", "Costo Venta", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2)
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().NumericTextBoxFor(m => m.PesoNeto, "col-lg-3", "Peso Neto", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2)
+                            @Html.CRM().NumericTextBoxFor(m => m.PesoBruto, "col-lg-3", "Peso Bruto", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2)
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextAreaFor(m => m.Observacion, "col-lg-9", "Observacion", "col-lg-3").Attributes(new { @placeholder = "Observacion" }).Rows(6)
+                        </div>
+                        <div class="form-group">
+                            <label class="col-lg-3 control-label"></label>
+                            <div class="col-lg-9">
+                                <button class="btn btn-primary btn-block" type="button" id="btnVerFoto">Ver Foto</button>
+                            </div>
+                        </div>
+                    </div>
+                    @Html.HiddenFor(m => m.BienServicioId)
+                    @Html.HiddenFor(m => m.EditAction)
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.CRM().Popup("myModal", "Imagen Producto", "onClickOkBienImagen", SizePopup.Large))
+{
+    <div id="modalContent"></div>
+}
+
+@using (Html.CRM().Popup("myModalPrecio", "Precio Producto", "onClickOkPrecioProducto", SizePopup.Default))
+{
+    <div id="modalContentPrecio"></div>
+}
+
+<script type="text/javascript">
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+        $("#ClienteId").select2({
+            ajax: {
+                url: '@Url.Action("GetProveedor")',
+                dataType: 'json',
+                delay: 250,
+                type: 'POST',
+                data: function (params) {
+                    return {
+                        query: params.term // search ter
+                    };
+                },
+                processResults: function (data, params) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.RazonSocial,
+                                id: item.ClienteId
+                            }
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Busqueda de proveedor',
+            allowClear: true,
+            escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function () {
+                    return "Busqueda de proveedor";
+                }
+            }
+        });
+
+        $("#AlmacenId").select2({
+            ajax: {
+                url: '@Url.Action("GetAlmacen")',
+                dataType: 'json',
+                delay: 250,
+                type: 'POST',
+                data: function (params) {
+                    return {
+                        query: params.term // search ter
+                    };
+                },
+                processResults: function (data, params) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.Nombre,
+                                id: item.AlmacenId
+                            }
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Busqueda de almacen',
+            allowClear: true,
+            escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function () {
+                    return "Busqueda de almacen";
+                }
+            }
+        });
+
+
+      $("#PlanContableId").select2({
+            ajax: {
+                url: '@Url.Action("GetPlanContable")',
+                dataType: 'json',
+                delay: 250,
+                type: 'POST',
+                data: function (params) {
+                    return {
+                        query: params.term // search ter
+                    };
+                },
+                processResults: function (data, params) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.PlanContable,
+                                id: item.PlanContableId
+                            }
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Busqueda de almacen',
+            allowClear: true,
+            escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function () {
+                    return "Busqueda de almacen";
+                }
+            }
+        });
+
+
+
+        $("#myModal").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            controllerPostAction('@Url.Action("BienServicioEdit", "BienServicio")', null, 'modalContent', false, false, null);
+        });
+
+        $("#myModalPrecio").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            controllerPostAction('@Url.Action("PrecioBienEdit", "BienServicio")', null, 'modalContentPrecio', false, false, null);
+        });
+
+        $('#myModal').on('hidden.bs.modal', function (e) {
+            $('#modalContent').empty();
+        });
+
+        $('#Carousel').carousel({
+            interval: 5000
+        })
+
+        $("#btnVerFoto").click(function () {
+            $("#myModal").modal('show');
+        });
+        $("#btnPrecio").click(function () {
+            $("#myModalPrecio").modal('show');
+        });
+    });
+
+    function onClickMenuBar(key) {
+        switch (key) {
+            case '@ButtonMenuBarActionConstant.SAVE':
+                saveData(key);
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                controllerGetAction('@Url.Action("Bandeja", "BienServicio", new { area = "mg" })', null, 'workspace', false, false, null);
+                break;
+        }
+
+    };
+
+    function saveData() {
+
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var jsonData = {
+            __RequestVerificationToken: token,
+            Header: JSON.stringify($('#form1').serializeObject()),
+            EditAction: $("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("Create", "BienServicio", new { area = "mg" })", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                controllerGetAction('@Url.Action("Bandeja", "BienServicio", new { area = "mg" })', null, 'workspace', false, false, null);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+
+    };
+
+</script>
+
+
+

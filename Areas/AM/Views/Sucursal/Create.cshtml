@@ -1,0 +1,147 @@
+@model eRPBusiness.Transport.SucursalDTO
+@using eRPBusiness.Helpers
+@{
+
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>@ViewBag.Title</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                       new ItemMenuBar(MenuBarButtonType.Save),
+                                       new ItemMenuBar(MenuBarButtonType.Exit)
+
+                                   })
+<div class="row">
+
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { @id = "form1" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            @Html.CRM().Select2List("EmpresaId", Model.EmpresaId, @ViewBag.ListEmpresa, "col-lg-10", "Empresa", "col-lg-2")
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Nombre, "col-md-10", "Nombre", "col-lg-2").Attributes(new { @placeholder = "Nombre" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Direccion, "col-md-10", "Dirección", "col-lg-2").Attributes(new { @placeholder = "Direccion" })
+                        </div>
+                        <div class="form-group">
+                            @if (ViewBag.IsNew)
+                            {
+                                @Html.CRM().Select2List("PaisId", null, @ViewBag.PaisList, "col-lg-4", "Pais", "col-lg-2", new { @onchange = "onChangePais(this);" })
+                                @Html.CRM().Select2List("DepartamentoId", null, @ViewBag.DepartamentoList, "col-lg-4", "Departamento", "col-lg-2", new { @onchange = "onChangeDepartamento(this);", @disabled = "disabled" })
+                            }
+                            else
+                            {
+                                @Html.CRM().Select2List("PaisId", Model.DistritoDTO.ProvinciaDTO.DepartamentoDTO.PaisId, @ViewBag.PaisList, "col-lg-4", "Pais", "col-lg-2", new { @onchange = "onChangeProvincia(this);" })
+                                @Html.CRM().Select2List("DepartamentoId", Model.DistritoDTO.ProvinciaDTO.DepartamentoId, @ViewBag.DepartamentoList, "col-lg-4", "Departamento", "col-lg-2", new { @onchange = "onChangeDepartamento(this);" })
+                            }
+                        </div>
+                        <div class="form-group">
+                            @if (ViewBag.IsNew)
+                            {
+                                @Html.CRM().Select2List("ProvinciaId", null, @ViewBag.ProvinciaList, "col-lg-4", "Provincia", "col-lg-2", new { @onchange = "onChangeProvincia(this);", @disabled = "disabled" })
+                                @Html.CRM().Select2List("DistritoId", null, @ViewBag.DistritoList, "col-lg-4", "Distrito", "col-lg-2", new { @disabled = "disabled" })
+                            }
+                            else
+                            {
+                                @Html.CRM().Select2List("ProvinciaId", Model.DistritoDTO.ProvinciaDTO.ProvinciaId, @ViewBag.ProvinciaList, "col-lg-4", "Provincia", "col-lg-2", new { @onchange = "onChangeProvincia(this);" })
+                                @Html.CRM().Select2List("DistritoId", Model.DistritoId, @ViewBag.DistritoList, "col-lg-4", "Distrito", "col-lg-2")
+                            }
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Telefono, "col-md-4", "Teléfono", "col-lg-2").Attributes(new { @placeholder = "Telefono" })
+                        </div>
+
+                        @*Borrando Capacidad de Sucursal*@
+                        @*<div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Capacidad, "col-md-10", "Capacidad", "col-lg-2").Attributes(new { @placeholder = "Capacidad" })
+                        </div>*@
+
+                    </div>
+                    @Html.HiddenFor(m => m.SucursalId)
+                    @Html.HiddenFor(m => m.EditAction)
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function onClickMenuBar(key) {
+        switch (key) {
+            case '@ButtonMenuBarActionConstant.SAVE':
+                saveData();
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                controllerGetAction('@Url.Action("Bandeja", "Sucursal", new { area = "AM" })', null, 'workspace', false, false, null);
+                break;
+        }
+    };
+
+        function onChangePais(control) {
+        $.post('@Url.Action("GetDepartamento")',
+            {
+                paisId: control.value
+            }, function (response) {
+                $('#DepartamentoId').find('option').remove().end();
+                $("#DepartamentoId").addItems(response.data);
+                $("#DepartamentoId").prop("disabled", false);
+            });
+    };
+
+    function onChangeDepartamento(control) {
+
+        $.post('@Url.Action("GetProvincia")',
+         {
+             departamentoId: control.value
+         }, function (response) {
+             $('#ProvinciaId').find('option').remove().end();
+             $("#ProvinciaId").addItems(response.data);
+             $("#ProvinciaId").prop("disabled", false);
+         });
+    };
+
+    function onChangeProvincia(control) {
+
+        $.post('@Url.Action("GetDistrito")',
+         {
+             provinciaId: control.value
+         }, function (response) {
+             $('#DistritoId').find('option').remove().end();
+             $("#DistritoId").addItems(response.data);
+             $("#DistritoId").prop("disabled", false);
+         });
+    }
+    function saveData(key) {
+
+
+
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var jsonData = {
+            __RequestVerificationToken: token,
+            Header: JSON.stringify($('#form1').serializeObject()),
+            EditAction: $("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("Create", "Sucursal", new { area = "AM" })", jsonData, false, false, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                controllerGetAction('@Url.Action("Bandeja", "Sucursal", new { area = "AM" })', null, 'workspace', false, false, null);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    };
+
+</script>

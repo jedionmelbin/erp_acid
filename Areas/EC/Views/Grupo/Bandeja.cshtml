@@ -1,0 +1,176 @@
+﻿@using eRPBusiness.Helpers
+@using eRPBusiness.Common
+@{
+    ViewData["Title"] = "Index";
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label> Listado Campañas</label>
+        </nav>
+    </div>
+</div>
+
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                    new ItemMenuBar(MenuBarButtonType.New),
+                    new ItemMenuBar(MenuBarButtonType.Edit)
+                    })
+
+<div class="row">
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-body" id="panel">
+                <table id="jqGridBandeja"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="hidden"  id="EditAction"/>
+
+@using (Html.CRM().Popup("myGrupoSlide", "Slide", "onClickOkSlide", SizePopup.Default))
+{
+    <div id="modalGrupoContent"></div>
+}
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridBandeja").jqGrid({
+            url: '@Url.Action("ListarBandeja", "Grupo", new { area = "ec" })',
+            mtype: "POST",
+            postData: {
+                descripcion: function () { return $("#Descripcion").val() },
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'GrupoId', key: true, hidden: true },
+                { label: 'Nombre', name: 'Nombre', width: 50  },
+                { label: 'Imagen', name: 'Imagen', width: 50 },
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 230),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            rownumbers: true, // show row numbers
+            pager: "#jqGridPager"
+        });
+
+        $("#myGrupoSlide").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            var row = getGridSelectedRow("jqGridBandeja");
+            var jsonData = {
+                editAction: $("#EditAction").val(),
+                grupoId: row.GrupoId
+            };
+            controllerGetAction('@Url.Action("Create", "Grupo")', jsonData, 'modalGrupoContent', false, false, null);
+        });
+    });
+
+    function onClickMenuBar(key) {
+
+        var postData = {
+            editAction: '',
+            campanaId: 0
+        };
+        var row = getGridSelectedRow("jqGridBandeja");
+        switch (key) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                $("#EditAction").val("1");
+                postData.editAction = '@EditActionConstant.NEW';
+                $("#myGrupoSlide").modal('show');
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    postData.editAction = '@EditActionConstant.EDIT';
+                    postData.grupoId = row.GrupoId;
+                    $("#EditAction").val("2");
+                    $("#myGrupoSlide").modal('show');
+                } else {
+                    MsgAlert(3, 'Seleccione una campana');
+                }
+                break;
+             case "@ButtonMenuBarActionConstant.IMPORT_XLS":
+                $("#myGrupoSlide").modal('show');
+                break;
+        }
+    }
+
+    function colorCell(cellvalue, options, rowObject) {
+        var backgroud = '', colorHex = '';
+        switch (rowObject.Estado) {
+            case '@EstadoConstante.ACTIVO':
+                colorHex = '#57D99C';
+                break;
+            case '@EstadoConstante.INACTIVO':
+                colorHex = '#F57043';
+                break;
+            default:
+                return cellvalue;
+                break;
+        }
+        backgroud = '<span style="background-color: ' + colorHex + '; display: block; width: 100%; height: 100%; color:#fff; ">' + rowObject.LetraEstado + '</span>';
+        return backgroud;
+    }
+
+    function fnRowDelete(control) {
+
+        alertify.confirm('Anular Campaña', 'Estas seguro de anular campana ?', function () {
+            //alertify.success('Ok');
+             var jsonData = {
+                 campanaId: control.rel
+            };
+            controllerSaveResponse("@Url.Action("GenerarBaja", "Grupo")", jsonData, true, true, function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    jQuery("#jqGridBandeja").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                } else {
+                    MsgAlert(4, response.message);
+                }
+            });
+        }, function () {
+
+            alertify.error('Cancel');
+        });
+    }
+
+    function onClickOkSlide() {
+ 
+        var filesMin = $("#FileImage").get(0).files;
+
+        var formdata = new FormData();
+        for (var i = 0; i < filesMin.length; i++) {
+            formdata.append("fileBase", filesMin[i]);
+        }
+        formdata.append("Form", JSON.stringify($('#modalGrupoContent').serializeObject()));
+        formdata.append("EditAction", $('#EditAction').val());
+
+
+         $.ajax({
+            url: '@Url.Action("Create", "Grupo")',
+            type: "POST",
+            contentType: false, // Not to set any content header
+            processData: false, // Not to process data
+            data: formdata,
+            async: false,
+            success: function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    jQuery("#jqGridBandeja").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                    $("#myGrupoSlide").modal('hide');
+                } else {
+                    MsgAlert(4, response.message);
+                }
+            },
+            error: function (err) {
+                alert(err.statusText);
+            }
+        });
+    }
+</script>
+

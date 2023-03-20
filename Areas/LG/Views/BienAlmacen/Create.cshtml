@@ -1,0 +1,1401 @@
+﻿@model eRPBusiness.Transport.BienAlmacenDTO
+@using eRPBusiness.Helpers;
+@using eRPBusiness.Common;
+@{
+    /**/
+
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>@ViewBag.Title</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                       new ItemMenuBar(MenuBarButtonType.Save),
+                                       new ItemMenuBar(MenuBarButtonType.Exit)
+                                   })
+<div class="row">
+    <div class="col-lg-12">
+        <ul class="nav nav-tabs" role="tablist" id="myTabs">
+            <li role="presentation" class="active"><a href="#products" aria-controls="products" role="tab" data-toggle="tab">Productos</a></li>
+            <li role="presentation"><a href="#caracterist" aria-controls="caracterist" role="tab" data-toggle="tab">Caracteristicas</a></li>
+            <li role="presentation"><a href="#detalle" aria-controls="detalle" role="tab" data-toggle="tab">Detalle Producto</a></li>
+            <li role="presentation"><a href="#resena" aria-controls="resena" role="tab" data-toggle="tab">Calificación</a></li>
+            <li role="presentation"><a href="#comentarios" aria-controls="resena" role="tab" data-toggle="tab">Comentarios</a></li>
+        </ul>
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="products">
+                <div class="row">
+                    <div class="col-md-12">
+                        @using (Html.BeginForm("", "", FormMethod.Post, new { @id = "form1" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            @Html.Hidden("rowId")
+                            @Html.Hidden("parentId")
+                            @Html.HiddenFor(m => m.TipoCambio)
+                            <div class="col-lg-6 form-horizontal">
+
+                                <div class="form-group">
+                                    @Html.CRM().TextBoxFor(m => m.Codigo, "col-lg-4", "Cod. Interno", "col-lg-2").Attributes(new { @placeholder = "Codigo interno", @readonly = "readonly" })
+                                    @Html.CRM().TextBoxFor(m => m.CodigoComercial, "col-lg-4", "Cod. Com.", "col-lg-2").Attributes(new { @placeholder = "Codigo Comercial" })
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().TextBoxFor(m => m.CodigoFabricante, "col-lg-4", "Cod. Fab.", "col-lg-2").Attributes(new { @placeholder = "Código Fabricante" })
+                                    @Html.CRM().TextBoxFor(m => m.Garantia, "col-lg-4", "Garantia", "col-lg-2").Attributes(new { @placeholder = "Garantia" })
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().Select2List("ClienteId", Model.ClienteId, @ViewBag.ProveedorList, "col-lg-10", "Proveedor", "col-lg-2")
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().TextBoxFor(m => m.Descripcion, "col-lg-10", "Descripcion", "col-lg-2").Attributes(new { @placeholder = "Descripcion" })
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().TextBoxFor(m => m.Nombre, "col-lg-10", "Nombre", "col-lg-2").Attributes(new { @placeholder = "Nombre" })
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().TextBoxFor(m => m.NombreCorto, "col-lg-10", "Nombre Corto", "col-lg-2").Attributes(new { @placeholder = "Nombre Corto" })
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().Select2List("TipoBienId", Model.TipoBienId, @ViewBag.TipoBienList, "col-lg-4", "Tipo bien", "col-lg-2")
+                                    @Html.CRM().Select2List("CategoriaId", Model.CategoriaId, @ViewBag.ListCategoria, "col-lg-4", "Categoria", "col-lg-2", new { @onchange = "onChangeSubCateg(this)" })
+                                </div>
+                                <div class="form-group">
+                                    @if (ViewBag.IsNew)
+                                    {
+                                        @Html.CRM().Select2List("SubCategoriaId", Model.SubCategoriaId, @ViewBag.ListSubCategoria, "col-lg-4", "Sub Categoria", "col-lg-2", new { @disabled = "true", @onchange = "onChangeDetCateg(this)" })
+                                        @Html.CRM().Select2List("DetalleCategoriaId", Model.DetalleCategoriaId, @ViewBag.ListDetCategoria, "col-lg-4", "Det. Categoria", "col-lg-2", new { @disabled = "true" })
+                                    }
+                                    else
+                                    {
+                                        @Html.CRM().Select2List("SubCategoriaId", Model.SubCategoriaId, @ViewBag.ListSubCategoria, "col-lg-4", "Sub Categoria", "col-lg-2", new { @onchange = "onChangeDetCateg(this)" })
+                                        @Html.CRM().Select2List("DetalleCategoriaId", Model.DetalleCategoriaId, @ViewBag.ListDetCategoria, "col-lg-4", "Det. Categoria", "col-lg-2", new { })
+                                    }
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().Select2List("PlanContableId", Model.PlanContableId, @ViewBag.ListaPlanConta, "col-lg-10", "Plan Contable", "col-lg-2")
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().Select2List("TipoExistenciaId", Model.TipoExistenciaId, @ViewBag.ListExistencia, "col-lg-10", "T. Existencia", "col-lg-2")
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().Select2List("MarcaId", Model.MarcaId, @ViewBag.MarcaList, "col-lg-4", "Marca", "col-lg-2")
+                                    @Html.CRM().TextBoxFor(m => m.Modelo, "col-lg-4", "Modelo", "col-lg-2").Attributes(new { @placeholder = "Modelo" })
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().Select2List("LineaId", Model.LineaId, @ViewBag.LineaList, "col-lg-4", "Linea", "col-lg-2")
+                                    @Html.CRM().Select2List("UnidadMedidaId", Model.UnidadMedidaId, @ViewBag.UnidadMedidaList, "col-lg-4", "U. Medida", "col-lg-2")
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().Select2List("GrupoId", Model.GrupoId, @ViewBag.ListGrupo, "col-lg-4", "Grupo", "col-lg-2")
+                                    @Html.CRM().TextBoxFor(m => m.Sku, "col-lg-4", "SKU", "col-lg-2").Attributes(new { @placeholder = "SKU" })
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().TextBoxFor(m => m.Procedencia, "col-lg-10", "Procedencia", "col-lg-2").Attributes(new { @placeholder = "Procedencia" })
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().NumericTextBoxFor(m => m.StockMinimo, "col-lg-3", "Stock Minimo", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { })
+                                    @Html.CRM().NumericTextBoxFor(m => m.StockMaximo, "col-lg-3", "Stock Maximo", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { })
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().NumericTextBoxFor(m => m.PesoNeto, "col-lg-3", "Peso Neto", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+                                    @Html.CRM().NumericTextBoxFor(m => m.PesoBruto, "col-lg-3", "Peso Bruto", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().TextBoxFor(m => m.Url, "col-lg-10", "Url", "col-lg-2").Attributes(new { @placeholder = "https://www.pagina.com" })
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().TextBoxFor(m => m.Pagina, "col-lg-10", "Pagina", "col-lg-2").Attributes(new { @readonly = "true" })
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().TextBoxTag("Tag", Model.Tag, "col-lg-10", "Tag", "col-lg-2").Attributes(new { @data_tagin_separator = " " })
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().TextBoxFor(m => m.Busqueda, "col-lg-10", "Busqueda", "col-lg-2").Attributes(new { @placeholder = "Busqueda" })
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().TextAreaFor(m => m.Observacion, "col-lg-10", "Observacion", "col-lg-2").Attributes(new { @placeholder = "Observacion" }).Rows(3)
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-lg-2 control-label"></label>
+                                    <div class="col-lg-9">
+                                        <button class="btn btn-primary btn-block" onclick="fnShowCarousel(this)" type="button" id="btnCarousel">Ver Imagen</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 form-horizontal">
+                                <fieldset class="scheduler-border">
+                                    <legend class="scheduler-border">Precios</legend>
+                                    <div class="form-group">
+                                        @Html.CRM().Select2List("TipoImpuestoId", Model.TipoImpuestoId, @ViewBag.TipoImpuestoList, "col-lg-9", "Tipo de Afectación", "col-lg-3")
+                                    </div>
+                                    <div class="form-group">
+                                        @Html.CRM().Select2List("MonedaId", Model.MonedaId, @ViewBag.MonedaList, "col-lg-4", "Moneda Compra", "col-lg-3")
+                                    </div>
+                                    <div class="form-group">
+                                        @Html.CRM().NumericTextBoxFor(m => m.CostoDolar, "col-lg-3", "Costo Dolar", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @style = "color:#2AB894;font-weight:bold;" })
+                                        @Html.CRM().NumericTextBoxFor(m => m.CostoDolarIgv, "col-lg-3", "Costo Dolar C/Igv", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @style = "color:#2AB894;font-weight:bold;" })
+                                    </div>
+                                    <div class="form-group">
+                                        @Html.CRM().NumericTextBoxFor(m => m.PrecioCompraSn, "col-lg-3", "Costo Compra S/Igv", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { })
+                                        @Html.CRM().NumericTextBoxFor(m => m.PrecioCompraInc, "col-lg-3", "Costo Compra C/Igv", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { })
+                                    </div>
+                                    <div class="form-group">
+                                        @Html.CRM().NumericTextBoxFor(m => m.MargenLista, "col-lg-3", "Margen Lista. %", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2)
+                                        @Html.CRM().NumericTextBoxFor(m => m.PorcentajePasarela, "col-lg-3", "Pasarela %", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "readonly", @style = "color:red;" })
+                                    </div>
+                                    <div class="form-group">
+                                        @Html.CRM().NumericTextBoxFor(m => m.CostoAdicionalDolar, "col-lg-3", "Costo Adicional $", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "readonly", @style = "color:red;" })
+                                        @Html.CRM().NumericTextBoxFor(m => m.CostoAdicionalSoles, "col-lg-3", "Costo Adicional S/", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "readonly", @style = "color:red;" })
+                                    </div>
+                                    <div class="form-group">
+                                        @Html.CRM().NumericTextBoxFor(m => m.CostoDelivery, "col-lg-3", "Costo Delivery", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "readonly" })
+                                    </div>
+                                    <div class="form-group">
+                                        @Html.CRM().Select2List("MonedaVentaId", Model.MonedaVentaId, @ViewBag.MonedaList, "col-lg-4", "Moneda Venta", "col-lg-3")
+                                    </div>
+                                    <div class="form-group">
+                                        @Html.CRM().NumericTextBoxFor(m => m.PrecioVentaSn, "col-lg-3", "Precio Venta S/Igv", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { })
+                                        @Html.CRM().NumericTextBoxFor(m => m.PrecioVentaInc, "col-lg-3", "Precio Venta C/Igv", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @style = "color:#50AC53;font-weight:bold;" })
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-2">Ecommerce</label>
+                                        @Html.CRM().CheckBoxFor(m => m.Ecommerce, "col-lg-4", "")
+                                        <label class="control-label col-md-2">Pasarela Pago</label>
+                                        @Html.CRM().CheckBoxFor(m => m.Pasarela, "col-lg-4", "")
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-2">Bar Code</label>
+                                        <div class="col-lg-4">
+                                            <img src="@Model.BarCode" alt="" />
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                <div class="form-group">
+                                    <div class="col-lg-12" id="card">
+                                        @Html.CRM().MenuBar("PrecioMenuBar", "onClickPrecioMenuBar", new ItemMenuBar[]{
+                                                                new ItemMenuBar(MenuBarButtonType.New,true),
+                                                                new ItemMenuBar(MenuBarButtonType.Edit,ViewBag.Disable),
+                                                                new ItemMenuBar(MenuBarButtonType.Save,true),
+                                                                new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                                                                 }, MenuBarType.Small)
+                                        <table id="jqGridBienPrecio"></table>
+                                        <div id="jqGridPrecio"></div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            @Html.HiddenFor(m => m.BienAlmacenId)
+                            @Html.HiddenFor(m => m.BienServicioId)
+                            @Html.HiddenFor(m => m.Impuesto)
+                            @Html.HiddenFor(m => m.EditAction)
+                        }
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="caracterist">
+                <div class="row">
+                    <div class="col-lg-12">
+                        @Html.CRM().MenuBar("CaractMenuBar", "onClickCaractMenuBar", new ItemMenuBar[]{
+                                                new ItemMenuBar(MenuBarButtonType.New,  false ),
+                                                new ItemMenuBar(MenuBarButtonType.Edit,false),
+                                                 new ItemMenuBar(MenuBarButtonType.Reload,false),
+                                                new ItemMenuBar(MenuBarButtonType.Delete,true)
+                                            }, MenuBarType.Small)
+                    </div>
+                    <div class="col-lg-12">
+                        <table id="jqGridCaract"></table>
+                        <div id="jqGridPagerCaract"></div>
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="detalle">
+                <div class="row">
+                    <div class="col-lg-12">
+                        @Html.CRM().MenuBar("DetalleMenuBar", "onClickDetalleMenuBar", new ItemMenuBar[]{
+                                                new ItemMenuBar(MenuBarButtonType.New,  false ),
+                                                new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                new ItemMenuBar(MenuBarButtonType.Delete,true)
+                                            }, MenuBarType.Small)
+                    </div>
+                    <div class="col-lg-12">
+                        <table id="jqGridDetalle"></table>
+                        <div id="jqGridPagerDetalle"></div>
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="resena">
+                <div class="row">
+                    <div class="col-lg-12">
+                        @Html.CRM().MenuBar("ResenaMenuBar", "onClickResenaMenuBar", new ItemMenuBar[]{
+                                                new ItemMenuBar(MenuBarButtonType.New,  false ),
+                                                new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                new ItemMenuBar(MenuBarButtonType.Delete,true)
+                                            }, MenuBarType.Small)
+                    </div>
+                    <div class="col-lg-12">
+                        <table id="jqGridResena"></table>
+                        <div id="jqGridPagerResena"></div>
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="comentarios">
+                <div class="row">
+                    <div class="col-lg-12">
+                        @Html.CRM().MenuBar("ComentariosMenuBar", "onClickComentarios", new ItemMenuBar[]{
+                                                new ItemMenuBar(MenuBarButtonType.New,  false ),
+                                                new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                new ItemMenuBar(MenuBarButtonType.Delete,true)
+                                            }, MenuBarType.Small)
+                    </div>
+                    <div class="col-lg-12">
+                        <table id="jqGridcomentarios"></table>
+                        <div id="jqPageGridcomentarios"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" name="EditAction" id="EditAction" />
+</div>
+
+@using (Html.CRM().Popup("myModal", "Imagen Producto", "onClickOkBienImagen", SizePopup.Default))
+{
+    <div id="modalContent"></div>
+}
+
+@using (Html.CRM().Popup("myModalPrecio", "Precio Producto", "onClickOkPrecioProducto", SizePopup.Default))
+{
+    <div id="modalContentPrecio"></div>
+}
+
+@using (Html.CRM().Popup("myModalCaract", "Caracteristicas", "onClickOkCaract", SizePopup.Default))
+{
+    <div id="modalContentCaract"></div>
+}
+@using (Html.CRM().Popup("myModalDetalle", "Detalles Producto", "onClickOkDetalle", SizePopup.Default))
+{
+    <div id="modalContentDetalle"></div>
+}
+
+@using (Html.CRM().Popup("myModalResena", "Calificacion Producto", "onClickOkResena", SizePopup.Default))
+{
+    <div id="modalResena"></div>
+}
+
+@using (Html.CRM().Popup("myComentarios", "Comentarios Producto", "onClickOkComentarios", SizePopup.Default))
+{
+    <div id="modalComentarios"></div>
+}
+
+
+<script type="text/javascript">
+    var _widthPanel = $("#card").width();
+    var _impuesto = parseFloat($("#Impuesto").val());
+    var _tipoCambio = parseFloat($("#TipoCambio").val());
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanels = $("#myTabs").width();
+
+    $(document).ready(function () {
+        $("#jqGridBienPrecio").jqGrid({
+            url: '@Url.Action("ListarPrecio", "BienAlmacen", new { area = "lg" })',
+            mtype: "POST",
+            postData: {
+                bienAlmacenId: function () { return $("#BienAlmacenId").val(); },
+                bienServicioId: function () { return $("#BienServicioId").val(); }
+            },
+            datatype: "json",
+            colModel: [
+                { label: '', name: 'BienPrecioId', hidden: true },
+                { label: '', name: 'BienAlmacenId', hidden: true },
+                { label: '', name: 'TipoPrecioId', hidden: true },
+                { label: 'Tipo Precio', name: 'Nombre', width: 13 },
+                {
+                    label: 'Costo sin Impuesto', name: 'PrecioSinIgv', width: 13, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', {
+                                placeholder: "0",
+                                digits: 2,
+                                digitsOptional: false,
+                                autoGroup: true,
+                                allowPlus: false,
+                                allowMinus: false,
+                                clearMaskOnLostFocus: false,
+                                removeMaskOnSubmit: true
+                            });
+                            $(elem).blur(function () {
+                                var rowId = $(elem).parent().parent().attr('id');
+                                var rowData = jQuery("#jqGridBienPrecio").getRowData(rowId);
+                                var _precioSinIgv = parseFloat($("#" + rowId + "_PrecioSinIgv").val());
+                                var _precioNacional = _precioSinIgv + (_precioSinIgv * (_impuesto / 100));
+                                var _precioDolar = _precioNacional / _tipoCambio;
+                                $("#" + rowId + "_PrecioNacional").val(_precioNacional);
+                                $("#" + rowId + "_PrecioDolares").val(_precioDolar);
+                            });
+                        }
+                    }
+                },
+                {
+                    label: 'Descuento %', name: 'Margen', width: 10, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                         readonly: 'readonly',
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', {
+                                placeholder: "0",
+                                digits: 2,
+                                digitsOptional: false,
+                                autoGroup: true,
+                                allowPlus: false,
+                                allowMinus: false,
+                                clearMaskOnLostFocus: false,
+                                removeMaskOnSubmit: true
+                            });
+                            $(elem).blur(function () { });
+                        }
+                    }
+                },
+                {
+                    label: 'Precio Nacional', name: 'PrecioNacional', width: 12, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', {
+                                placeholder: "0",
+                                digits: 2,
+                                digitsOptional: false,
+                                autoGroup: true,
+                                allowPlus: false,
+                                allowMinus: false,
+                                clearMaskOnLostFocus: false,
+                                removeMaskOnSubmit: true
+                            });
+                            $(elem).blur(function () {
+                                var rowId = $(elem).parent().parent().attr('id');
+                                var rowData = jQuery("#jqGridBienPrecio").getRowData(rowId);
+                                var _precioNacional = parseFloat($("#" + rowId + "_PrecioNacional").val());
+                                var _precioDolar = _precioNacional / _tipoCambio;
+                                var _precioSnIgv = _precioNacional / 1.18;
+                                $("#" + rowId + "_PrecioSinIgv").val(_precioSnIgv);
+                                $("#" + rowId + "_PrecioDolares").val(_precioDolar);
+
+                            });
+                        }
+                    }
+                },
+                {
+                    label: 'Precio en Dolar', name: 'PrecioDolares', width: 13, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        readonly: 'readonly',
+                        dataInit: function (elem, options) {
+                          $(elem).inputmask('decimal', {
+                                placeholder: "0",
+                                digits: 2,
+                                digitsOptional: false,
+                                autoGroup: true,
+                                allowPlus: false,
+                                allowMinus: false,
+                                clearMaskOnLostFocus: false,
+                                removeMaskOnSubmit: true
+                            });
+                            $(elem).blur(function () { });
+                        }
+                    }
+                }
+
+            ],
+            viewrecords: false,
+            page: 1,
+            scroll: 1,
+            emptyrecords: '',
+            width: _widthPanel,
+            height: 200,
+            ondblClickRow: function (rowId) {
+                var rowData = jQuery(this).getRowData(rowId);
+            },
+            onSelectRow: function (rowid) {
+                $("#PrecioMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.NEW',
+                    disabled: true
+                });
+                $("#PrecioMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.EDIT',
+                    disabled: false
+                });
+
+            },
+            pager: "#jqGridPrecio"
+        });
+
+        $("#jqGridCaract").jqGrid({
+            url: '@Url.Action("ListarCaracteristica","BienAlmacen")',
+            mtype: "POST",
+            datatype: "json",
+            postData: {
+                bienServicioId: function () { return $("#BienServicioId").val(); }
+            },
+             colModel: [
+                 { name: 'CaracteristicaId', hidden: true },
+                 { name: 'AtributoId', hidden: true },
+                 { name: 'BienServicioId', hidden: true },
+                 {
+                     label: "Acciones",
+                     name: "actions",
+                     width: 30,
+                     sortable: false,
+                     align: 'center',
+                     formatter: function (cellvalue, options, rowObject) {
+                         var _new = "<a href='#' rel='" + options.rowId + "' onClick='fnNewRow(this)' ><span class='glyphicon glyphicon-file'></span></a> <span></span> <span></span>";
+                         var _del = "<a href='#' rel='" + options.rowId + "' onClick='fnDelRow(this)' ><span class='glyphicon glyphicon-trash'></span></a>";
+                         var _content = _new + _del;
+                         return _content;
+                     }
+
+                 },
+                 { label:'Nombre',name: 'Nombre', width: 100 },
+                 { label:'Descripción', name: 'Descripcion', width: 200 },
+                 { label:'Observación', name: 'Observacion', width: 200,hidden:true }
+             ],
+             pager: $('#jqGridPagerDetalle'),
+             sortname: "RolMenuId",
+             height: 370,
+             width: (_widthPanels - 30),
+             treeGrid: true,
+             treeGridModel: 'adjacency',
+             treedatatype: "local",
+             ExpandColumn: 'Nombre'
+         });
+
+        $("#jqGridDetalle").jqGrid({
+            url: '@Url.Action("ListarDetalles", "BienAlmacen")',
+            mtype: "POST",
+            postData: {
+                bienServicioId: function () { return $("#BienServicioId").val(); }
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'CaracteristicaId', name: 'DetalleBienServicioId', key: true, hidden: true },
+                { label: 'Nombre', name: 'Nombre', width: 60 },
+                { label: 'Descripcion', name: 'Descripcion', width: 150 },
+                { label: 'Observacion', name: 'Observacion', width: 150, hidden: true },
+                {
+                    label: "Acciones",
+                    name: "actions",
+                    width: 10,
+                    sortable: false,
+                    align: 'center',
+                    formatter: function (cellvalue, options, rowObject) {
+                        var _content = "<a href='#' rel='" + rowObject.DetalleBienServicioId + "' onClick='fnDelDetailsRow(this)' ><span class='glyphicon glyphicon-trash'></span></a>";
+                        return _content;
+                    }
+
+                },
+            ],
+            viewrecords: true,
+            loadonce: true,
+            rowNum: 20,
+            height: 300,
+            width: (_widthPanels - 30),
+            rowList: [10, 20, 30],
+            rownumbers: true, // show row numbers
+            onSelectRow: function (rowid) {sss
+                if (rowid == null || rowid == 0)
+                    return;
+
+                @* $("#PeriodoMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.EDIT',
+                    disabled: false
+                });*@
+            },
+            pager: "#jqGridPagerDetalle"
+        });
+
+        $("#jqGridResena").jqGrid({
+            url: '@Url.Action("ListarNivelCalifica", "BienAlmacen")',
+            mtype: "POST",
+            postData: {
+                bienServicioId: function () { return $("#BienServicioId").val(); }
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'NivelClasificaId', name: 'NivelClasificaId', key: true, width: 75, hidden:true },
+                { label: 'BienServicioId', name: 'BienServicioId', width: 150, hidden:true },
+                { label: 'CalificacionId', name: 'CalificacionId', width: 150, hidden: true },
+                { label: 'Orden', name: 'Orden', width: 150 },
+                { label: 'TipoOrden', name: 'TipoOrden', width: 150 },
+                { label: 'Contador', name: 'Contador', width: 150 },
+                { label: 'Porcentaje', name: 'Porcentaje', width: 150 }
+            ],
+            viewrecords: true, // show the current page, data rang and total records on the toolbar
+            height: 300,
+            width: (_widthPanels - 30),
+            rowNum: 30,
+            loadonce: true, // this is just for the demo
+            pager: "#jqGridPagerResena"
+        });
+
+        $("#jqGridcomentarios").jqGrid({
+            url: '@Url.Action("ListarComentarios", "BienAlmacen")',
+            mtype: "POST",
+            postData: {
+                bienServicioId: function () { return $("#BienServicioId").val(); }
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'ResenaBienServicioId', name: 'ResenaBienServicioId', key: true, width: 75, hidden:true },
+                { label: 'BienServicioId', name: 'BienServicioId', width: 150, hidden:true },
+                //{ label: 'CalificacionId', name: 'CalificacionId', width: 150, hidden: true },
+                { label: 'Nombre', name: 'Nombre', width: 150 },
+                { label: 'Descripcion', name: 'Descripcion', width: 150 },
+                { label: 'Observacion', name: 'Observacion', width: 150 }
+                //{ label: 'Porcentaje', name: 'Porcentaje', width: 150 }
+            ],
+            viewrecords: true, // show the current page, data rang and total records on the toolbar
+            height: 300,
+            width: (_widthPanels - 30),
+            rowNum: 30,
+            loadonce: true, // this is just for the demo jqGridcomentarios
+            pager: "#jqPageGridcomentarios"
+        });
+
+        $("#ClienteId").select2({
+            ajax: {
+                url: '@Url.Action("GetProveedor")',
+                dataType: 'json',
+                delay: 250,
+                type: 'POST',
+                data: function (params) {
+                    return {
+                        query: params.term // search ter
+                    };
+                },
+                processResults: function (data, params) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.RazonSocial,
+                                id: item.ClienteId
+                            };
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Busqueda de proveedor',
+            allowClear: true,
+            escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function () {
+                    return "Busqueda de proveedor";
+                }
+            }
+        });
+
+        $("#AlmacenId").select2({
+            ajax: {
+                url: '@Url.Action("GetAlmacen")',
+                dataType: 'json',
+                delay: 250,
+                type: 'POST',
+                data: function (params) {
+                    return {
+                        query: params.term // search ter
+                    };
+                },
+                processResults: function (data, params) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.Nombre,
+                                id: item.AlmacenId
+                            };
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Busqueda de almacen',
+            allowClear: true,
+            escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function () {
+                    return "Busqueda de almacen";
+                }
+            }
+        });
+
+        $("#PlanContableId").select2({
+            ajax: {
+                url: '@Url.Action("GetPlanContable")',
+                dataType: 'json',
+                delay: 250,
+                type: 'POST',
+                data: function (params) {
+                    return {
+                        query: params.term // search ter
+                    };
+                },
+                processResults: function (data, params) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.PlanContable,
+                                id: item.PlanContableId
+                            }
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Busqueda de plan contables',
+            allowClear: true,
+            escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function () {
+                    return "Busqueda de plan contable";
+                }
+            }
+        });
+
+
+        $("#myModal").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            controllerPostAction('@Url.Action("CarouselEdit", "BienAlmacen")', null, 'modalContent', false, false, null);
+        });
+        $('#myModal').on('hidden.bs.modal', function (e) {
+            $('#modalContent').empty();
+        });
+
+        $("#myModalPrecio").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            controllerPostAction('@Url.Action("PrecioBienEdit", "BienAlmacen")', null, 'modalContentPrecio', false, false, null);
+        });
+
+        $("#myModalCaract").on('show.bs.modal', function () {
+           var row = getGridSelectedRow('jqGridCaract');
+           $(this).find('input:text').val('');
+           var postData = {
+               editAction: $("#EditAction").val(),
+               caracteristicaId: row.CaracteristicaId,
+               atributoId: $("#rowId").val(),
+               caracteristicaPadreId: $("#parentId").val()
+           }
+            controllerGetAction('@Url.Action("CaracteristicaEdit", "BienAlmacen")', postData, 'modalContentCaract', false, false, function () { });
+       });
+
+        $("#myModalDetalle").on('show.bs.modal', function () {
+           $(this).find('input:text').val('');
+            controllerPostAction('@Url.Action("DatallesEdit", "BienAlmacen")', null, 'modalContentDetalle', false, false, null);
+        });
+
+        $("#myModalResena").on('show.bs.modal', function () {
+           $(this).find('input:text').val('');
+            controllerPostAction('@Url.Action("NivelCalificaEdit", "BienAlmacen")', null, 'modalResena', false, false, null);
+       });
+
+
+        $('#myModalPrecio').on('hidden.bs.modal', function (e) {
+            $('#modalContentPrecio').empty();
+        });
+
+        $('#myModalCaract').on('hidden.bs.modal', function (e) {
+            $('#modalContentCaract').empty();
+        });
+
+        $('#myModalDetalle').on('hidden.bs.modal', function (e) {
+            $('#modalContentDetalle').empty();
+        });
+
+        $('#Carousel').carousel({
+            interval: 5000
+        })
+
+        $("#btnVerFoto").click(function () {
+            $("#myModal").modal('show');
+        });
+        $("#btnPrecio").click(function () {
+            $("#myModalPrecio").modal('show');
+        });
+
+
+
+
+
+        $("#CostoDolar").blur(function () {
+            debugger;
+            var _impuesto = parseFloat($("#Impuesto").val());
+            var _tipoCambio = stringToDecimal($("#TipoCambio").val());
+            var _costoDolar = stringToDecimal($(this).val());
+            var _costoDolarIgv = _costoDolar + (_costoDolar * _impuesto / 100);
+            var _costoSolesNoIgv = _costoDolar * _tipoCambio;
+
+            $("#CostoDolarIgv").val(_costoDolarIgv);
+            $("#PrecioCompraSn").val(_costoSolesNoIgv);
+
+            //Precio compra sin igv
+            var _costoSolSinIgv = stringToDecimal($("#PrecioCompraSn").val());
+            var _costoSolCnIgv = _costoSolSinIgv + (_costoSolSinIgv * _impuesto / 100);
+            $("#PrecioCompraInc").val(_costoSolCnIgv);
+
+
+            var _margenLista = stringToDecimal($("#MargenLista").val());
+            var _costoCompraSn = stringToDecimal($("#PrecioCompraSn").val());
+            var _tipoCambio = stringToDecimal($("#TipoCambio").val());
+            var _porcentajePasarela = stringToDecimal($("#PorcentajePasarela").val());
+            var _costoAdicionalDolar = stringToDecimal($("#CostoAdicionalDolar").val());
+
+            var _impuestoTotal = (_costoCompraSn * _impuesto) / 100;
+            var _costoCompraCn = _costoCompraSn + _impuestoTotal;
+            var _margenPercent = _margenLista / 100;
+            var _margenPasarela = _porcentajePasarela / 100;
+
+            //Costo adicional si en caso tiene
+            var _costoAdicionalSoles = _costoAdicionalDolar * _tipoCambio;
+            var _costoPorcentaje = (_costoCompraSn / (1 - _margenPasarela)) - _costoCompraSn;
+            var _totalCostoAdicional = _costoAdicionalSoles + _costoPorcentaje;
+
+            var _precioVentaSn = 0;
+            var _precioUnitarioSn = 0;
+            var _precioVentaInc = 0;
+
+            if ($("#Pasarela").is(':checked')) {
+                _precioVentaSn = (_costoCompraSn + _totalCostoAdicional) / (1 - _margenPercent);
+                _precioUnitarioSn = _precioVentaSn;
+
+                //Incluido + IGV
+                _precioVentaInc = _precioUnitarioSn + ((_precioUnitarioSn * _impuesto / 100));
+                $("#CostoAdicionalSoles").val(_totalCostoAdicional);
+            } else {
+                _precioVentaSn = (_costoCompraSn) / (1 - _margenPercent);
+                _precioUnitarioSn = _precioVentaSn;
+
+                //Incluido + IGV
+                _precioVentaInc = _precioUnitarioSn + ((_precioUnitarioSn * _impuesto / 100));
+                $("#CostoAdicionalSoles").val(0);
+            }
+
+            $("#PrecioCompraInc").val(_costoCompraCn);
+            $("#PrecioVentaSn").val(_precioUnitarioSn);
+            $("#PrecioVentaInc").val(_precioVentaInc);
+        });
+
+
+        $("#PrecioCompraSn").blur(function () {
+
+            var _impuesto = parseFloat($("#Impuesto").val());
+             var _margenLista = stringToDecimal($("#MargenLista").val());
+             var _costoCompraSn = stringToDecimal($("#PrecioCompraSn").val());
+             var _tipoCambio = stringToDecimal($("#TipoCambio").val());
+             var _porcentajePasarela = stringToDecimal($("#PorcentajePasarela").val());
+             var _costoAdicionalDolar = stringToDecimal($("#CostoAdicionalDolar").val());
+
+            var _impuestoTotal = (_costoCompraSn * _impuesto) / 100;
+            var _costoCompraCn = _costoCompraSn + _impuestoTotal;
+            var _margenPercent = _margenLista / 100;
+            var _margenPasarela = _porcentajePasarela / 100;
+
+            // costo dolar
+            var _costoSolADolar = _costoCompraSn / _tipoCambio;
+            var _costoSolADolarIgv = _costoSolADolar + (_costoSolADolar * (_impuesto / 100));
+
+            //Costo adicional si en caso tiene
+            var _costoAdicionalSoles = _costoAdicionalDolar * _tipoCambio;
+            var _costoPorcentaje = (_costoCompraSn / (1 - _margenPasarela)) - _costoCompraSn;
+            var _totalCostoAdicional = _costoAdicionalSoles + _costoPorcentaje;
+
+            var _precioVentaSn = 0;
+            var _precioUnitarioSn = 0;
+            var _precioVentaInc = 0;
+
+            if ($("#Pasarela").is(':checked')) {
+                   _precioVentaSn = (_costoCompraSn + _totalCostoAdicional) / (1 - _margenPercent);
+                  _precioUnitarioSn = _precioVentaSn;
+
+                 //Incluido + IGV
+                  _precioVentaInc = _precioUnitarioSn + ((_precioUnitarioSn * _impuesto / 100));
+                  $("#CostoAdicionalSoles").val(_totalCostoAdicional);
+            } else {
+                 _precioVentaSn = (_costoCompraSn) / (1 - _margenPercent);
+                _precioUnitarioSn = _precioVentaSn;
+
+                 //Incluido + IGV
+                _precioVentaInc = _precioUnitarioSn + ((_precioUnitarioSn * _impuesto / 100));
+                $("#CostoAdicionalSoles").val(0);
+              }
+
+              $("#PrecioCompraInc").val(_costoCompraCn);
+              $("#PrecioVentaSn").val(_precioUnitarioSn);
+              $("#PrecioVentaInc").val(_precioVentaInc);
+              $("#CostoDolar").val(_costoSolADolar);
+              $("#CostoDolarIgv").val(_costoSolADolarIgv);
+        });
+
+
+
+        $("#MargenLista").blur(function () {
+
+            var _margenLista = stringToDecimal($("#MargenLista").val());
+            var _costoCompraSn = stringToDecimal($("#PrecioCompraSn").val());
+            var _tipoCambio = stringToDecimal($("#TipoCambio").val());
+            var _porcentajePasarela = stringToDecimal($("#PorcentajePasarela").val());
+            var _costoAdicionalDolar = stringToDecimal($("#CostoAdicionalDolar").val());
+
+            var _impuestoTotal = (_costoCompraSn * _impuesto) / 100;
+            var _costoCompraCn = _costoCompraSn + _impuestoTotal;
+            var _margenPercent = _margenLista / 100;
+            var _margenPasarela = _porcentajePasarela / 100;
+
+            //Costo adicional si en caso tiene
+            var _costoAdicionalSoles = _costoAdicionalDolar * _tipoCambio;
+            var _costoPorcentaje = (_costoCompraSn / (1 - _margenPasarela)) - _costoCompraSn;
+            var _totalCostoAdicional = _costoAdicionalSoles + _costoPorcentaje;
+
+            var _precioVentaSn = 0;
+            var _precioUnitarioSn = 0;
+            var _precioVentaInc = 0;
+
+            if ($("#Pasarela").is(':checked')) {
+                _precioVentaSn = (_costoCompraSn + _totalCostoAdicional) / (1 - _margenPercent);
+                _precioUnitarioSn = _precioVentaSn;
+
+                //Incluido + IGV
+                _precioVentaInc = _precioUnitarioSn + ((_precioUnitarioSn * _impuesto / 100));
+                $("#CostoAdicionalSoles").val(_totalCostoAdicional);
+            } else {
+                _precioVentaSn = (_costoCompraSn) / (1 - _margenPercent);
+                _precioUnitarioSn = _precioVentaSn;
+
+                //Incluido + IGV
+                _precioVentaInc = _precioUnitarioSn + ((_precioUnitarioSn * _impuesto / 100));
+                $("#CostoAdicionalSoles").val(0);
+            }
+
+            $("#PrecioCompraInc").val(_costoCompraCn);
+            $("#PrecioVentaSn").val(_precioUnitarioSn);
+            $("#PrecioVentaInc").val(_precioVentaInc);
+
+		});
+
+        $("#Pasarela").click(function () {
+
+
+            var _margenLista = stringToDecimal($("#MargenLista").val());
+            var _costoCompraSn = stringToDecimal($("#PrecioCompraSn").val());
+            var _tipoCambio = stringToDecimal($("#TipoCambio").val());
+            var _porcentajePasarela = stringToDecimal($("#PorcentajePasarela").val());
+            var _costoAdicionalDolar = stringToDecimal($("#CostoAdicionalDolar").val());
+
+            var _impuestoTotal = (_costoCompraSn * _impuesto) / 100;
+            var _costoCompraCn = _costoCompraSn + _impuestoTotal;
+            var _margenPercent = _margenLista / 100;
+            var _margenPasarela = _porcentajePasarela / 100;
+
+            //Costo adicional si en caso tiene
+            var _costoAdicionalSoles = _costoAdicionalDolar * _tipoCambio;
+            var _costoPorcentaje = (_costoCompraSn / (1 - _margenPasarela)) - _costoCompraSn;
+            var _totalCostoAdicional = _costoAdicionalSoles + _costoPorcentaje;
+
+            var _precioVentaSn = 0;
+            var _precioUnitarioSn = 0;
+            var _precioVentaInc = 0;
+
+            if ($("#Pasarela").is(':checked')) {
+                _precioVentaSn = (_costoCompraSn + _totalCostoAdicional) / (1 - _margenPercent);
+                _precioUnitarioSn = _precioVentaSn;
+
+                //Incluido + IGV
+                _precioVentaInc = _precioUnitarioSn + ((_precioUnitarioSn * _impuesto / 100));
+                $("#CostoAdicionalSoles").val(_totalCostoAdicional);
+            } else {
+                _precioVentaSn = (_costoCompraSn) / (1 - _margenPercent);
+                _precioUnitarioSn = _precioVentaSn;
+
+                //Incluido + IGV
+                _precioVentaInc = _precioUnitarioSn + ((_precioUnitarioSn * _impuesto / 100));
+                $("#CostoAdicionalSoles").val(0);
+            }
+
+            $("#PrecioCompraInc").val(_costoCompraCn);
+            $("#PrecioVentaSn").val(_precioUnitarioSn);
+            $("#PrecioVentaInc").val(_precioVentaInc);
+        });
+
+        const tagin = new Tagin(document.getElementById('Tag'), {
+            placeholder: 'Añadir un tag... (a continuación, pulse la coma)',
+            separator: ' ',
+            enter: true
+        })
+    });
+
+    function fnNewRow(control) {
+        var dataFromTheRow = jQuery('#jqGridCaract').jqGrid('getRowData', control.rel);
+        $("#rowId").val(dataFromTheRow.AtributoId);
+        $("#parentId").val(dataFromTheRow.CaracteristicaId);
+        $("#EditAction").val("1")
+        $("#myModalCaract").modal('show');
+
+    }
+
+    function fnDelRow(control) {
+        Swal.fire({
+            title: 'Estas seguro de eliminar ?',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: `Sí`,
+            denyButtonText: `No`,
+        }).then((result) => {
+            if (result) {
+                var row = getGridSelectedRow('jqGridCaract');
+                  var jsonData = {
+                  caracteristicaId: row.CaracteristicaId
+                };
+                controllerSaveResponse("@Url.Action("Eliminar", "BienAlmacen")", jsonData, true, true, function (response) {
+                    if (response.success) {
+                        MsgAlert(1, response.message);
+                        $('#jqGridCaract').jqGrid('setGridParam', {
+                            url:"@Url.Action("ListarCaracteristica","BienAlmacen")",
+                            postData: {
+                                bienServicioId: function () { return $("#BienServicioId").val(); }
+                            },
+                            page: 1,
+                            treedatatype: 'json'
+                        }).trigger("reloadGrid");
+                    } else {
+                        MsgAlert(4, response.message);
+                    }
+                });
+
+            } else {
+                //Swal.fire('Changes are not saved', '', 'info')
+            }
+        })
+    }
+
+    function onClickCaractMenuBar(key) {
+        switch (key) {
+            case '@ButtonMenuBarActionConstant.NEW':
+                $("#EditAction").val("1")
+                $("#myModalCaract").modal('show');
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+
+                break;
+            case '@ButtonMenuBarActionConstant.EDIT':
+                $("#EditAction").val("2")
+                $("#myModalCaract").modal('show');
+                break;
+             case '@ButtonMenuBarActionConstant.RELOAD':
+                var jsonData = {
+                    bienServicioId:  $("#BienServicioId").val()
+                };
+                controllerSaveResponse("@Url.Action("CaractReloadAsync", "BienAlmacen")", jsonData, true, true, function (response) {
+                    if (response.success) {
+                        MsgAlert(1, response.message);
+                        $('#jqGridCaract').jqGrid('setGridParam', {
+                            url:"@Url.Action("ListarCaracteristica","BienAlmacen")",
+                            postData: {
+                                bienServicioId: function () { return $("#BienServicioId").val(); }
+                            }, //
+                            page: 1,
+                            treedatatype: 'json'
+                        }).trigger("reloadGrid");
+                    } else {
+                        MsgAlert(4, response.message);
+                    }
+                });
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                break;
+        }
+
+    }
+
+    function onClickResenaMenuBar(key) {
+        switch (key) {
+            case '@ButtonMenuBarActionConstant.NEW':
+                $("#myModalResena").modal('show');
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                break;
+        }
+
+    }
+
+
+
+    function onClickDetalleMenuBar(key) {
+        switch (key) {
+            case '@ButtonMenuBarActionConstant.NEW':
+                $("#myModalDetalle").modal('show');
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                break;
+        }
+    }
+
+
+    function onClickMenuBar(key) {
+        switch (key) {
+            case '@ButtonMenuBarActionConstant.SAVE':
+                saveData(key);
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                controllerGetAction('@Url.Action("Bandeja", "BienAlmacen", new { area = "lg" })', null, 'workspace', false, false, null);
+                break;
+        }
+
+    }
+
+    function saveData() {
+
+        //if (isEmptyElement("AlmacenId", "Seleccione almacen"))
+        //    return false;
+
+        if (isEmptyElement("TipoImpuestoId", "Seleccione tipo de afectacion"))
+            return false;
+
+        if (isEmptyElement("Descripcion", "Ingrese descripcion"))
+            return false;
+
+        if (isEmptyElement("Nombre", "Ingrese nombre"))
+            return false;
+
+        if (isEmptyElement("NombreCorto", "Ingrese nombre costo"))
+            return false;
+
+        gridDataIDs('jqGridBienPrecio').forEach(function (index) {
+            $("#jqGridBienPrecio").jqGrid('saveRow', index, { url: 'clientArray' });
+        });
+
+
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var jsonData = {
+            __RequestVerificationToken: token,
+            Header: JSON.stringify($('#form1').serializeObject()),
+            EditAction: $("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("Create", "BienAlmacen", new { area = "lg" })", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                controllerGetAction('@Url.Action("Bandeja", "BienAlmacen", new { area = "lg" })', null, 'workspace', false, false, null);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+
+
+    }
+
+    function onClickOkCaract() {
+        var jsonData = {
+            Form: JSON.stringify($('#form1').serializeObject()),
+            Header: JSON.stringify($('#modalContentCaract').serializeObject()),
+            EditAction: $("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("Caracteristica", "BienAlmacen", new { area = "lg" })", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $("#myModalCaract").modal('hide');
+                //$('#jqGridCaract').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                $('#jqGridCaract').jqGrid('setGridParam', {
+                    url:"@Url.Action("ListarCaracteristica","BienAlmacen")",
+                    postData: {
+                        bienServicioId: function () { return $("#BienServicioId").val(); }
+                    }, //
+                    page: 1,
+                    treedatatype: 'json'
+                }).trigger("reloadGrid");
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+
+    }
+
+    function onClickOkDetalle() {
+           var jsonData = {
+            Form: JSON.stringify($('#form1').serializeObject()),
+            Header: JSON.stringify($('#modalContentDetalle').serializeObject()),
+            EditAction: $("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("DetalleBien", "BienAlmacen", new { area = "lg" })", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $("#myModalDetalle").modal('hide');
+                $('#jqGridDetalle').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+    function onClickOkResena() {
+        if ($('#CalificacionId').val() != '') {
+            var jsonData = {
+                Form: JSON.stringify($('#form1').serializeObject()),
+                Header: JSON.stringify($('#modalResena').serializeObject()),
+                EditAction: $("#EditAction").val()
+            };
+            controllerSaveResponse("@Url.Action("Resena", "BienAlmacen", new { area = "lg" })", jsonData, true, true, function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    $("#myModalResena").modal('hide');
+                    $('#jqGridResena').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                } else {
+                    MsgAlert(4, response.message);
+                }
+            });
+        } else {
+            MsgAlert(4, "Seleccione el tipo de Calificación");
+        }
+    }
+
+    function fnDelDetailsRow(control) {
+         Swal.fire({
+            title: 'Estas seguro de eliminar ?',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: `Sí`,
+            denyButtonText: `No`,
+        }).then((result) => {
+            if (result) {
+                var row = getGridSelectedRow('jqGridDetalle');
+                  var jsonData = {
+                   detalleBienServicioId: row.DetalleBienServicioId
+                };
+                controllerSaveResponse("@Url.Action("EliminarDetalle", "BienAlmacen")", jsonData, true, true, function (response) {
+                    if (response.success) {
+                        MsgAlert(1, response.message);
+                        $('#jqGridDetalle').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                    } else {
+                        MsgAlert(4, response.message);
+                    }
+                });
+
+            } else {
+                //Swal.fire('Changes are not saved', '', 'info')
+            }
+        })
+    }
+
+    function onClickOkPrecioProducto() { }
+
+    function onClickPrecioMenuBar(control) {
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                $("#esNuevo").val('@DigitosConstante.UNO');
+                var newRowId = gridRowCount("jqGridBandeja");
+                var parameters = {
+                    rowID: newRowId + 1,
+                    initdata: {
+                    },
+                    position: "first"
+                };
+                $("#jqGridBienPrecio").jqGrid('addRow', parameters);
+                actionNuevo();
+                break;
+            case "@ButtonMenuBarActionConstant.SAVE":
+                var rowId = getGridSelectedRowId('jqGridBienPrecio');
+                var row = getGridSelectedRow('jqGridBienPrecio');
+
+                gridDataIDs('jqGridBienPrecio').forEach(function (index) {
+                    $("#jqGridBienPrecio").jqGrid('saveRow', index, { url: 'clientArray' });
+                });
+
+                var data = $('#jqGridBienPrecio').getRowData();
+                var postData = {
+                    Row: JSON.stringify(data),
+                    EditAction: $("#esNuevo").val()
+                };
+                controllerSaveResponse('@Url.Action("ActualizarPrecio", "BienAlmacen")', postData, true, true, function (response) {
+                    if (response.success) {
+                        MsgAlert(1, response.message);
+                        jQuery("#jqGridBienPrecio").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                    } else {
+                        MsgAlert(4, response.message);
+                    }
+                });
+
+                @*$("#jqGridBienPrecio").jqGrid('saveRow', rowId, {
+                    url: 'clientArray', aftersavefunc: function (id, response, options) {
+                        var row = getGridSelectedRow("jqGridBienPrecio");
+
+                        var postData = {
+                            Row: JSON.stringify(row),
+                            EditAction: $("#esNuevo").val()
+                        };
+                        controllerSaveResponse('@Url.Action("ActualizarPrecio", "BienAlmacen")', postData, true, true, function (response) {
+                            if (response.success) {
+                                MsgAlert(1, response.message);
+                                jQuery("#jqGridBienPrecio").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                            } else {
+                                MsgAlert(4, response.message);
+                            }
+                        });
+                    }
+                });*@
+                actionSave();
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                actionEdit();
+                $("#esNuevo").val('@DigitosConstante.DOS');
+                var row = getGridSelectedRow('jqGridBienPrecio');
+                var dataIDs = $("#jqGridBienPrecio").jqGrid('getDataIDs');
+                $.each(dataIDs, function (item, value) {
+                    $("#jqGridBienPrecio").jqGrid('editRow', value, true);
+                });
+
+                //if (!isEmpty(row)) {
+                //    var rowId = getGridSelectedRowId("jqGridBienPrecio");
+                //    $('#jqGridBienPrecio').jqGrid('editRow', rowId);
+                //    lastsel = rowId;
+                //} else {
+                //    MsgAlert(3, 'Selccione un registro');
+                //}
+
+                break;
+            case '@ButtonMenuBarActionConstant.CANCEL':
+                actionCancel();
+                var rowid = getGridSelectedRowId("jqGridBienPrecio");
+                $('#jqGridBienPrecio').setGridParam({ datatype: 'json' });
+                $('#jqGridBienPrecio').trigger('reloadGrid');
+                lastsel = 0;
+                break;
+        }
+    }
+
+    function fnShowCarousel() {
+        $("#myModal").modal('show');
+    }
+
+    function onChangeSubCateg(control) {
+            $.post('@Url.Action("ListarSubCategoria", "BienAlmacen")',
+            {
+                categoriaId: control.value
+            }, function (response) {
+                $('#SubCategoriaId').find('option').remove().end();
+                $('#DetalleCategoriaId').find('option').remove().end();
+                $("#SubCategoriaId").addItems(response.data);
+                $("#SubCategoriaId").prop("disabled", false);
+                $("#DetalleCategoriaId").prop("disabled", false);
+               //   $("#SubCategoriaId").prop("selectedIndex", 1);
+                //onChangeDepartamento(control)
+            });
+    }
+
+    function onChangeDetCateg(control) {
+           $.post('@Url.Action("ListarDetalleCategoria", "BienAlmacen")',
+            {
+                subCategoriaId: control.value
+            }, function (response) {
+                $('#DetalleCategoriaId').find('option').remove().end();
+                $("#DetalleCategoriaId").addItems(response.data);
+                $("#DetalleCategoriaId").prop("disabled", false);
+                $("#DetalleCategoriaId").prop("selectedIndex", 1);
+                //onChangeDepartamento(control)
+            });
+    }
+
+    function actionNuevo() {
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: true
+        });
+
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: true
+        });
+
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: false
+        });
+
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: false
+        });
+
+    }
+
+    function actionEdit() {
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: true
+        });
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: true
+        });
+
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: false
+        });
+
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: false
+        });
+    }
+
+    function actionSave() {
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: true
+        });
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: false
+        });
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: true
+        });
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: true
+        });
+    }
+
+    function actionCancel() {
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: false
+        });
+
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: true
+        });
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: true
+        });
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: true
+        });
+    }
+
+
+</script>
+
+
+

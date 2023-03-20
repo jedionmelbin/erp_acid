@@ -1,0 +1,33 @@
+﻿@model eRPBusiness.Transport.TablaDTO
+@using eRPBusiness.Helpers
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="col-lg-12">
+                    <div class="form-group">
+                        @if (ViewBag.IsNew)
+                        {
+                            @Html.CRM().TextBoxFor(m => m.Codigo, "col-lg-4", "Codigo", "col-lg-2").Attributes(new { @maxlength = "4", @placeholder = "0000" })
+                        }
+                        else
+                        {
+                            @Html.CRM().TextBoxFor(m => m.Codigo, "col-lg-4", "Codigo", "col-lg-2").Attributes(new { @readonly = "true", @placeholder = "0000" })
+                        }
+
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().TextBoxFor(m => m.Nombre, "col-lg-10", "Nombre", "col-lg-2").Attributes(new { @maxlength = "70" })
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().TextBoxFor(m => m.Formato, "col-lg-4", "Formato", "col-lg-2").Attributes(new { @maxlength = "10" })
+                    </div>
+                </div>
+                @Html.HiddenFor(m => m.TablaId)
+
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,22 @@
+﻿@using eRPBusiness.Helpers
+@model eRPBusiness.Transport.TicketDTO
+<div class="panel panel-default">
+    <div class="panel-body form-horizontal">
+        <div class="form-group">
+            @Html.CRM().DropDownList("EstadoTicketId", Model.EstadoTicketId, @ViewBag.estadoTicketList, "col-lg-5", "Estado Ticket", "col-lg-3", new { @onchange = "onChangePais(this);" })
+
+        </div>
+        <div class="form-group">
+            @Html.CRM().DropDownList("TipoTicketId", Model.TipoTicketId, @ViewBag.tipoTicketList, "col-lg-5", "Tipo de Ticket", "col-lg-3", new { @onchange = "onChangePais(this);" })
+        </div>
+        <div class="form-group">
+            @Html.CRM().DropDownList("PrioridadId", Model.PrioridadId, @ViewBag.prioridadList, "col-lg-5", "Prioridad", "col-lg-3", new { @onchange = "onChangePais(this);" })
+        </div>
+
+        @Html.HiddenFor(m => m.TicketId)
+    </div>
+</div>
+
+<script type="text/javascript">
+
+</script>

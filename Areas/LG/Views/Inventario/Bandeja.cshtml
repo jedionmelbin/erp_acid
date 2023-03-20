@@ -1,0 +1,380 @@
+﻿@using eRPBusiness.Helpers
+@using eRPBusiness.Common
+@{
+    ViewData["Title"] = "Index";
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>Listado Inventario Inicial</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                           new ItemMenuBar(MenuBarButtonType.New),
+                           new ItemMenuBar(MenuBarButtonType.Edit),
+                           new ItemMenuBar("_MB_FINALIZA", "Finalizar","_FINALIZAR","glyphicon glyphicon-ok",false),
+                           new ItemMenuBar(MenuBarButtonType.ImportXls,false),
+                           new ItemMenuBar(MenuBarButtonType.Print,false)
+                       })
+<div class="row">
+    <div class="col-lg-12" id="seachPanel">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="col-lg-11">
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            @Html.CRM().TextBox("Codigo", null, "col-lg-3 col-md-3", "Nro Ingreso", "col-lg-2").Attributes(new { @placeholder = "Nro Ingreso" })
+                            @Html.CRM().Select2List("DocumentoComercialId", null, @ViewBag.DocComerciaList, "col-lg-5 col-md-5", "Documento", "col-lg-2", new { @onchange = "onChangeDocComercial(this);" })
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        @Html.CRM().DateTimePicker("FechaInicio", null, "col-lg-4 col-md-4", "F. Inicio", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Inicio" })
+                        @Html.CRM().DateTimePicker("FechaFinal", null, "col-lg-4 col-md-4", "F. Final", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Final" })
+                    </div>
+                </div>
+                <div class="col-lg-1">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridPedido').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('input:text').val('');$('#AlmacenId').val(null).trigger('change');$('#DocumentoComercialId').val(null).trigger('change');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-body" id="panel">
+                <table id="jqGridPedido"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.CRM().Popup("myModal", "File Upload", "onClickOkFileUpload", SizePopup.Small))
+{
+    <div id="modalContent">
+        <form class="form-horizontal">
+            <div class="form-group">
+                <label class="control-label col-lg-2">Archivo</label>
+                <div class="col-lg-12">
+                    <input type="file" name="fileUpload" id="fileUpload" class="form-control" />
+                </div>
+            </div>
+        </form>
+    </div>
+}
+
+@using (Html.CRM().Popup("myModalReporte", "Reporte Facturas", "onClickOkReporte", SizePopup.Large))
+{
+    <div class="row">
+      
+        <div class="col-lg-12">
+            <div id="PDFViewer">
+                <div id="PDFViewer" width="850" height="442"></div>
+            </div>
+        </div>
+    </div>
+}
+
+
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridPedido").jqGrid({
+            url: '@Url.Action("ListarBandeja", "Inventario", new { area = "lg" })',
+            mtype: "POST",
+            postData: {
+                codigo: function () { return $("#Codigo").val() },
+                fechaInicio: function () { return $("#FechaInicio").val() },
+                fechaFinal: function () { return $("#FechaFinal").val() },
+                docComercialId: function () { return $("#DocumentoComercialId").val() }
+            },
+            datatype: "json",
+            colModel: [
+                { label: '', name: 'MovimientoAlmacenId', key: true, hidden: true },
+                { label: '', name: 'EstadoOperacion', hidden: true },
+                { label: 'Nro Ingreso', name: 'Codigo', width: 7, align: 'center', formatter: colorCell },
+                { label: 'Estado', name: 'EstadoNombre', width: 8, align: 'center',formatter: colorCellEstado },
+                { label: 'Documento', name: 'Documento', width: 20, sortable: false, hidden: true },
+                { label: 'Tipo Movimiento', name: 'TipoMovimiento', width: 10, sortable: false },
+                { label: 'Tipo Operación', name: 'TipoOperacion', width: 10, sortable: false },
+                { label: 'Fecha Emision', name: 'FechaMovimiento', width: 8, align: 'center', sortable: false },
+                { label: 'Moneda', name: 'Moneda', width: 10, sortable: false },
+                {
+                    label: 'Cantidad', name: 'Cantidad', width: 8, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+                {
+                     label: 'Sub Total', name: 'SubTotal', hidden: false, width: 8, formatter: 'integer', align: 'right', formatoptions: {
+                         decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                     }
+                },
+                {
+                     label: 'Impuesto', name: 'Impuesto', hidden: false, width: 8, formatter: 'integer', align: 'right', formatoptions: {
+                         decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                     }
+                },
+                {
+                    label: 'Total', name: 'PrecioTotal', width: 8, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 130),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            subGrid: true,
+            onSelectRow: function (rowId) {
+                var rowData = jQuery(this).jqGrid('getRowData', rowId);
+                if (rowData.EstadoOperacion == '@LetraConstante.A') {
+                    $("#MenuBar").menuBar({
+                        button: '_MB_FINALIZA',
+                        disabled: true
+                    });
+                } else {
+                    $("#MenuBar").menuBar({
+                        button: '_MB_FINALIZA',
+                        disabled: false
+                    });
+                }
+
+            },
+            subGridRowExpanded: showChildGrid, subGridOptions: {
+                reloadOnExpand: false,
+                selectOnExpand: true
+            },
+            pager: "#jqGridPager"
+        });
+    });
+
+    function showChildGrid(parentRowID, parentRowKey) {
+        var rowData = jQuery("#jqGridPedido").getRowData(parentRowKey);
+        var childGridID = parentRowID + "_table";
+        var childGridPagerID = parentRowID + "_pager";
+        var childGridURL = parentRowKey + ".json";
+        $('#' + parentRowID).append('<table id=' + childGridID + '></table><div id=' + childGridPagerID + ' class=scroll></div>');
+
+        $("#" + childGridID).jqGrid({
+            url: '@Url.Action("ListarDetalle", "Inventario", new { area = "lg" })',
+            mtype: "POST",
+            postData: {
+                movimientoAlmacenId: rowData["MovimientoAlmacenId"]
+            },
+            datatype: "json",
+            colModel: [
+                { label: '', name: 'MovimientoAlmacenBienId', key: true, hidden: true },
+                { label: 'Código', name: 'Codigo', width: 25 },
+                { label: 'Cód. Comercial', name: 'CodigoComercial', width: 30 },
+                { label: 'Descripción', name: 'Descripcion', width: 90 },
+                { label: 'U.M', name: 'Nombre', width: 25 },
+                {
+                    label: 'Cantidad', name: 'Cantidad', width: 25, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Valor Unitario', name: 'ValorUnitario', width: 25, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Importe', name: 'Importe', width: 25, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                }
+            ],
+            loadonce: true,
+            width: 890,
+            height: '100%',
+            footerrow: true,
+            page: 1,
+            loadComplete: function () {
+                var grid = $(this);
+                total = grid.jqGrid('getCol', 'Importe', false, 'sum');
+                cantidad = grid.jqGrid('getCol', 'Cantidad', false, 'sum');
+                valorUnitario = grid.jqGrid('getCol', 'ValorUnitario', false, 'sum');
+                grid.jqGrid('footerData', 'set', { Producto: 'Total', ValorUnitario: valorUnitario, Cantidad: cantidad, Importe: total });
+
+            },
+            pager: "#" + childGridPagerID
+        });
+
+    }
+
+    function colorCell(cellvalue, options, rowObject) {
+        var backgroud = '<b>' + cellvalue + '</b>';
+        return backgroud;
+    }
+
+    function colorCellEstado(cellvalue, options, rowObject) {
+       var backgroud = '', colorHex = '';
+        switch (rowObject.EstadoOperacion) {
+            case 'P':
+                colorHex = '#2970F5';
+                break;
+            case 'A':
+                colorHex = '#009494';
+                break;
+            case 'D':
+                colorHex = '#FF0A01';
+                break;
+            default:
+                return cellvalue;
+                break;
+        }
+        backgroud = '<span style="background-color: ' + colorHex + '; display: block; width: 100%; height: 100%; color:#fff; ">' + cellvalue + '</span>';
+        return backgroud;
+     }
+
+    function onClickMenuBar(control) {
+
+        var postData = {
+            editAction: '',
+            movimientoAlmacenId: 0
+        };
+        var row = getGridSelectedRow("jqGridPedido");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                postData.editAction = '@EditActionConstant.NEW';
+                controllerGetAction('@Url.Action("Create", "Inventario", new { area = "LG" })', postData, 'workspace', true, true, null);
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    postData.editAction = '@EditActionConstant.EDIT';
+                    postData.movimientoAlmacenId = row.MovimientoAlmacenId;
+                    controllerGetAction('@Url.Action("Create", "Inventario", new { area = "LG" })', postData, 'workspace', true, true, null);
+                } else {
+                    MsgAlert(3, 'Seleccione un inventario para ver el detalle');
+                }
+                break;
+            case "@ButtonMenuBarActionConstant.PRINT":
+
+                if (!isEmpty(row)) {
+                     var url = '@Url.Action("Reporte", "Inventario", new { @movimientoId = "value2"})';
+                    var _urlPdf = url.replace("value2", row.MovimientoAlmacenId);
+                     PDFObject.embed(_urlPdf, "#PDFViewer");
+                     $("#myModalReporte").modal('show');
+
+                } else {
+                    MsgAlert(3, 'Seleccione un inventario para ver el detalle');
+                }
+
+                break;
+              case "_FINALIZAR":
+
+                 const swalWithBootstrapButtons = Swal.mixin({
+                      customClass: {
+                        confirmButton: 'btn btn-success',
+                        cancelButton: 'btn btn-danger'
+                      },
+                      buttonsStyling: false
+                    })
+
+                    swalWithBootstrapButtons.fire({
+                      title: 'Estás seguro aprobar este Ingreso?',
+                      text: "¡No podrás revertir esto!",
+                      icon: 'warning',
+                      showCancelButton: true,
+                      confirmButtonText: 'Si, Aceptar it!',
+                      cancelButtonText: 'No, cancelar!',
+                      reverseButtons: true
+                    }).then((result) => {
+                        if (result.value) {
+                            var jsonData = {
+                                movimientoAlmacenId: row.MovimientoAlmacenId
+                            };
+                        controllerSaveResponse("@Url.Action("AprobarIngreso", "Inventario", new { area = "lg" })", jsonData, true, true, function (response) {
+                            if (response.success) {
+                                swalWithBootstrapButtons.fire(
+                                    'Aceptado!',
+                                    'Su inventario ha sido aprobado.',
+                                    'success'
+                                );
+                                $('#jqGridPedido').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');
+                            } else {
+                                MsgAlert(4, response.message);
+                            }
+                        });
+
+                      } else if (
+                        result.dismiss === Swal.DismissReason.cancel
+                      ) {
+                        swalWithBootstrapButtons.fire(
+                          'Cancelled',
+                          'Tu inventario está seguro',
+                          'error'
+                        )
+                      }
+                    })
+                break;
+            case "@ButtonMenuBarActionConstant.IMPORT_XLS":
+                $("#myModal").modal('show');
+                break;
+        }
+    };
+
+    function onChangeDocComercial()
+    {
+        $('#jqGridPedido').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+    };
+
+    function onChangeAlmacen() {
+        $('#jqGridPedido').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+    };
+
+     function onClickOkFileUpload() {
+        var formdata = new FormData();
+        var fileInput = document.getElementById('fileUpload');
+        var filename = fileInput.files[0].name;
+        var extension = filename.split('.').pop().toUpperCase();
+        if (extension !== "XLS" && extension !== "XLSX") {
+
+        }
+        else {
+            for (i = 0; i < fileInput.files.length; i++) {
+                formdata.append('fileBase', fileInput.files[i]);
+            }
+
+          $.ajax({
+            url: '@Url.Action("ReadExcelFile")',
+            beforeSend: function () {
+                $("#modalContent").LoadingOverlay("show", {
+                    image: "",
+                    text: "Cargando..."
+                });
+            },
+            complete: function () {
+                $("#modalContent").LoadingOverlay("hide", true);
+            },
+            type: 'POST',
+            data: formdata,
+            async: true,
+            success: function (response) {
+                $("#myModal").modal('hide');
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    $('#jqGridPedido').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                } else {
+                    MsgAlert(4, response.message);
+                }
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+            });
+        }
+
+    }
+</script>

@@ -1,0 +1,38 @@
+﻿@model eRPBusiness.Transport.CampanaSlideDTO
+@using eRPBusiness.Helpers
+@{
+    ViewBag.Title = "Categoria";
+}
+
+<div class="panel panel-default">
+    <div class="panel-body form-horizontal" id="panel">
+        <div class="form-group">
+            @Html.CRM().TextBoxFor(m => m.Titulo, "col-lg-10", "Titulo", "col-lg-2").Attributes(new { @placeholder = "Titulo" })
+        </div>
+        <div class="form-group">
+            @Html.CRM().TextBoxFor(m => m.SubTitulo, "col-lg-10", "Sub Titulo", "col-lg-2").Attributes(new { @placeholder = "Sub Titulo" })
+        </div>
+        <div class="form-group">
+            @Html.CRM().TextBoxFor(m => m.TextoAdicional, "col-lg-10", "Texto", "col-lg-2").Attributes(new { @placeholder = "Texto" })
+        </div>
+        <div class="form-group">
+            @Html.CRM().TextAreaFor(m => m.Descripcion, "col-lg-10", "Descripcion", "col-lg-2").Attributes(new { @placeholder = "Descripcion" })
+        </div>
+        <div class="form-group">
+            <label class="control-label col-md-2">Imagen Min</label>
+            <div class="col-lg-4 col-md-4">
+                <input type="file" name="ImagenMin" id="ImagenMin" multiple />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label col-md-2">Imagen Max</label>
+            <div class="col-lg-4 col-md-4">
+                <input type="file" name="ImagenMax" id="ImagenMax" multiple />
+            </div>
+        </div>
+        @Html.HiddenFor(m => m.CampanaSlideId)
+    </div>
+</div>
+<script type="text/javascript">
+
+</script>

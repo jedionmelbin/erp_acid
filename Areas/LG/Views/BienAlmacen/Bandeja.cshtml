@@ -1,0 +1,362 @@
+﻿@using eRPBusiness.Helpers
+@model eRPBusiness.Transport.BienServicioDTO 
+@{
+    /**/
+
+    ViewData["Title"] = "Inventario inicial";
+}
+<div class="row">
+    <div class="col-lg-12"> 
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>Listado Bien Servicios</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                           new ItemMenuBar(MenuBarButtonType.New),
+                           new ItemMenuBar(MenuBarButtonType.Edit),
+                           new ItemMenuBar(MenuBarButtonType.ImportXls,false),
+                           new ItemMenuBar(MenuBarButtonType.Reload,ViewBag.Disabled),
+                           new  ItemMenuBar(MenuBarButtonType.Formato,false),
+                           new ItemMenuBar(MenuBarButtonType.ExportXls),
+                       })
+<div class="row">
+    <div class="col-lg-12" id="seachPanel">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="col-lg-11">
+                    <div class="col-lg-5">
+                        <div class="form-group">
+                            @Html.CRM().TextBox("Codigo", null, "col-lg-4 col-md-4", "Código", "col-lg-2").Attributes(new { @placeholder = "Código" })
+                            @Html.CRM().DropDownList("MarcaId", null, @ViewBag.LstMarca, "col-lg-4", "Marca", "col-lg-2")
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBox("CodigoComercial", null, "col-lg-4 col-md-4", "Cód. Com.", "col-lg-2").Attributes(new { @placeholder = "Código Comercial" })
+                            @Html.CRM().DropDownList("Pasarela", null, @ViewBag.ListComercial, "col-lg-4", "Pasarela", "col-lg-2")
+
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="form-group">
+                            @Html.CRM().TextBox("Descripcion", null, "col-lg-10", "Nombre", "col-lg-2").Attributes(new { @maxlength = "100", @placeholder = "Nombre" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("CategoriaId", null, @ViewBag.LstCategoria, "col-lg-4", "Categoria", "col-lg-2")
+                            @Html.CRM().DropDownList("GrupoId", null, @ViewBag.LstGrupo, "col-lg-4", "Grupo", "col-lg-2")
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-1">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridBienAlmacen').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('input:text').val('');$('#MarcaId').val(null).trigger('change');$('#GrupoId').val(null).trigger('change');$('#CategoriaId').val(null).trigger('change');$('#jqGridBienAlmacen').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-body" id="panel">
+                <table id="jqGridBienAlmacen"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.CRM().Popup("myModal", "File Upload", "onClickOkFileUpload", SizePopup.Small))
+{
+    <div id="modalContent">
+        <form class="form-horizontal">
+            <div class="form-group">
+                <label class="control-label col-lg-2">Archivo</label>
+                <div class="col-lg-12">
+                    <input type="file" name="fileUpload" id="fileUpload" class="form-control" />
+                </div>
+            </div>
+        </form>
+    </div>
+}
+
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridBienAlmacen").jqGrid({
+            url: '@Url.Action("ListarBandeja", "BienAlmacen", new { area = "lg" })',
+            mtype: "POST",
+            postData: {
+                codigo: function () { return $("#Codigo").val(); },
+                codigoComercial: function () { return $("#CodigoComercial").val(); },
+                descripcion: function () { return $("#Descripcion").val();},
+                marcaId: function () { return $("#MarcaId").val(); },
+                pasarela: function () { return $("#Pasarela").val(); },
+                categoriaId: function () { return $("#CategoriaId").val(); },
+                grupoId: function () { return $("#GrupoId").val(); },
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'BienAlmacenId', key: true, hidden: true },
+                { label: 'Id', name: 'BienServicioId', hidden: true },
+                { label: 'Código', name: 'Codigo', width: 12 },
+                { label: 'Cód. Comercial', name: 'CodigoComercial', width: 12 },
+                { label: 'Plan Contable', name: 'PlanContable',hidden: true},
+                { label: 'Descripcion', name: 'Descripcion', width: 45, sortable: false },
+                { label: 'Marca', name: 'Marca', width: 12, sortable: false },
+                { label: 'U.M', name: 'UnidadMedida', width: 8, sortable: false },
+                {
+                    label: 'Costo Dolar', name: 'CostoDolar', width: 10, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Cost. Dolar + IGV', name: 'CostoDolarIgv', width: 12, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'C. Compra s/n IGV', name: 'PrecioCompraSn', width: 14, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'C. Compra c/n IGV', name: 'PrecioCompraInc', width: 14, sortable: false, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: '% Margen', name: 'MargenLista', width: 8, sortable: false, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'P. Venta s/n IGV', name: 'PrecioVentaSn', width: 14, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'P. Venta c/n IGV', name: 'PrecioVentaInc', width: 14, sortable: false, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                }
+
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 130),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            subGrid: true,
+            subGridRowExpanded: showChildGrid, subGridOptions: {
+                reloadOnExpand: false,
+                selectOnExpand: true
+            },
+            pager: "#jqGridPager"
+        });
+    });
+
+     function showChildGrid(parentRowID, parentRowKey) {
+         var rowData = jQuery("#jqGridBienAlmacen").getRowData(parentRowKey);
+        var childGridID = parentRowID + "_table";
+        var childGridPagerID = parentRowID + "_pager";
+        var childGridURL = parentRowKey + ".json";
+        $('#' + parentRowID).append('<table id=' + childGridID + '></table><div id=' + childGridPagerID + ' class=scroll></div>');
+
+        $("#" + childGridID).jqGrid({
+            url: '@Url.Action("ListarPrecio", "BienAlmacen", new { area = "lg" })',
+            mtype: "POST",
+            postData: {
+                bienAlmacenId:  rowData["BienAlmacenId"],
+                bienServicioId: rowData["BienServicioId"]
+            },
+            datatype: "json",
+            colModel: [
+                { label: '', name: 'BienPrecioId', hidden: true },
+                { label: '', name: 'BienAlmacenId', hidden: true },
+                { label: '', name: 'TipoPrecioId', hidden: true },
+                { label: 'Tipo Precio', name: 'Nombre', width: 8 },
+                {
+                    label: 'Descuento %', name: 'Margen', width: 5, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', { digits: 2 });
+                        }
+                    }
+                },
+                {
+                    label: 'Precio sin Impuesto', name: 'PrecioSinIgv', width: 7, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', { digits: 2 });
+                        }
+                    }
+                },
+                {
+                    label: 'Precio Nacional', name: 'PrecioNacional', width: 5, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', { digits: 2 });
+                        }
+                    }
+                },
+                {
+                    label: 'Precio Dolares', name: 'PrecioDolares', width: 5, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', { digits: 2 });
+                        }
+                    }
+                }
+            ],
+            loadonce: true,
+            width: 750,
+            height: '100%',
+			scrollPopUp:true,
+			scrollLeftOffset: "83%",
+            page: 1,
+            emptyrecords: 'Scroll to bottom to retrieve new page',
+            pager: "#" + childGridPagerID
+        });
+
+
+    }
+
+    function onClickMenuBar(control) {
+
+        var postData = {
+            editAction: '',
+            movimientoAlmacenId: 0
+        };
+        var row = getGridSelectedRow("jqGridBienAlmacen");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                postData.editAction = '@EditActionConstant.NEW';
+                controllerGetAction('@Url.Action("Create", "BienAlmacen", new { area = "lg" })', postData, 'workspace', true, true, null);
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    postData.editAction = '@EditActionConstant.EDIT';
+                    postData.bienAlmacenId = row.BienAlmacenId;
+                    controllerGetAction('@Url.Action("Create", "BienAlmacen", new { area = "lg" })', postData, 'workspace', true, true, null);
+                } else {
+                    MsgAlert(3, 'Seleccione un inventario para ver el detalle');
+                }
+                break;
+            case "@ButtonMenuBarActionConstant.PRINT":
+
+                break;
+            case "@ButtonMenuBarActionConstant.RELOAD":
+                var jsonData = {
+
+                };
+                controllerSaveResponse("@Url.Action("Refrescar", "BienAlmacen", new { area = "lg" })", jsonData, true, true, function (response) {
+                    if (response.success) {
+                        MsgAlert(1, response.message);
+                            $('#jqGridBienAlmacen').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                    } else {
+                        MsgAlert(4, response.message);
+                    }
+                });
+                break;
+            case "@ButtonMenuBarActionConstant.IMPORT_XLS":
+                $("#myModal").modal('show');
+                break;
+            case "@ButtonMenuBarActionConstant.FORMATO":
+
+                $.fileDownload('@Url.Action("DownloadFormat")', {
+                    httpMethod: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: {
+
+                    },
+                    successCallback: function (url) {
+
+                    },
+                    failCallback: function (responseHtml, url) {
+
+                    }
+                });
+                break;
+             case "@ButtonMenuBarActionConstant.EXPORT_XLS":
+                $.fileDownload('@Url.Action("ExportBienServicio")', {
+                    httpMethod: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: {
+                        definicion: function () { return $("#Definicion").val(); },
+                        um: function () { return $("#um").val(); },
+                        precioventa: function () { return $("#PrecioVenta").val(); }
+        
+                    },
+                    successCallback: function (url) {
+
+                    },
+                    failCallback: function (responseHtml, url) {
+
+                    }
+                });
+                break;
+        }
+    }
+
+    function onChangeDocComercial()
+    {
+        $('#jqGridBienAlmacen').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+    }
+
+    function onChangeAlmacen() {
+        $('#jqGridBienAlmacen').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+    }
+
+    function onClickOkFileUpload() {
+        var formdata = new FormData();
+        var fileInput = document.getElementById('fileUpload');
+        var filename = fileInput.files[0].name;
+        var extension = filename.split('.').pop().toUpperCase();
+        if (extension !== "XLS" && extension !== "XLSX") {
+           
+        }
+        else {
+            for (i = 0; i < fileInput.files.length; i++) {
+                formdata.append('fileBase', fileInput.files[i]);
+            }
+
+          $.ajax({
+            url: '@Url.Action("ReadExcelFile")',
+            beforeSend: function () {
+                $("#modalContent").LoadingOverlay("show", {
+                    image: "",
+                    text: "Cargando..."
+                });
+            },
+            complete: function () {
+                $("#modalContent").LoadingOverlay("hide", true);
+            },
+            type: 'POST',
+            data: formdata,
+            async: true,
+            success: function (response) {
+                $("#myModal").modal('hide');
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    $('#jqGridBienAlmacen').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                } else {
+                    MsgAlert(4, response.message);
+                }
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+            });
+        }
+
+    }
+</script>

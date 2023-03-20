@@ -1,0 +1,421 @@
+﻿@model eRPBusiness.Transport.PersonalDTO
+@using eRPBusiness.Helpers
+@{
+
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>@ViewBag.Title</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                                   new ItemMenuBar(MenuBarButtonType.Save),
+                                                   new ItemMenuBar(MenuBarButtonType.Exit)
+                                               })
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { @id = "form1", @autocomplete = "off" }))
+                {
+                    @Html.AntiForgeryToken()
+                <div class="col-lg-5">
+                    <div class="form-group">
+                        @Html.CRM().Select2List("EmpresaId", Model.EmpresaId, @ViewBag.EmpresList, "col-lg-10", "Empresa", "col-lg-2", new { @onchange = "onChangeSucursal(this)"})
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().Select2List("SucursalId", Model.SucursalId, @ViewBag.SucursalList, "col-lg-10", "Sucursal", "col-lg-2")
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().Select2List("PersonalId", Model.PersonalId, ViewBag.ListarPersonal, "col-lg-10", "Personal", "col-lg-2")
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().Select2List("RolId", Model.RolId, ViewBag.ListarRol, "col-lg-10", "Rol", "col-lg-2")
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().TextBoxFor(m => m.Usuarios, "col-lg-4", "Usuario", "col-lg-2").Attributes(new { @placeholder = "Usuario", @autocomplete = "off" })
+                        @Html.CRM().PasswordFor(m => m.Contrasena, "col-lg-4", "Contraseña", "col-lg-2").Attributes(new { @placeholder = "Contraseña", @autocomplete = "off" })
+                    </div>
+                </div>
+                    <div class="col-lg-7">
+                    </div>
+                    @Html.HiddenFor(x => x.UsuarioId)
+                    @Html.HiddenFor(m => m.EditAction)
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6 col-lg-6">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="row">
+                    <div class="col-lg-12 col-md-6">
+                        <div id="list" class="list-group" style=" background:#ffffff; border:1px solid #ddd; border-color:#ddd; height:250px; padding:4px; border-radius:14px;">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-6">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="row">
+                    <div class="col-lg-12 col-md-6">
+                        <div id="list2" class="list-group" style="border:1px solid #ddd; border-color:#ddd; height:250px; padding:4px; border-radius:14px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script id="entry-sucursal" type="text/x-handlebars-template">
+    {{#each sucursals}}
+    <div class="list-group-item">
+         {{Nombre}}
+        <input type="hidden" id="SucursalId"  name="SucursalId" value="{{SucursalId}}" />
+    </div>
+    {{/each}}
+</script>
+<script id="entry-personal" type="text/x-handlebars-template">
+    {{#each sucursals}}
+    <div class="list-group-item">{{Nombre}}</div>
+    {{/each}}
+</script>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $("#PersonalId").select2({
+            ajax: {
+                url: '@Url.Action("GetPersonal")',
+                dataType: 'json',
+                delay: 250,
+                type: 'POST',
+                data: function (params) {
+                    return {
+                        query: params.term // search ter
+                    };
+                },
+                processResults: function (data, params) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.Nombres,
+                                id: item.PersonalId
+                            }
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Busqueda de personal',
+            allowClear: true,
+            escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function () {
+                    return "Busqueda de personal";
+                }
+            }
+        });
+
+
+
+
+
+
+
+        Sortable.create(list, {
+            group: 'shared',
+            multiDrag: true,
+            // multiDragKey: null, // Key that must be down for items to be selected
+            selectedClass: "selected",
+            animation: 150,
+            setData: function (/** DataTransfer */dataTransfer, /** HTMLElement*/dragEl) {
+                //
+                dataTransfer.setData('Text', dragEl.textContent); // `dataTransfer` object of HTML5 DragEvent
+            },
+            // Element is chosen
+            onChoose: function (/**Event*/evt) {
+                evt.oldIndex;  // element index within parent
+            },
+            // Element is unchosen
+            onUnchoose: function (/**Event*/evt) {
+                // same properties as onEnd
+            },
+            // Element dragging started
+            onStart: function (/**Event*/evt) {
+                evt.oldIndex;  // element index within parent
+            },
+            // Element dragging ended
+            onEnd: function (/**Event*/evt) {
+                var itemEl = evt.item;  // dragged HTMLElement
+                evt.to;    // target list
+                evt.from;  // previous list
+                evt.oldIndex;  // element's old index within old parent
+                evt.newIndex;  // element's new index within new parent
+                evt.oldDraggableIndex; // element's old index within old parent, only counting draggable elements
+                evt.newDraggableIndex; // element's new index within new parent, only counting draggable elements
+                evt.clone // the clone element
+                evt.pullMode;  // when item is in another sortable: `"clone"` if cloning, `true` if moving
+            },
+
+            // Element is dropped into the list from another list
+            onAdd: function (/**Event*/evt) {
+                // same properties as onEnd
+            },
+
+            // Changed sorting within list
+            onUpdate: function (/**Event*/evt) {
+                // same properties as onEnd
+            },
+
+            // Called by any change to the list (add / update / remove)
+            onSort: function (/**Event*/evt) {
+                // same properties as onEnd
+            },
+
+            // Element is removed from the list into another list
+            onRemove: function (/**Event*/evt) {
+                // same properties as onEnd
+            },
+
+            // Attempt to drag a filtered element
+            onFilter: function (/**Event*/evt) {
+                var itemEl = evt.item;  // HTMLElement receiving the `mousedown|tapstart` event.
+            },
+
+            // Event when you move an item in the list or between lists
+            onMove: function (/**Event*/evt, /**Event*/originalEvent) {
+                // Example: https://jsbin.com/nawahef/edit?js,output
+                evt.dragged; // dragged HTMLElement
+                evt.draggedRect; // DOMRect {left, top, right, bottom}
+                evt.related; // HTMLElement on which have guided
+                evt.relatedRect; // DOMRect
+                evt.willInsertAfter; // Boolean that is true if Sortable will insert drag element after target by default
+                originalEvent.clientY; // mouse position
+                // return false; — for cancel
+                // return -1; — insert before target
+                // return 1; — insert after target
+            },
+
+            // Called when creating a clone of element
+            onClone: function (/**Event*/evt) {
+                var origEl = evt.item;
+                var cloneEl = evt.clone;
+            },
+
+            // Called when dragging element changes position
+            onChange: function (/**Event*/evt) {
+                evt.newIndex // most likely why this event is used is to get the dragging element's current index
+                // same properties as onEnd
+            }
+        });
+
+        Sortable.create(list2, {
+            group: 'shared',
+            multiDrag: true,
+            selectedClass: "selected",
+            animation: 150,
+            setData: function (/** DataTransfer */dataTransfer, /** HTMLElement*/dragEl) {
+
+                dataTransfer.setData('Text', dragEl.textContent); // `dataTransfer` object of HTML5 DragEvent
+            },
+            // Element is chosen
+            onChoose: function (/**Event*/evt) {
+                evt.oldIndex;  // element index within parent
+
+            },
+            // Element is unchosen
+            onUnchoose: function (/**Event*/evt) {
+                // same properties as onEnd
+
+            },
+            // Element dragging started
+            onStart: function (/**Event*/evt) {
+                evt.oldIndex;  // element index within parent
+
+            },
+            // Element dragging ended
+            onEnd: function (/**Event*/evt) {
+                var itemEl = evt.item;  // dragged HTMLElement
+                evt.to;    // target list
+                evt.from;  // previous list
+                evt.oldIndex;  // element's old index within old parent
+                evt.newIndex;  // element's new index within new parent
+                evt.oldDraggableIndex; // element's old index within old parent, only counting draggable elements
+                evt.newDraggableIndex; // element's new index within new parent, only counting draggable elements
+                evt.clone // the clone element
+                evt.pullMode;  // when item is in another sortable: `"clone"` if cloning, `true` if moving
+
+            },
+
+            // Element is dropped into the list from another list
+            onAdd: function (/**Event*/evt) {
+                // same properties as onEnd
+
+            },
+
+            // Changed sorting within list
+            onUpdate: function (/**Event*/evt) {
+                // same properties as onEnd
+
+                //alert('update');
+            },
+
+            // Called by any change to the list (add / update / remove)
+            onSort: function (/**Event*/evt) {
+                // same properties as onEnd
+
+            },
+
+            // Element is removed from the list into another list
+            onRemove: function (/**Event*/evt) {
+                // same properties as onEnd
+
+            },
+
+            // Attempt to drag a filtered element
+            onFilter: function (/**Event*/evt) {
+                var itemEl = evt.item;  // HTMLElement receiving the `mousedown|tapstart` event.
+
+            },
+
+            // Event when you move an item in the list or between lists
+            onMove: function (/**Event*/evt, /**Event*/originalEvent) {
+                // Example: https://jsbin.com/nawahef/edit?js,output
+                evt.dragged; // dragged HTMLElement
+                evt.draggedRect; // DOMRect {left, top, right, bottom}
+                evt.related; // HTMLElement on which have guided
+                evt.relatedRect; // DOMRect
+                evt.willInsertAfter; // Boolean that is true if Sortable will insert drag element after target by default
+                originalEvent.clientY; // mouse position
+                // return false; — for cancel
+                // return -1; — insert before target
+                // return 1; — insert after target
+
+            },
+
+            // Called when creating a clone of element
+            onClone: function (/**Event*/evt) {
+                var origEl = evt.item;
+                var cloneEl = evt.clone;
+
+            },
+
+            // Called when dragging element changes position
+            onChange: function (/**Event*/evt) {
+                evt.newIndex // most likely why this event is used is to get the dragging element's current index
+                saveDragData(evt.item.children.SucursalId.value);
+
+            }
+        });
+
+
+        ListarSucursal(document.getElementById("EmpresaId"));
+    });
+
+
+
+
+    function onClickMenuBar(control) {
+        switch (control) {
+            case '@ButtonMenuBarActionConstant.SAVE':
+                saveData(control);
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                controllerGetAction('@Url.Action("Bandeja", "Usuario", new { area = "CG" })', null, 'workspace', false, false, null);
+                break;
+        }
+
+    }
+    function saveData(key) {
+
+
+        if (isEmptyElement("SucursalId", "Seleccione un almacen."))
+            return false;
+
+
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var jsonData = {
+            __RequestVerificationToken: token,
+            Header: JSON.stringify($('#form1').serializeObject()),
+            EditAction: $("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("Create", "Usuario", new { area = "CG" })", jsonData, false, false, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                controllerGetAction('@Url.Action("Bandeja", "Usuario", new { area = "CG" })', null, 'workspace', false, false, null);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+    function saveDragData(sucursalId) {
+
+        var jsonData = {
+            personaId: $("#PersonalId").val(),
+            sucursalId: sucursalId
+        };
+        controllerSaveResponse("@Url.Action("AsignarSucursal", "Usuario", new { area = "CG" })", jsonData, false, false, function (response) {
+             if (response.success) {
+                MsgAlert(1, response.message);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    };
+
+    function onChangeSucursal(control) {
+              $.post('@Url.Action("GetSucursal", "Usuario")',
+            {
+                empresaId: control.value
+            }, function (response) {
+                $('#SucursalId').find('option').remove().end();
+                $("#SucursalId").addItems(response.data);
+                $("#SucursalId").prop("disabled", false);
+              });
+
+        ListarSucursal(control);
+    }
+
+    function ListarSucursal(control) {
+        $("#list").empty();
+              var postData = {
+                 empresaId: control.value
+             };
+              controllerGetJson('@Url.Action("ListarSucursal", "Usuario")', postData, false, false, function (response) {
+                 if (response.success) {
+                     var templateHtml = $("#entry-sucursal").html();
+                     var templateBuild = Handlebars.compile(templateHtml);
+                     $('#list').append(templateBuild({ sucursals: response.data }));
+
+                 }
+              });
+
+        var jsonList = {
+            personalId: $("#PersonalId").val()
+        };
+        controllerGetJson('@Url.Action("ListarSucursalPersonal", "Usuario")', jsonList, false, false, function (response) {
+            if (response.success) {
+                var templateHtml = $("#entry-personal").html();
+                var templateBuild = Handlebars.compile(templateHtml);
+                $('#list2').append(templateBuild({ sucursals: response.data }));
+
+            }
+         });
+    }
+</script>
+

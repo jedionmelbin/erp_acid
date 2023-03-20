@@ -1,0 +1,23 @@
+﻿@model eRPBusiness.Transport.GrupoDTO
+@using eRPBusiness.Helpers
+@{
+    ViewBag.Title = "Categoria";
+}
+
+<div class="panel panel-default">
+    <div class="panel-body form-horizontal" id="panel">
+        <div class="form-group">
+            @Html.CRM().TextBoxFor(m => m.Nombre, "col-lg-10", "Nombre", "col-lg-2").Attributes(new { @placeholder = "Nombre" })
+        </div>
+        <div class="form-group">
+            <label class="control-label col-md-2">Imagen</label>
+            <div class="col-lg-4 col-md-4">
+                <input type="file" name="FileImage" id="FileImage" />
+            </div>
+        </div>
+        @Html.HiddenFor(m => m.GrupoId)
+    </div>
+</div>
+<script type="text/javascript">
+
+</script>

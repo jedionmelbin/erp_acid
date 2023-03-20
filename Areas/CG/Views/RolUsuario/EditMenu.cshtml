@@ -1,0 +1,78 @@
+﻿@using eRPBusiness.Common;
+@using eRPBusiness.Helpers
+@model eRPBusiness.Transport.RolMenuDTO
+@{
+    ViewBag.Title = "Bandeja";
+}
+@{
+    ViewBag.Title = "EditMenu";
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label> Listado Parametros</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                                   new ItemMenuBar(MenuBarButtonType.New),
+                                                   new ItemMenuBar(MenuBarButtonType.Edit),
+                                                   new ItemMenuBar(MenuBarButtonType.Delete)
+                                               })
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading form-horizontal">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            @Html.HiddenFor(m => m.RolId)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-lg-12" id="panel">
+                        <table id="tree"></table>
+                        <div id="pager"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var _widthPanel = $("#panel").width();
+        var _heightGrid = getHeightForResize(75);
+
+       $("#tree").jqGrid({
+                 mtype : "POST",
+                 datatype : "json",
+                 url: "@Url.Action("ListRolMenu")",
+                 postData: {
+                    rolId: function () { return $("#RolId").val(); },
+                 },
+                 colNames: ['', '','','Menu', 'Lectura', 'Escritura'],
+                 colModel: [
+                    { name: 'RolMenuId', hidden: true },
+                    { name: 'RolId', hidden: true },
+                    { name: 'MenuId', hidden: true },
+                    { name: 'Nombre', width : 200 },
+                    { name: 'Lectura', align: 'center', width : 80, align: 'center',editable: true,formatter:checkRolMenuFormatter, unformat:checkRolMenuUnFormatter},
+                    { name: 'Escritura', align: 'center', width : 80, align: 'center',editable: true,formatter:checkRolMenuFormatter, unformat:checkRolMenuUnFormatter}
+                 ],
+                 pager: $('#pagerMenu'),
+                 sortname: "RolMenuId",
+                   width: _widthPanel,
+                height: (_heightGrid - 300),
+                 treeGrid: true,
+                 treeGridModel: 'adjacency',
+                 treedatatype: "local",
+                 ExpandColumn: 'Nombre'
+              });
+})
+
+</script>

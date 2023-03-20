@@ -1,0 +1,94 @@
+﻿@model eRPBusiness.Transport.VehiculoDTO
+@using eRPBusiness.Helpers
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>@ViewBag.Title</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                                   new ItemMenuBar(MenuBarButtonType.Save),
+                                                   new ItemMenuBar(MenuBarButtonType.Exit)
+
+                                               })
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { @class = "form-horizontal", @id = "form1" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Descripcion, "col-lg-10", "Descripcion", "col-lg-2")
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.NumeroPlaca, "col-lg-4", "NumeroPlaca", "col-lg-2")
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Marca, "col-lg-4", "Marca", "col-lg-2")
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Constancia, "col-lg-4", "Constancia", "col-lg-2")
+                        </div>
+                    </div>
+
+                    @Html.HiddenFor(m => m.VehiculoId)
+                    @Html.HiddenFor(m => m.EditAction)
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+<script type="text/javascript">
+    function onClickMenuBar(control) {
+        switch (control) {
+            case '@ButtonMenuBarActionConstant.SAVE':
+                saveData(control);
+                break;
+            //case '@ButtonMenuBarActionConstant.DELETE':
+
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                controllerGetAction('@Url.Action("Bandeja", "Vehiculo", new { area = "MG" })', null, 'workspace', false, false, null);
+                break;
+        }
+
+    };
+
+    function saveData() {
+
+            if (isEmptyElement("Descripcion", "Ingrese la descripcion"))
+                return false;
+
+            if (isEmptyElement("NumeroPlaca", "Ingrese la placa"))
+                return false;
+
+            if (isEmptyElement("Marca", "Ingrese la Marca"))
+                return false;
+
+            if (isEmptyElement("Constancia", "Ingrese la Constancia"))
+                return false;
+
+
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var jsonData = {
+            __RequestVerificationToken: token,
+            Header: JSON.stringify($('#form1').serializeObject()),
+            EditAction: $("#EditAction").val()
+            //EditAction: '1'
+        };
+        controllerSaveResponse("@Url.Action("Create", "Vehiculo", new { area = "MG" })", jsonData, false, false, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                controllerGetAction('@Url.Action("Bandeja", "Vehiculo", new { area = "MG" })', null, 'workspace', false, false, null);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+</script>

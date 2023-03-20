@@ -1,0 +1,17 @@
+﻿@model eRPBusiness.Transport.SubCategoriaDTO
+@using eRPBusiness.Helpers
+@{
+    ViewBag.Title = "Categoria";
+}
+
+<div class="panel panel-default">
+    <div class="panel-body form-horizontal" id="panel">
+        <div class="form-group">
+            @Html.CRM().DropDownList("CategoriaId", Model.CategoriaId, @ViewBag.ListCategoria, "col-lg-10", "Categoria", "col-lg-2")
+        </div>
+        <div class="form-group">
+            @Html.CRM().TextBoxFor(m => m.Nombre, "col-lg-10", "Nombre", "col-lg-2").Attributes(new { @placeholder = "Nombre" })
+        </div>
+        @Html.HiddenFor(m => m.SubCategoriaId)
+    </div>
+</div>

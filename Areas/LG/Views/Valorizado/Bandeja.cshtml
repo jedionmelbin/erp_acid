@@ -1,0 +1,324 @@
+﻿@using eRPBusiness.Helpers
+@{
+    ViewData["Title"] = "Index";
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>Listado Stock Valorizado</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                           new ItemMenuBar(MenuBarButtonType.ExportXls),
+                       })
+<div class="row">
+    <div class="col-lg-12" id="seachPanel">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="col-lg-11">
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            @Html.CRM().TextBox("Codigo", null, "col-lg-4 col-md-4", "Código", "col-lg-2").Attributes(new { @placeholder = "Código" })
+                            @Html.CRM().TextBox("CodigoComercial", null, "col-lg-4 col-md-4", "Código com.", "col-lg-2").Attributes(new { @placeholder = "Código comercial" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("LineaId", null, @ViewBag.lineaList, "col-lg-4", "Linea", "col-lg-2")
+                            @Html.CRM().DropDownList("GrupoId", null, @ViewBag.ListarGrupo, "col-lg-4", "Grupo", "col-lg-2")
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            @Html.CRM().TextBox("Descripcion", null, "col-lg-10", "Nombre", "col-lg-2").Attributes(new { @maxlength = "100", @placeholder = "Nombre" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("MarcaId", null, @ViewBag.listMarca, "col-lg-4", "Marca", "col-lg-2")
+                            @Html.CRM().DropDownList("CategoriaId", null, @ViewBag.listCategoria, "col-lg-4", "Categoria", "col-lg-2")
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-1">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridBienAlmacen').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('input:text').val('');$('#AlmacenId').val(null).trigger('change');$('#GrupoId').val(null).trigger('change');$('#jqGridBienAlmacen').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-body" id="panel">
+                <table id="jqGridBienAlmacen"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridBienAlmacen").jqGrid({
+            url: '@Url.Action("ListarBandeja", "Valorizado", new { area = "lg" })',
+            mtype: "POST",
+            postData: {
+                codigo: function () { return $("#Codigo").val(); },
+                codigoComercial: function () { return $("#CodigoComercial").val(); },
+                descripcion: function () { return $("#Descripcion").val(); },
+                lineaId: function () { return $("#LineaId").val(); },
+                grupoId: function () { return $("#GrupoId").val(); },
+                marcaId: function () { return $("#MarcaId").val(); },
+                categoriaId: function () { return $("#CategoriaId").val(); },
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'BienAlmacenId', key: true, hidden: true },
+                { label: 'Id', name: 'BienServicioId', hidden: true },
+                { label: 'Código', name: 'Codigo', width: 12 },
+                { label: 'Cod. Comercial', name: 'CodigoComercial', width: 14 },
+                { label: 'Plan Contable', name: 'PlanContable',hidden: true},
+                { label: 'Descripcion', name: 'Descripcion', width: 40, sortable: false },
+                //{ label: 'Marca', name: 'Marca', width: 15, sortable: false },
+                { label: 'U.M', name: 'UnidadMedida', width: 7, sortable: false },
+                {
+                    label: 'Ultimo Ingreso', name: 'CantidadIngreso', width: 15, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Stock Anterior', name: 'CantidadAnterior', width: 14, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Stock Actual', name: 'CantidadSaldo', width: 13, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+
+                {
+                    label: 'Costo Anterior', name: 'ValorUnitAnterior', width: 15, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Costo Unitario', name: 'ValorUnitario', width: 14, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Cant. Salida', name: 'CantidadSalida', width: 15, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Costo Unitario', name: 'ValorUnitSalida', width: 15, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Valor Salida', name: 'ValorSalida', width: 14, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Valor Ing Ant.', name: 'ValorIngresoAnterior', width: 14, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Valor Ingreso', name: 'ValorIngreso', width: 14, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Valor Total', name: 'MontoSaldo', width: 13, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2
+                    }
+                }
+
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 155),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            rownumbers: false, // show row numbers
+            loadComplete: function () {
+                var rows = $(this).getDataIDs();
+                $.each(rows, function (item, value) {
+
+                    jQuery("#jqGridBienAlmacen").setCell(value, 'CantidadIngreso', '', { 'color': '#243EF2', 'font-weight': 'bold' });
+                    jQuery("#jqGridBienAlmacen").setCell(value, 'ValorUnitario', '', { 'color': '#243EF2', 'font-weight': 'bold' });
+                    jQuery("#jqGridBienAlmacen").setCell(value, 'MontoIngreso', '', { 'color': '#243EF2', 'font-weight': 'bold' });
+                    jQuery("#jqGridBienAlmacen").setCell(value, 'CantidadSaldo', '', { 'color': '#243EF2', 'font-weight': 'bold' });
+
+                    jQuery("#jqGridBienAlmacen").setCell(value, 'CantidadSalida', '', { 'color': 'red', 'font-weight': 'bold' });
+                    jQuery("#jqGridBienAlmacen").setCell(value, 'CostoUnitSalida', '', { 'color': 'red', 'font-weight': 'bold' });
+                    jQuery("#jqGridBienAlmacen").setCell(value, 'ValorSalida', '', { 'color': 'red', 'font-weight': 'bold' });
+                    jQuery("#jqGridBienAlmacen").setCell(value, 'ValorUnitSalida', '', { 'color': 'red', 'font-weight': 'bold' });
+                    
+
+                    jQuery("#jqGridBienAlmacen").setCell(value, 'ValorIngresoAnterior', '', { 'color': '#1CC922', 'font-weight': 'bold' });
+                    jQuery("#jqGridBienAlmacen").setCell(value, 'ValorIngreso', '', { 'color': '#1CC922', 'font-weight': 'bold' });
+                    jQuery("#jqGridBienAlmacen").setCell(value, 'MontoSaldo', '', { 'color': '#1CC922', 'font-weight': 'bold' });
+                });
+            },
+            pager: "#jqGridPager"
+        });
+
+           $('#jqGridBienAlmacen').setGroupHeaders(
+                {
+                useColSpanStyle: true,
+                groupHeaders: [
+
+                        { "numberOfColumns": 3, "titleText": "Movimiento", "startColumnName": "CantidadIngreso" },
+                        { "numberOfColumns": 2, "titleText": "Costos", "startColumnName": "ValorUnitAnterior" },
+                        { "numberOfColumns": 3, "titleText": "Salida", "startColumnName": "CantidadSalida" },
+                        { "numberOfColumns": 3, "titleText": "Saldo Valorizado", "startColumnName": "ValorIngresoAnterior" },
+                    ]
+                });
+    });
+
+
+
+    function onClickMenuBar(control) {
+
+        var postData = {
+            editAction: '',
+            movimientoAlmacenId: 0
+        };
+        var row = getGridSelectedRow("jqGridBienAlmacen");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                postData.editAction = '@EditActionConstant.NEW';
+                controllerGetAction('@Url.Action("Create", "BienAlmacen", new { area = "lg" })', postData, 'workspace', true, true, null);
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    postData.editAction = '@EditActionConstant.EDIT';
+                    postData.bienAlmacenId = row.BienAlmacenId;
+                    controllerGetAction('@Url.Action("Create", "BienAlmacen", new { area = "lg" })', postData, 'workspace', true, true, null);
+                } else {
+                    MsgAlert(3, 'Seleccione un inventario para ver el detalle');
+                }
+                break;
+            case "@ButtonMenuBarActionConstant.PRINT":
+
+                break;
+            case "@ButtonMenuBarActionConstant.RELOAD":
+                var jsonData = {
+
+                };
+                controllerSaveResponse("@Url.Action("Refrescar", "BienAlmacen", new { area = "lg" })", jsonData, true, true, function (response) {
+                    if (response.success) {
+                        MsgAlert(1, response.message);
+                            $('#jqGridBienAlmacen').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                    } else {
+                        MsgAlert(4, response.message);
+                    }
+                });
+                break;
+            case "@ButtonMenuBarActionConstant.EXPORT_XLS":
+                $.fileDownload('@Url.Action("ExportKardex")', {
+                    httpMethod: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: {
+                        fechaInicio: function () { return $("#FechaInicio").val(); },
+                        fechaFinal: function () { return $("#FechaInicio").val(); },
+                        bienServicio: function () { return $("#BienServicio").val(); },
+                        tipoMovimientoId: function () { return $("#TipoMovimientoId").val(); },
+                        tipoOperacionId: function () { return $("#TipoOperacionId").val(); }
+                    },
+                    successCallback: function (url) {
+
+                    },
+                    failCallback: function (responseHtml, url) {
+
+                    }
+                });
+                break;
+            case "@ButtonMenuBarActionConstant.DOWNLOAD":
+
+                $.fileDownload('@Url.Action("ExportKardex")', {
+                    httpMethod: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: {
+
+                    },
+                    successCallback: function (url) {
+
+                    },
+                    failCallback: function (responseHtml, url) {
+
+                    }
+                });
+                break;
+        }
+    }
+
+    function onChangeDocComercial()
+    {
+        $('#jqGridBienAlmacen').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+    }
+
+    function onChangeAlmacen() {
+        $('#jqGridBienAlmacen').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+    }
+
+    function onClickOkFileUpload() {
+        var formdata = new FormData();
+        var fileInput = document.getElementById('fileUpload');
+        var filename = fileInput.files[0].name;
+        var extension = filename.split('.').pop().toUpperCase();
+        if (extension !== "XLS" && extension !== "XLSX") {
+            alert();
+        }
+        else {
+            for (i = 0; i < fileInput.files.length; i++) {
+                formdata.append('fileBase', fileInput.files[i]);
+            }
+
+          $.ajax({
+            url: '@Url.Action("ReadExcelFile")',
+            beforeSend: function () {
+                $("#modalContent").LoadingOverlay("show", {
+                    image: "",
+                    text: "Cargando..."
+                });
+            },
+            complete: function () {
+                $("#modalContent").LoadingOverlay("hide", true);
+            },
+            type: 'POST',
+            data: formdata,
+            async: true,
+            success: function (response) {
+                $("#myModal").modal('hide');
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    $('#jqGridBienAlmacen').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                } else {
+                    MsgAlert(4, response.message);
+                }
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+            });
+        }
+
+    }
+</script>

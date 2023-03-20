@@ -1,0 +1,162 @@
+﻿
+@{
+    ViewBag.Title = "CarouselEdit";
+}
+
+<div class="row">
+    <div class="col-lg-6 col-md-6">
+        <div class="form-group">
+            <label class="control-label col-lg-2 col-md-2">Adjuntar</label>
+            <div class="col-md-6">
+                <input type="file" id="fileImage" name="fileImage" multiple />
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="form-group">
+            <div class="col-md-6">
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <div class="well">
+            <div id="myCarousel" class="carousel slide">
+                <ol class="carousel-indicators">
+                    <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+                    <li data-target="#myCarousel" data-slide-to="1"></li>
+                    <li data-target="#myCarousel" data-slide-to="2"></li>
+                </ol>
+                <div class="carousel-inner" id="itemImagen">
+                </div>
+                <a class="left carousel-control" href="#myCarousel" data-slide="prev">‹</a>
+                <a class="right carousel-control" href="#myCarousel" data-slide="next">›</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="entry-imagen" type="text/x-handlebars-template">
+    {{#each imagens}}
+    <div class="item {{active}}">
+        <div class="row-fluid">
+            <div class="row">
+                <div class="col-lg-6 col-md-6 text-center">
+                    <input type="checkbox" id="principal_{{BienImageId}}" name="principal_{{BienImageId}}" value="{{BienImageId}}" onchange="chanPrincipal(this)" />
+                </div>
+                <div class="col-lg-6 col-md-6 text-center">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" value="{{BienImageId}}"  onclick="eliminarImagen(this)">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="span3">
+                        <a href="#x" class="thumbnail">
+                            <img src="{{Url}}" alt="Image" style="max-width:100%; height:300px;" />
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    {{/each}}
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#fileImage").change(function () {
+        var files = $("#fileImage").get(0).files;
+        var formdata = new FormData();
+        for (var i = 0; i < files.length; i++) {
+            formdata.append("fileBase", files[i]);
+        }
+       formdata.append("bienServcioId", $("#BienServicioId").val());
+        $.ajax({
+            url: '@Url.Action("FileUpload","BienAlmacen")',
+            type: "POST",
+            beforeSend: function () {
+                $("#modalContent").LoadingOverlay("show", {
+                    image: "",
+                    background: "rgba(165, 190, 100, 0.5)",
+                    text: "Procesando..."
+                });
+            },
+            complete: function () {
+                $("#modalContent").LoadingOverlay("hide", true);
+            },
+            contentType: false, // Not to set any content header
+            processData: false, // Not to process data
+            data: formdata,
+            async: true,
+            success: function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    $("#myModal").modal('hide');
+                } else {
+                    MsgAlert(4, response.message);
+                }
+            },
+            error: function (err) {
+                alert(err.statusText);
+            }
+        });
+
+        });
+
+        var postData = {
+            bienServioId: $("#BienServicioId").val()
+        };
+        var products = {
+            imagens: [
+                {
+                    active: "active",
+                    Url: {
+                        Url: "http://placehold.it/250x250"
+                    }
+                },
+                {
+                    active: "",
+                    Url: {
+                        Url: "http://placehold.it/250x250"
+                    }
+                }
+            ]
+        };
+        controllerGetJson('@Url.Action("ListImagen","BienAlmacen")', postData, false, false, function (response) {
+            if (response.success) {
+                var templateHtml = $("#entry-imagen").html();
+                var templateBuild = Handlebars.compile(templateHtml);
+                if (!jQuery.isEmptyObject(response.data)) {
+                    $('#itemImagen').append(templateBuild({ imagens: response.data }));
+                } else {
+                    $('#itemImagen').append(templateBuild({ imagens: products.imagens }));
+                }
+
+            }
+        });
+    });
+
+    function chanPrincipal(control) {
+        $.post('@Url.Action("CambiarImagen","BienAlmacen")', {
+            bienImagenId: control.value
+        }, function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+            }
+        });
+    }
+
+    function eliminarImagen(control) {
+         $.post('@Url.Action("EliminarImagen","BienAlmacen")', {
+            bienImagenId: control.value
+        }, function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+            }
+        });
+    }
+
+</script>

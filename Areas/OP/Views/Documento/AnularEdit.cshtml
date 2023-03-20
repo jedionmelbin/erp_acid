@@ -1,0 +1,191 @@
+﻿@model eRPBusiness.Transport.OrdenDTO
+
+@{
+    ViewBag.Title = "EditAnularComprobante";
+}
+
+<div class="row">
+    <div class="col-md-12 form-horizontal">
+        <div class="form-group">
+            <label class="col-form-label col-form-label-sm col-md-4 col-xs-4"><b>@Model.DocumentoComercialDTO.Nombre</b> </label>
+            <div class="col-md-5 col-xs-5">
+                <label class="col-form-label"><b>@Model.Codigo</b> </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-form-label col-form-label-sm col-md-4 col-xs-4"><b>NOMBRE DE CLIENTE</b> </label>
+            <div class="col-md-7 col-xs-7">
+                <label class="col-form-label"><b>@Model.Denominacion</b> </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-form-label col-form-label-sm col-md-4 col-xs-4"><b>FECHA EMISIÓN</b> </label>
+            <div class="col-md-7 col-xs-7">
+                <label class="col-form-label"><b>@Model.FechaEmision</b> </label>
+            </div>
+        </div>
+        <div class="form-group ">
+            <label class="col-form-label col-form-label-sm col-md-4 col-xs-4"><b>GRAVADA</b> </label>
+            <div class="col-md-7 col-xs-7">
+                <label class="col-form-label"><b>@Model.SubTotal</b> </label>
+            </div>
+            <label class="col-form-label col-form-label-sm col-md-4 col-xs-4"><b>I.G.V</b> </label>
+            <div class="col-md-7 col-xs-7">
+                <label class="col-form-label"><b>@Model.TotalImpuesto</b> </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-form-label col-form-label-sm col-md-4 col-xs-4"><b>TOTAL</b> </label>
+            <div class="col-md-7 col-xs-7">
+                <label class="col-form-label"><b>@Model.TotalPedido</b> </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-form-label col-form-label-sm col-md-2 col-xs-2">MOTIVO</label>
+            <div class="col-md-10 col-xs-10">
+                @Html.TextAreaFor(model => model.Motivo, new { @class = "form-control form-control-sm", @placeholder = "MOTIVO DE ANULACION" })
+                @Html.ValidationMessageFor(model => model.Motivo, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        @Html.HiddenFor(m => m.OrdenId)
+        @Html.HiddenFor(m => m.EnvioDocumentoId)
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <table id="jqGrid1"></table>
+        <div id="jqGridPager1"></div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#jqGrid1").jqGrid({
+                url: '@Url.Action("ListarDetalle")',
+                mtype: "POST",
+                postData: {
+                    ordenId: function () { return $("#OrdenId").val() }
+                },
+                datatype: "json",
+                colModel: [
+                    { label: 'OrdenItemId', name: 'OrdenItemId', key: true, hidden: true },
+                    { label: '', name: 'OrdenId', hidden: true },
+                    { label: '', name: 'BienServicioId', hidden: true },
+                    { label: 'Codigo', name: 'Codigo', width: 70, editable: false, align: 'center',hidden: true},
+                    { label: 'Descripcion', name: 'Descripcion', width: 370, editable: true, editoptions: { class: 'form-control form-control-sm' } },
+                    {
+                         label: 'Cantidad', name: 'Cantidad', width: 90, editable: true, formatter: 'integer', align: 'right', sortable: false, formatoptions: {
+                             decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                        }, editoptions: {
+                             class: 'form-control form-control-sm',
+                             dataInit: function (elem, options) {
+                                $(elem).inputmask('decimal', {
+                                    placeholder: "0",
+                                    digits: 2,
+                                    digitsOptional: false,
+                                    autoGroup: true,
+                                    allowPlus: false,
+                                    allowMinus: false,
+                                    clearMaskOnLostFocus: false,
+                                    removeMaskOnSubmit: true
+                                });
+
+
+                             }
+                         }
+                     },
+                    {
+                        label: 'Precio Unitario', name: 'ValorUnitario', width: 95, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                        formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                            class: 'form-control form-control-sm',
+                            dataInit: function (elem, options) {
+                                $(elem).inputmask('decimal', {
+                                  placeholder: "0", digits: 2, digitsOptional: false, autoGroup: true,
+                                  allowPlus: false, allowMinus: false, clearMaskOnLostFocus: false, removeMaskOnSubmit: true
+                                });
+
+
+                            }
+                        }
+                },
+                {
+                    label: 'Gravado', name: 'ValorGravada', width: 95, hidden:true, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        readonly: 'readonly',
+                        class: 'form-control form-control-sm',
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', {
+                                placeholder: "0",
+                                digits: 2,
+                                digitsOptional: false,
+                                autoGroup: true,
+                                allowPlus: false,
+                                allowMinus: false,
+                                clearMaskOnLostFocus: false,
+                                removeMaskOnSubmit: true
+                            });
+                        }
+                    }
+                },
+                {
+                    label: 'IGV', name: 'ValorImpuesto', width: 85, hidden: true, sortable: false, editable: true, formatter: 'integer', align: 'right',
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                         class: 'form-control form-control-sm',
+                         readonly: 'readonly',
+                         dataInit: function (elem, options) {
+                             $(elem).inputmask('decimal', {
+                                 placeholder: "0",
+                                 digits: 2,
+                                 digitsOptional: false,
+                                 autoGroup: true,
+                                 allowPlus: false,
+                                 allowMinus: false,
+                                 clearMaskOnLostFocus: false,
+                                 removeMaskOnSubmit: true
+                             });
+                         }
+                     }
+                },
+                {
+                    label: 'Importe', name: 'ImporteTotal', width: 100, sortable: false, editable: true, formatter: 'integer', align: 'right',
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                          readonly: 'readonly',
+                          class: 'form-control form-control-sm',
+                           dataInit: function (elem, options) {
+                               $(elem).inputmask('decimal', {
+                                   placeholder: "0",
+                                   digits: 2,
+                                   digitsOptional: false,
+                                   autoGroup: true,
+                                   allowPlus: false,
+                                   allowMinus: false,
+                                   clearMaskOnLostFocus: false,
+                                   removeMaskOnSubmit: true
+                               });
+                           }
+                       }
+                  },
+                ],
+                loadComplete: function () {
+
+
+                },
+                beforeProcessing: function (data) {
+
+                },
+                viewrecords: false,
+                page: 1,
+                scroll: 1,
+                emptyrecords: '',
+                footerrow: false,
+                height: 200,
+                altRows: true,
+                rowNum: 20,
+                width: 870,
+                pager: "#jqGridPager1"
+            });
+
+    });
+
+</script>

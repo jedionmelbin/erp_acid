@@ -1,0 +1,17 @@
+﻿@model eRPBusiness.Transport.DocumentoComercialDTO
+@using eRPBusiness.Helpers
+@{
+    ViewBag.Title = "Categoria";
+}
+
+<div class="panel panel-default">
+    <div class="panel-body form-horizontal" id="panel">
+        <div class="form-group">
+            @Html.CRM().TextBoxFor(m => m.Codigo, "col-lg-4", "Código", "col-lg-2").Attributes(new { @placeholder = "Codigo", @maxlength = "3" })
+        </div>
+        <div class="form-group">
+            @Html.CRM().TextBoxFor(m => m.Nombre, "col-lg-10", "Nombre", "col-lg-2").Attributes(new { @placeholder = "Nombre" })
+        </div>
+        @Html.HiddenFor(m => m.DocumentoComercialId)
+    </div>
+</div>

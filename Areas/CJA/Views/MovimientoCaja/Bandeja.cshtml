@@ -1,0 +1,313 @@
+﻿@model eRPBusiness.Transport.CajaChicaMovimientoDTO
+@using eRPBusiness.Helpers
+@using eRPBusiness.Common
+@{
+    ViewData["Title"] = "Index";
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>Movimiento Caja</label>
+        </nav>
+    </div>
+</div>
+@*@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                           new ItemMenuBar(MenuBarButtonType.ExportXls),
+                       })*@
+<div class="row">
+    <div class="col-lg-5" id="panel">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                Apertura de caja
+            </div>
+            <div class="panel-body form-horizontal">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <table id="jqGridCaja"></table>
+                        <div id="jqGridPager"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7" id="seachPanel">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                Movimiento de caja
+            </div>
+            <div class="panel-body form-horizontal" id="bandeja">
+                <div class="row">
+                    <div class="col-lg-12">
+                        @Html.CRM().MenuBar("BancoMenuBar", "onClickBancoMenuBar", new ItemMenuBar[]{
+                                                 new ItemMenuBar(MenuBarButtonType.New,false),
+                                                 new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                 new ItemMenuBar(MenuBarButtonType.Save,true),
+                                                 new ItemMenuBar(MenuBarButtonType.Cancel,true),
+                                                 new ItemMenuBar(MenuBarButtonType.ExportXls,false),
+                                                 new ItemMenuBar(MenuBarButtonType.Search,false)
+                                             }, MenuBarType.Small)
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="form-group">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            @Html.CRM().DateTimePicker("FechaInicio", Model.FechaInicio, "col-lg-4", "Fecha Inicio", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Inicio" })
+                            @Html.CRM().DateTimePicker("FechaFinal", null, "col-lg-4", "Fecha Final", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Final" })
+                        </div>
+                        @Html.Hidden("EditAction")
+                        @Html.Hidden("rowId")
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <table id="jqGridMov"></table>
+                        <div id="jqGridMovPager"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.CRM().Popup("myModalMovCaja", "Caja Chica", "onClickCajaChica", SizePopup.Medium))
+{
+    <div id="modalContentCaja"></div>
+}
+
+@using (Html.CRM().Popup("myModalCajaChica", "Reporte Caja Chica", "onClickOkReporte", SizePopup.Large))
+{
+    <div class="row">
+        <div class="col-lg-12">
+            <div id="PDFViewer">
+                <div id="PDFViewer" width="850" height="442"></div>
+            </div>
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#seachPanel").width();
+    var _panelOne = $("#panel").width();
+    $(document).ready(function () {
+
+         $("#jqGridCaja").jqGrid({
+            url: '@Url.Action("ListarBandeja", "AperturaCaja", new { area = "CJA" })',
+            mtype: "POST",
+            postData: {
+                fechaInicio: function () { return $("#FechaInicio").val(); },
+                fechaFinal: function () { return $("#FechaFinal").val();}
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'CajaChicaId', name: 'CajaChicaId', key: true, hidden:true, },
+                { label: 'Sucursal', name: 'Sucursal', width: 20, sortable: false,hidden:true},
+                { label: 'Fecha Apertura', name: 'FechaInicio', width: 10, sortable: false },
+                { label: 'Cajero', name: 'Personal', width: 20, sortable: false, hidden: true },
+                { label: 'Moneda', name: 'Moneda', width: 5, sortable: false,align:'center'},
+                { label: 'Monto', name: 'Monto', width: 10, sortable: false, formatter: 'integer', align: 'right', formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 } },
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 120),
+            width: (_panelOne - 30),
+            rowNum: 20,
+            rowList: [10, 20, 30],
+
+            pager: "#jqGridPager"
+        });
+
+        $("#jqGridMov").jqGrid({
+            url: '@Url.Action("ListarBandeja", "MovimientoCaja", new { area = "CJA" })',
+            mtype: "POST",
+            postData: {
+                fechaInicio: function () { return $("#FechaInicio").val(); },
+                fechaFinal: function () { return $("#FechaFinal").val();}
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'CajaChicaId', name: 'CajaChicaId', key: true, hidden: true, },
+                { label: 'Fecha', name: 'FechaInicio', width: 5, sortable: false, align: 'center' },
+                { label: 'Operación', name: 'TipoMovimiento', width: 8, sortable: false, formatter: colorStatusCell, align :'center' },
+                { label: 'Concepto', name: 'Concepto', width: 20, sortable: false,  formatter: function (cellvalue, options, rowObject) {
+                          return "<b>"+ rowObject.Concepto +"</b>";
+                   }
+                },
+                { label: 'Moneda', name: 'Moneda', width: 5, sortable: false },
+                {
+                    label: 'Ingreso', name: 'Ingreso', width: 10, sortable: false, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Salida', name: 'Salida', width: 10, sortable: false, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 220),
+            width: (_widthPanel- 34),
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            footerrow: true,
+            rownumbers:true,
+            loadComplete: function () {
+                var grid = $(this);
+                var _Ingreso = grid.jqGrid('getCol', 'Ingreso', false, 'sum');
+                var _Salida = grid.jqGrid('getCol', 'Salida', false, 'sum');
+                grid.jqGrid('footerData', 'set', {
+                    Producto: 'Sub Total',
+                    Ingreso: _Ingreso,
+                    Salida: _Salida
+                });
+            },
+            pager: "#jqGridMovPager"
+        });
+
+        $("#myModalMovCaja").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            var postData = {
+                EditAction: $("#EditAction").val(),
+                bancoId: $("#rowId").val()
+            };
+            controllerGetAction('@Url.Action("Create", "MovimientoCaja")', postData, 'modalContentCaja', false, false, null);
+        });
+
+
+    });
+
+    function colorStatusCell(cellvalue, options, rowObject) {
+        var backgroud = '', colorHex = '';
+        switch (rowObject.TipoMovimiento) {
+            case 'INGRESO':
+                colorHex = '#2BE07E';
+                break;
+            case 'SALIDA':
+                colorHex = '#F7235B';
+                break;
+            default:
+                return cellvalue;
+                break;
+        }
+        backgroud = '<span style="background-color: ' + colorHex + '; display: block; width: 100%; height: 100%; color:#fff; ">' + cellvalue + '</span>';
+        return backgroud;
+    }
+
+    function onClickBancoMenuBar(control) {
+
+        var postData = {
+            editAction: '',
+            bancoId: 0
+        };
+        var row = getGridSelectedRow("jqGridCaja");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                postData.editAction = '@EditActionConstant.NEW';
+                $("#EditAction").val(@EditActionConstant.NEW)
+                $("#myModalMovCaja").modal('show');
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                        $("#EditAction").val(@EditActionConstant.EDIT);
+                        $("#rowId").val(row.BancoId);
+                         $("#myModalMovCaja").modal('show');
+                } else {
+                    MsgAlert(3, 'Seleccione un inventario para ver el detalle');
+                }
+                break;
+            case "@ButtonMenuBarActionConstant.EXPORT_XLS":
+                 $.fileDownload('@Url.Action("Exportmovcaja")', {
+                    httpMethod: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: {
+                        fechaInicio: function () { return $("#FechaInicio").val(); },
+                        fechaFinal: function () { return $("#FechaFinal").val(); }
+                    },
+                    successCallback: function (url) {
+
+                    },
+                    failCallback: function (responseHtml, url) {
+
+                    }
+                });
+                break;
+           case "@ButtonMenuBarActionConstant.SEARCH":
+                $('#jqGridMov').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                break;
+        }
+    }
+
+     function onClickCajaChica() {
+
+
+
+        if (isEmptyElement("PersonalId", "Seleccione personal"))
+             return false;
+
+        if (isEmptyElement("TipoMovimientoId", "Seleccione tipo movimiento"))
+             return false;
+
+
+        if (isEmptyElement("MonedaId", "Seleccione tipo moneda"))
+             return false;
+
+        var jsonData = {
+            Header: JSON.stringify($('#modalContentCaja').serializeObject()),
+            EditAction:$("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("Create", "MovimientoCaja")", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $('#jqGridMov').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                 $("#myModalMovCaja").modal('hide');
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+    function onClickMenuBar(control) {
+
+        var postData = {
+            editAction: '',
+            movimientoAlmacenId: 0
+        };
+        var row = getGridSelectedRow("jqGridPedido");
+        switch (control) {
+
+             case "@ButtonMenuBarActionConstant.EXPORT_XLS":
+                $.fileDownload('@Url.Action("Exportmovcaja")', {
+                    httpMethod: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: {
+                        fecha: function () { return $("#Fecha").val(); },
+                        documento: function () { return $("#Documento").val(); },
+                        razonsocial: function () { return $("#RazonSocial").val(); },
+                        producto: function () { return $("#Producto").val(); },
+                        cantidad: function () { return $("#Cantidad").val(); },
+                    },
+                    successCallback: function (url) {
+
+                    },
+                    failCallback: function (responseHtml, url) {
+
+                    }
+                });
+                break;
+        }
+    };
+</script>
+
+

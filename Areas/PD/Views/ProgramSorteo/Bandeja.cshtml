@@ -1,0 +1,280 @@
+﻿@using eRPBusiness.Helpers
+@{
+    ViewData["Title"] = "Index";
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>Listado de Creación de Sorteo</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                           new ItemMenuBar(MenuBarButtonType.New),
+                           new ItemMenuBar(MenuBarButtonType.Edit),
+                           new ItemMenuBar(MenuBarButtonType.Print,false),
+                           new ItemMenuBar(MenuBarButtonType.Result,false),
+                       })
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="col-lg-11">
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            @Html.CRM().DateTimePicker("FechaInicio", null, "col-lg-4", "Fecha Inicio", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Inicio" })
+                            @Html.CRM().DateTimePicker("FechaFinal", null, "col-lg-4", "Fecha Final", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Final" })
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        @Html.CRM().TextBox("Descripcion", null, "col-lg-10", "Descripcion", "col-lg-2").Attributes(new { @placeholder = "Descripcion" })
+                    </div>
+                </div>
+                <div class="col-lg-1">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridPedido').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('input:text').val('');$('#DocumentoComercialId').val('').trigger('change'); $('#jqGridPedido').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-body" id="panel">
+                <table id="jqGridPedido"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.CRM().Popup("myModalReporte", "Reporte Orden Compra", "onClickOkReporte", SizePopup.Large))
+{
+    <div class="row">
+        <div class="col-lg-12">
+            <div id="PDFViewer">
+                <embed src="" width="850" height="442" type="application/pdf" />
+            </div>
+        </div>
+    </div>
+}
+
+@using (Html.CRM().Popup("myModalResult", "Ingresar Resultado", "onClickOkResult", SizePopup.Small))
+{
+    <div id="divContentResult">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="col-lg-12 form-horizontal">
+                            <h6 id="titleSorteo" style="font-weight:bold;"></h6>
+                            <div class="form-group">
+                                @Html.CRM().TextBox("Ganador", null, "col-lg-12", "Resultado", "col-lg-4").Attributes(new { @placeholder = "Formato 20,20,10,10" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+    <script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridPedido").jqGrid({
+            url: '@Url.Action("ListarBandeja", "ProgramSorteo", new { area = "pd" })',
+            mtype: "POST",
+            postData: {
+                descripcion: function () { return $("#Descripcion").val() },
+                fechaInicio: function () { return $("#FechaInicio").val() },
+                fechaFinal: function () { return $("#FechaFinal").val() },
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'SorteoId', key: true, hidden: true },
+                { label: 'Estado', name: 'Estado', hidden: true },
+                { label: 'Fecha Emisión', name: 'FechaCreacion', width: 15,align: 'center' },
+                { label: 'Descripcion', name: 'Descripcion', width: 45 },
+                { label: 'Fecha Inicio', name: 'FechaInicio', width: 18, align: 'center', sortable: false },
+                { label: 'Fecha Final', name: 'FechaFinal', width: 18, align: 'center', sortable: false },
+                {
+                    label: 'Costo', name: 'Costo', width: 13, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                },
+                { label: 'Resultado', name: 'Ganador', width: 25, align: 'center',formatter:colorCell},
+                { label: 'Opciones', name: 'Opciones', width: 15, align: 'center' },
+                { label: 'Estado', name: 'EstadoSorteo', width: 20, align: 'center', formatter: colorCells }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 220),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            subGrid: true,
+            rownumbers: true,
+            subGridRowExpanded: showChildGrid, subGridOptions: {
+                reloadOnExpand: false,
+                selectOnExpand: true
+            },
+            pager: "#jqGridPager"
+        });
+    });
+
+    function showChildGrid(parentRowID, parentRowKey) {
+        var rowData = jQuery("#jqGridPedido").getRowData(parentRowKey);
+        var childGridID = parentRowID + "_table";
+        var childGridPagerID = parentRowID + "_pager";
+        var childGridURL = parentRowKey + ".json";
+        $('#' + parentRowID).append('<table id=' + childGridID + '></table><div id=' + childGridPagerID + ' class=scroll></div>');
+
+        $("#" + childGridID).jqGrid({
+            url: '@Url.Action("ListaSorteoItem", "ProgramSorteo", new { area = "pd" })',
+            mtype: "POST",
+            postData: {
+                sorteoId: rowData["SorteoId"]
+            },
+            datatype: "json",
+            page: 1,
+            colModel: [
+                { label: '', name: 'OrdenId', key: true, hidden: true },
+                { label: 'Nro Documento', name: 'NumeroDocumento', width: 20 },
+                { label: 'Cliente', name: 'RazonSocial', width: 60 },
+                {
+                    label: 'Alternativa', name: 'Alternativa', width: 20, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                },
+                { label: 'Opciones', name: 'Opciones', width: 40, formatter: colorCellCodigo  }
+            ],
+            loadonce: true,
+            width: 960,
+            height: '100%',
+            footerrow: true,
+            loadComplete: function () {
+                var grid = $(this);
+                total = grid.jqGrid('getCol', 'SubTotal', false, 'sum');
+                var precioUnitaro = grid.jqGrid('getCol', 'PrecioUnitario', false, 'sum');
+                var cantidad = grid.jqGrid('getCol', 'Cantidad', false, 'sum');
+                grid.jqGrid('footerData', 'set', { PrecioUnitario: precioUnitaro, Cantidad: cantidad, SubTotal: total });
+
+            },
+            pager: "#" + childGridPagerID
+        });
+
+    };
+
+    function colorCells(cellvalue, options, rowObject) {
+
+        var backgroud = '', colorHex = '';
+        switch (rowObject.Estado) {
+            case 'P':
+                colorHex = '#6B9AE8';
+                break;
+            case 'C':
+                colorHex = '#58B344';
+                break;
+            default:
+                return cellvalue;
+                break;
+        }
+        backgroud = '<span style="background-color: ' + colorHex + '; display: block; width: 100%; height: 100%; color:#fff; ">' + cellvalue + '</span>';
+        return backgroud;
+    }
+
+    function colorCell(cellvalue, options, rowObject) {
+        var backgroud = '<b>' + cellvalue + '</b>';
+        return backgroud;
+    }
+    function onClickMenuBar(control) {
+
+        var postData = {
+            editAction: '',
+            sorteoId: 0
+        };
+        var row = getGridSelectedRow("jqGridPedido");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                postData.editAction = '@EditActionConstant.NEW';
+                controllerGetAction('@Url.Action("Create", "ProgramSorteo", new { area = "pd" })', postData, 'workspace', true, true, null);
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    postData.editAction = '@EditActionConstant.EDIT';
+                    postData.sorteoId = row.SorteoId;
+                    controllerGetAction('@Url.Action("Create", "ProgramSorteo", new { area = "pd" })', postData, 'workspace', true, true, null);
+                } else {
+                    MsgAlert(3, 'Seleccione un Sorteo programado');
+                }
+                break;
+            case "@ButtonMenuBarActionConstant.PRINT":
+
+                if (!isEmpty(row)) {
+                    $('embed').attr('src', '@Url.Action("Documento", "ProgramSorteo", new { ordenCompraId =  "value"})');
+                    var url = $('embed').attr('src');
+                    var printReporte = url.replace("value", row.OrdenCompraId);
+                    $('embed').attr('src', printReporte);
+
+                    $("#myModalReporte").modal('show');
+                } else {
+                    MsgAlert(3, 'Seleccione un sorteo programado');
+                }
+
+                break;
+            case "@ButtonMenuBarActionConstant.RESULT":
+                if (!isEmpty(row)) {
+                    $("#titleSorteo").text(row.Descripcion);
+                    $("#myModalResult").modal('show');
+                } else {
+                    MsgAlert(3, 'Seleccione un Sorteo programado');
+                }
+
+                break;
+        }
+    };
+
+    function onChangeDocComercial()
+    {
+        $('#jqGridPedido').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+    }
+
+    function onClickOkResult() {
+        if (isEmptyElement("Ganador", "Ingrese resultado"))
+            return false;
+
+        var row = getGridSelectedRow("jqGridPedido");
+        var jsonData = {
+            Header: JSON.stringify($('#divContentResult').serializeObject()),
+            sorteoId: row.SorteoId
+        };
+        controllerSaveResponse("@Url.Action("ResultadoSorteo", "ProgramSorteo", new { area = "pd" })", jsonData, false, false, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $("#myModalResult").modal('hide');
+                $("#Ganador").val('');
+                $('#jqGridPedido').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+    </script>
+<style type="text/css">
+    #MenuBar__MB_RESULT {
+        font-size: 12px;
+        width: 145px;
+        vertical-align: central;
+        background-color: #195b96;
+        border-color: #195b96;
+        color: #fff;
+    }
+</style>

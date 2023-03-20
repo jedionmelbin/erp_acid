@@ -1,0 +1,59 @@
+﻿@model eRPBusiness.Web.Models.LoginViewModel
+
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@*@ViewData["Title"] -*@ ACID</title>
+    <link rel="shortcut icon" href="~/Content/ico/favicon.ico" />
+    @Styles.Render("~/Content/logincss")
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/scriptLogin")
+</head>
+<body>
+    <div class="container">
+        <div class="info">
+            <h3>ACID</h3><span><i class="fa fa-heart"></i></span>
+        </div>
+    </div>
+    <div class="form">
+        <div class="thumbnail">
+            <h1>AD</h1>
+        </div>
+        <form class="register-form">
+            <input type="text" placeholder="name" />
+            <input type="password" placeholder="password" />
+            <input type="text" placeholder="email address" />
+            <button>create</button>
+            <p class="message">Already registered? <a href="#">Sign In</a></p>
+        </form>
+        @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "login-form", role = "form" }))
+        {
+            @Html.AntiForgeryToken()
+
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+            @Html.TextBoxFor(m => m.UserName, new { @placeholder = "UserName" })
+            @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger" })
+
+            @Html.PasswordFor(m => m.Password, new { @placeholder = "password" })
+            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+
+
+            <button type="submit">Log in</button>
+        }
+    </div>
+    <script>
+        $('.message a').click(function () {
+            $('form').animate({ height: "toggle", opacity: "toggle" }, "slow");
+        });
+    </script>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryval")
+</body>
+</html>

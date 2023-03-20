@@ -1,0 +1,36 @@
+﻿@using eRPBusiness.Helpers
+@model eRPBusiness.Transport.MetodoPagoDTO
+
+<div class="panel panel-default">
+    <div class="panel-body form-horizontal">
+        <div class="form-group">
+            @Html.CRM().DropDownList("TipoMetodoId", Model.TipoMetodoId, @ViewBag.tipoMetodoList, "col-lg-8", "Tipo Método de Pago", "col-lg-4", new { @onchange = "onChangePais(this);" })
+        </div>
+        <div class="form-group text-left">
+            <label for="colFormLabelSm" class="col-lg-4 col-form-label col-form-label-sm ">Tipo Medio de Pago</label>
+            <div class="col-lg-8">
+                <select class="form-control custom-select-sm" id="Nombre" name="Nombre">
+                    <option >(Seleccione)</option>
+                    <option value="Visa">Visa</option>
+                    <option value="Mastercard">Mastercard</option>
+                    <option value="American Express">American Express</option>
+                </select>
+            </div>
+        </div>
+        @*<div class="form-group text-left">
+            <label for="colFormLabelSm" class="col-lg-4 col-form-label col-form-label-sm">Tipo de Tarjeta</label>
+            <div class="col-lg-8">
+                <select class="form-control custom-select-sm" id="exampleFormControlSelect1">
+                    <option>Crédito</option>
+                    <option>Débito</option>
+                </select>
+            </div>
+        </div>*@
+
+        @Html.HiddenFor(m => m.MetodoPagoId)
+    </div>
+</div>
+
+<script type="text/javascript">
+
+</script>

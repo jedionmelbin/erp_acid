@@ -1,0 +1,39 @@
+﻿@using eRPBusiness.Helpers
+<div class="row">
+    <div class="col-lg-12">
+        <table id="jqGridOrden"></table>
+        <div id="jqPagerOrden"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $("#jqGridOrden").jqGrid({
+        url: '@Url.Action("ListarDocumento", "GuiaRemision", new { area = "op" })',
+        mtype: "POST",
+        postData: {
+
+        },
+        datatype: "json",
+        colModel: [
+            { label: 'Id', name: 'OrdenId', key: true, hidden: true },
+            { label: 'Codigo', name: 'Codigo', width: 8 },
+            { label: 'Fecha', name: 'FechaEmision', width: 15 },
+            { label: 'Cliente', name: 'Cliente', width: 30 }
+        ],
+        loadonce: true,
+        rowList: [10, 20, 30],
+        height: 150,
+        width: 560,
+        rowNum: 20,
+        viewrecords: true,
+        scroll: 1, // set the scroll property to 1 to enable paging with scrollbar - virtual loading of records
+        emptyrecords: 'No hay datos', // the message will be displayed at the bottom 
+        ondblClickRow: function (rowId) {
+            var rowData = jQuery(this).getRowData(rowId);
+          //  onClickOkOrdenCompra(rowData);
+        },
+        pager: "#jqPagerOrden"
+    });
+
+
+</script>

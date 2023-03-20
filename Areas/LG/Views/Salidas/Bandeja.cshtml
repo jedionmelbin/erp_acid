@@ -1,0 +1,238 @@
+﻿@using eRPBusiness.Helpers
+@{
+    ViewData["Title"] = "Index";
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>Listado Salidas Almacen</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                       new ItemMenuBar(MenuBarButtonType.New),
+                                       new ItemMenuBar(MenuBarButtonType.Edit),
+                                       new ItemMenuBar(MenuBarButtonType.Print,false)
+                                   })
+<div class="row">
+    <div class="col-lg-12" id="seachPanel">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="col-lg-11">
+                    <div class="col-lg-5">
+                        <div class="form-group">
+                            @Html.CRM().TextBox("Codigo", null, "col-lg-3 col-md-3", "Código", "col-lg-2").Attributes(new { @placeholder = "Código" })
+                            @Html.CRM().Select2List("DocumentoComercialId", null, @ViewBag.DocComerciaList, "col-lg-5 col-md-5", "Documento", "col-lg-2", new { @onchange = "onChangeDocComercial(this);" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBox("RazonSocial", null, "col-lg-10 col-md-10", "Proveedor", "col-lg-2").Attributes(new { @placeholder = "Proveedor" })
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        @Html.CRM().DateTimePicker("FechaInicio", null, "col-lg-4 col-md-4", "Fecha Inicio", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Inicio" })
+                        @Html.CRM().DateTimePicker("FechaFinal", null, "col-lg-4 col-md-4", "Fecha Final", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Final" })
+                    </div>
+                </div>
+                <div class="col-lg-1">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridPedido').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('input:text').val('');$('#DocumentoComercialId').val('').trigger('change'); $('#jqGridPedido').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-body" id="panel">
+                <table id="jqGridPedido"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.CRM().Popup("myModalReporte", "Reporte Facturas", "onClickOkReporte", SizePopup.Large))
+{
+    <div class="row">
+
+        <div class="col-lg-12">
+            <div id="PDFViewer">
+                <div id="PDFViewer" width="850" height="442"></div>
+            </div>
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridPedido").jqGrid({
+            url: '@Url.Action("ListarBandeja", "Salidas", new { area = "LG" })',
+            mtype: "POST",
+            postData: {
+                codigo: function () { return $("#Codigo").val() },
+                fechaInicio: function () { return $("#FechaInicio").val() },
+                fechaFinal: function () { return $("#FechaFinal").val() },
+                docComercialId: function () { return $("#DocumentoComercialId").val() }
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'MovimientoAlmacenId', key: true, hidden: true },
+                { label: 'Código', name: 'Codigo', width: 12, align: 'center', formatter: colorCell  },
+                { label: 'Fecha Emisión', name: 'FechaMovimiento', width: 12, align: 'center', sortable: false },
+                { label: 'Documento', name: 'Documento', width: 20, sortable: false },
+                { label: 'Tipo Salidas', name: 'TipoMovimiento', width: 20, sortable: false },
+                { label: 'Tipo Operación', name: 'TipoOperacion', width: 30, sortable: false },
+                { label: 'Moneda', name: 'Moneda', width: 15, sortable: false },
+                {
+                    label: 'Cantidad', name: 'Cantidad', width: 15, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                },
+                 {
+                     label: 'Impuesto', name: 'Impuesto', width: 12, formatter: 'integer', align: 'right', formatoptions: {
+                         decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                     }
+                 },
+                {
+                    label: 'Total', name: 'PrecioTotal', width: 15, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 130),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            subGrid: true,
+            subGridRowExpanded: showChildGrid, subGridOptions: {
+                reloadOnExpand: false,
+                selectOnExpand: true
+            },
+            pager: "#jqGridPager"
+        });
+    });
+
+    function showChildGrid(parentRowID, parentRowKey) {
+        var rowData = jQuery("#jqGridPedido").getRowData(parentRowKey);
+        var childGridID = parentRowID + "_table";
+        var childGridPagerID = parentRowID + "_pager";
+        var childGridURL = parentRowKey + ".json";
+        $('#' + parentRowID).append('<table id=' + childGridID + '></table><div id=' + childGridPagerID + ' class=scroll></div>');
+
+        $("#" + childGridID).jqGrid({
+            url: '@Url.Action("ListarDetalle", "Salidas", new { area = "lg" })',
+            mtype: "POST",
+            postData: {
+                movimientoAlmacenId: rowData["MovimientoAlmacenId"]
+            },
+            datatype: "json",
+            page: 1,
+            colModel: [
+                { label: '', name: 'MovimientoAlmacenId', key: true, hidden: true },
+                { label: 'Código', name: 'Codigo', width: 40 },
+                { label: 'Cód. Comercial', name: 'CodigoComercial', width: 40 },
+                { label: 'Bien/Servicio', name: 'Descripcion', width: 200 },
+                { label: 'U.M', name: 'Nombre', width: 50 },
+                {
+                    label: 'Cantidad', name: 'Cantidad', width: 40, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Valor Unitario', name: 'ValorUnitario', width: 40, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Importe', name: 'Importe', width: 40, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                }
+            ],
+            loadonce: true,
+            width: 970,
+            height: '100%',
+            footerrow: true,
+            loadComplete: function () {
+                var grid = $(this);
+                total = grid.jqGrid('getCol', 'Importe', false, 'sum');
+                cantidad = grid.jqGrid('getCol', 'Cantidad', false, 'sum');
+                valorUnitario = grid.jqGrid('getCol', 'ValorUnitario', false, 'sum');
+                grid.jqGrid('footerData', 'set', { Producto: 'Total', ValorUnitario: valorUnitario, Cantidad: cantidad, Importe: total });
+            },
+            pager: "#" + childGridPagerID
+        });
+
+    }
+    function colorCell(cellvalue, options, rowObject) {
+        var backgroud = '<b>' + cellvalue + '</b>';
+        return backgroud;
+    }
+
+    function onClickMenuBar(control) {
+
+        var postData = {
+            editAction: '',
+            ordenId: 0
+        };
+        var row = getGridSelectedRow("jqGridPedido");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                postData.editAction = '@EditActionConstant.NEW';
+                controllerGetAction('@Url.Action("Create", "Salidas", new { area = "LG" })', postData, 'workspace', true, true, null);
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    postData.editAction = '@EditActionConstant.EDIT';
+                    postData.movimientoAlmacenId = row.MovimientoAlmacenId;
+                    controllerGetAction('@Url.Action("Create", "Salidas", new { area = "LG" })', postData, 'workspace', true, true, null);
+                } else {
+                    MsgAlert(3, 'Seleccione un inventario para ver el detalle');
+                }
+                break;
+             case "@ButtonMenuBarActionConstant.EXPORT_XLS":
+
+                $.fileDownload('@Url.Action("ExportKardex")', {
+                    httpMethod: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: {
+
+                    },
+                    successCallback: function (url) {
+
+                    },
+                    failCallback: function (responseHtml, url) {
+
+                    }
+                });
+                break;
+            case "@ButtonMenuBarActionConstant.PRINT":
+               if (!isEmpty(row)) {
+                     var url = '@Url.Action("Reporte", "Salidas", new { @movimientoId = "value2"})';
+                    var _urlPdf = url.replace("value2", row.MovimientoAlmacenId);
+                     PDFObject.embed(_urlPdf, "#PDFViewer");
+                     $("#myModalReporte").modal('show');
+
+                } else {
+                    MsgAlert(3, 'Seleccione un inventario para ver el detalle');
+                }
+
+                break;
+        }
+    }
+
+    function onChangeDocComercial()
+    {
+        $('#jqGridPedido').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+    }
+</script>

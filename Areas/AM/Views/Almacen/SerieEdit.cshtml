@@ -1,0 +1,33 @@
+﻿@model eRPBusiness.Transport.SerieDTO
+@using eRPBusiness.Helpers
+@{
+    ViewBag.Title = "SerieEdit";
+}
+
+<div class="panel panel-default">
+    <div class="panel-body form-horizontal" id="panel">
+        <div class="form-group">
+            @Html.CRM().TextBoxFor(m => m.NumeroSerie, "col-lg-4", "Nro Serie", "col-lg-2").Attributes(new { @placeholder = "Numero Serie" })
+            @Html.CRM().NumericTextBoxFor(m => m.NumeroLinea, "col-lg-3", "Numero Linea", "col-lg-3").TextNumericType(NumericType.Integer).Attributes(new { })
+
+        </div>
+        @*<div class="form-group">
+            @Html.CRM().TextBoxFor(m => m.IgvSn, "col-lg-4", "IGV", "col-lg-2").Attributes(new { @maxlength = 1, @placeholder = "Incluye IGV (S)-(N)" })
+            @Html.CRM().TextBoxFor(m => m.FormatoDocumento, "col-lg-3", "Formato Doc", "col-lg-3").Attributes(new { @maxlength = 4, @placeholder = "Formato" })
+        </div>*@
+        <div class="form-group">
+            @Html.CRM().Select2List("DocumentoComercialId", Model.DocumentoComercialId, @ViewBag.DocumentoList, "col-lg-10", "Documento", "col-lg-2",new { @style = "width: 100%;" })
+        </div>
+        <div class="form-group">
+            @Html.CRM().TextAreaFor(m => m.Observacion, "col-lg-10", "Observacion", "col-lg-2").Rows(7).Attributes(new { @placeholder = "Observación" })
+        </div>
+        @Html.HiddenFor(m=>m.SerieId)
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#DocumentoComercialId').select2({
+            dropdownParent: $('#divSerie')
+        });
+    });
+</script>

@@ -1,0 +1,149 @@
+﻿@using eRPBusiness.Helpers
+@using eRPBusiness.Common
+@{
+    ViewData["Title"] = "Index";
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label> Listado Top Producto</label>
+        </nav>
+    </div>
+</div>
+
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                    new ItemMenuBar(MenuBarButtonType.New)
+                    })
+
+<div class="row">
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-body" id="panel">
+                <table id="jqGridBandeja"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="EditAction" />
+
+@using (Html.CRM().Popup("divModalProducto", "Producto", "onClickOkProducto", SizePopup.Default))
+{
+    <div id="modalProductoContent"></div>
+}
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridBandeja").jqGrid({
+            url: '@Url.Action("ListarBandeja", "Tops", new { area = "ec" })',
+            mtype: "POST",
+            postData: {
+                //descripcion: function () { return $("#Descripcion").val() },
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'TopProductoId', key: true, hidden: true },
+                { label: 'Nombre', name: 'Nombre', width: 50 },
+                { label: 'Código', name: 'Codigo', width: 20 },
+                { label: 'Codigo Comercial', name: 'CodigoComercial', width: 20 },
+                { label: 'Producto', name: 'Descripcion', width: 50 },
+                { label: 'Estado', name: 'Estado', width: 20 },
+                {
+                    label: 'Eliminar', name: 'Eliminar', width: 10, align: 'center', formatter: function (cellvalue, options, rowObject) {
+                        var link = '<a href="#" rel="' + rowObject.TopProductoId + '" onclick="fnRowDelete(this)"><span class="glyphicon glyphicon-trash"></span></a>';
+                        return link;
+                    }
+                }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 230),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            rownumbers: true, // show row numbers
+            pager: "#jqGridPager"
+        });
+
+        $("#divModalProducto").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            var row = getGridSelectedRow("jqGridBandeja");
+            var jsonData = {
+                editAction: $("#EditAction").val(),
+                grupoId: row.GrupoId
+            };
+            controllerGetAction('@Url.Action("Create")', jsonData, 'modalProductoContent', false, false, null);
+        });
+    });
+
+    function onClickMenuBar(key) {
+
+        var postData = {
+            editAction: '',
+            campanaId: 0
+        };
+        var row = getGridSelectedRow("jqGridBandeja");
+        switch (key) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                $("#EditAction").val("1");
+                postData.editAction = '@EditActionConstant.NEW';
+                $("#divModalProducto").modal('show');
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    postData.editAction = '@EditActionConstant.EDIT';
+                    postData.grupoId = row.GrupoId;
+                    $("#EditAction").val("2");
+                    $("#divModalProducto").modal('show');
+                } else {
+                    MsgAlert(3, 'Seleccione una campana');
+                }
+                break;
+             case "@ButtonMenuBarActionConstant.IMPORT_XLS":
+                $("#divModalProducto").modal('show');
+                break;
+        }
+    }
+
+    function fnRowDelete(control) {
+
+        alertify.confirm('Eliminar producto', 'Estas seguro de eliminar producto ?', function () {
+             var jsonData = {
+                 topProductoId: control.rel
+            };
+            controllerSaveResponse("@Url.Action("GenerarBaja", "Tops")", jsonData, true, true, function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    $('#jqGridBandeja').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                } else {
+                    MsgAlert(4, response.message);
+                }
+            });
+        }, function () {
+
+            alertify.error('Cancel');
+        });
+    }
+
+    function onClickOkProducto() {
+
+        var jsonData = {
+            Header: JSON.stringify($('#modalProductoContent').serializeObject()),
+            EditAction: "1"
+        };
+        controllerSaveResponse("@Url.Action("Create", "Tops")", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $("#divModalProducto").modal('hide');
+                $('#jqGridBandeja').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+</script>
+

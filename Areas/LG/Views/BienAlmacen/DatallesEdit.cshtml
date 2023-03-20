@@ -1,0 +1,20 @@
+﻿@model eRPBusiness.Transport.DetalleBienServicioDTO
+@using eRPBusiness.Helpers
+@{
+    ViewBag.Title = "Categoria";
+}
+
+<div class="panel panel-default">
+    <div class="panel-body form-horizontal" id="panel">
+        <div class="form-group">
+            @Html.CRM().TextBoxFor(m => m.Nombre, "col-lg-10", "Nombre", "col-lg-2").Attributes(new { @placeholder = "Nombre" })
+        </div>
+        <div class="form-group">
+            @Html.CRM().TextAreaFor(m => m.Descripcion, "col-lg-10", "Descripcion", "col-lg-2").Attributes(new { @placeholder = "Descripcion" })
+        </div>
+        @*<div class="form-group">
+            @Html.CRM().TextAreaFor(m => m.Observacion, "col-lg-10", "Observacion", "col-lg-2").Attributes(new { @placeholder = "Observacion" })
+        </div>*@
+        @Html.HiddenFor(m => m.DetalleBienServicioId)
+    </div>
+</div>

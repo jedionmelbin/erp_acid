@@ -1,0 +1,422 @@
+﻿@model eRPBusiness.Transport.CampanaDTO
+@using eRPBusiness.Helpers
+@{
+
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>@ViewBag.Title</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                       new ItemMenuBar(MenuBarButtonType.Save),
+                                       new ItemMenuBar(MenuBarButtonType.Exit)
+                                   })
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body" id="panel">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { @id = "form1" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="col-lg-6 form-horizontal">
+                        <div class="form-group">
+                            @Html.CRM().TextAreaFor(m => m.Nombre, "col-md-10", "Nombre", "col-lg-2").Attributes(new { @placeholder = "Nombre" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextAreaFor(m => m.Descripcion, "col-md-10", "Descripcion", "col-lg-2").Attributes(new { @placeholder = "Descripcion" })
+                        </div>
+                    </div>
+                    <div class="col-lg-6 form-horizontal">
+                        <div class="form-group">
+                            @Html.CRM().DateTimePickerFor(m => m.FechaInicio, "col-lg-4", "Fecha. Inicio", "col-lg-2").PickerType(DateTimePickerType.DateTime).Attributes(new { })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().DateTimePickerFor(m => m.FechaFinal, "col-lg-4", "Fecha. Final", "col-lg-2").PickerType(DateTimePickerType.DateTime).Attributes(new { })
+                        </div>
+                    </div>
+                    @Html.HiddenFor(m => m.EditAction)
+                    @Html.HiddenFor(m => m.CampanaId)
+                    @Html.Hidden("rowId")
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-lg-12 col-md-12">
+                        <h6 class="text-center">Slider Page</h6>
+                    </div>
+                </div>
+                @Html.CRM().MenuBar("SlideMenuBar", "onClickSlideMenuBar", new ItemMenuBar[]{
+                                                                                    new ItemMenuBar(MenuBarButtonType.New,false),
+                                                                                    new ItemMenuBar(MenuBarButtonType.Edit,false),
+                                                                                    new ItemMenuBar(MenuBarButtonType.Save,true),
+                                                                                    new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                                                                                }, MenuBarType.Small)
+            </div>
+            <div class="panel-body" id="panel1">
+                <table id="jqGridSlide"></table>
+                <div id="jqGridPagerSlide"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 col-md-6">
+        <div class="panel panel-default">
+            <div class="row">
+                <div class="col-lg-12 col-md-12">
+                    <h6 class="text-center">Banner Page</h6>
+                </div>
+            </div>
+            <div class="panel-heading">
+                @Html.CRM().MenuBar("BannerMenuBar", "onClickBannerMenuBar", new ItemMenuBar[]{
+                                                                                    new ItemMenuBar(MenuBarButtonType.New,false ),
+                                                                                    new ItemMenuBar(MenuBarButtonType.Edit,false),
+                                                                                    new ItemMenuBar(MenuBarButtonType.Save,true),
+                                                                                    new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                                                                                }, MenuBarType.Small)
+            </div>
+            <div class="panel-body" id="panel2">
+                <table id="jqGridBanner"></table>
+                <div id="jqGridPagerBanner"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@using (Html.CRM().Popup("myCampanaSlide", "Slide", "onClickOkSlide", SizePopup.Default))
+{
+    <div id="modalSlideContent"></div>
+}
+
+@using (Html.CRM().Popup("myCampanaBanner", "Banner", "onClickOkBanner", SizePopup.Default))
+{
+    <div id="modalBannerContent"></div>
+}
+
+@using (Html.CRM().Popup("myImageBanner", "Vista Imagen", "onClickOkImage", SizePopup.Default))
+{
+    <div id="modalImageContent"></div>
+}
+
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+          var _widthPanel1 = $("#panel1").width();
+          var _widthPanel2 = $("#panel2").width();
+
+          $("#jqGridSlide").jqGrid({
+                url: '@Url.Action("ListarSlide", "Campania", new { area = "ec" })',
+                mtype: "POST",
+                postData: {
+                    campanaId: function () { return $("#CampanaId").val(); },
+                },
+                datatype: "json",
+                colModel: [
+                    { label: '', name: 'CampanaSlideId', hidden: true },
+                    { label: 'Titulo', name: 'Titulo', width: 150 },
+                    { label: 'Sub Titulo', name: 'SubTitulo', width: 200 },
+                    { label: 'Texto', name: 'TextoAdicional', width: 200 },
+                    { label: 'Descripcion', name: 'Descripcion', width: 250 },
+                    {
+                        label: 'Imagen', name: 'Image', width: 70, align: 'center', formatter: function (cellvalue, options, rowObject) {
+                            var link = '<a href="#" rel="' + rowObject.CampanaSlideId + '" onclick="fileSlideMin(this)"><span class="glyphicon glyphicon-eye-open"></span></a>';
+                            return link;
+                        }
+                    }
+                ],
+                viewrecords: true,
+                loadonce: true,
+                rowNum: 20,
+                rowList: [10, 20, 30],
+                width: _widthPanel1,
+                shrinkToFit: false,
+                height: 209,
+                ondblClickRow: function (rowId) {
+                  //  var rowData = jQuery(this).getRowData(rowId);
+                },
+                onSelectRow: function (rowid) {
+
+                },
+                pager: "#jqGridPagerSlide"
+          });
+
+          $("#jqGridBanner").jqGrid({
+                url: '@Url.Action("ListarBanner", "Campania", new { area = "ec" })',
+                mtype: "POST",
+                postData: {
+                    campanaId: function () { return $("#CampanaId").val(); },
+                },
+                datatype: "json",
+                colModel: [
+                    { label: '', name: 'CampanaBannerId', hidden: true },
+                    { label: 'Titulo', name: 'Titulo', width: 150 },
+                    { label: 'Sub Titulo', name: 'SubTitulo', width: 200 },
+                    { label: 'Texto', name: 'TextoAdicional', width: 200 },
+                    { label: 'Descripcion', name: 'Descripcion', width: 250 },
+                    {
+                        label: 'Image', name: 'Image', width: 70, align: 'center', formatter: function (cellvalue, options, rowObject) {
+                            var link = '<a href="#" rel="' + rowObject.CampanaBannerId + '" onclick="fileBannerMin(this)"><span class="glyphicon glyphicon-eye-open"></span></a>';
+                            return link;
+                        }
+                    }
+                ],
+                viewrecords: true,
+                loadonce: true,
+                rowNum: 20,
+                rowList: [10, 20, 30],
+                width: _widthPanel2,
+                height: 209,
+                shrinkToFit: false,
+                ondblClickRow: function (rowId) {
+                },
+                onSelectRow: function (rowid) {
+
+                },
+                pager: "#jqGridPagerBanner"
+           });
+
+        $("#myCampanaSlide").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            var row = getGridSelectedRow("jqGridSlide");
+            var jsonData = {
+                editAction: $("#EditAction").val(),
+                campanaSlideId: row.CampanaSlideId
+            };
+            controllerGetAction('@Url.Action("CampanaSlideEdit", "Campania")', jsonData, 'modalSlideContent', false, false, null);
+        });
+        $('#myCampanaSlide').on('hidden.bs.modal', function (e) {
+            $('#EditAction').val("2");
+            $('#modalSlideContent').empty();
+        });
+
+        $("#myCampanaBanner").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            var row = getGridSelectedRow("jqGridBanner");
+            var jsonData = {
+                editAction: $("#EditAction").val(),
+                campanaBannerId: row.CampanaBannerId
+            };
+            controllerGetAction('@Url.Action("CampanaBannerEdit", "Campania")', jsonData, 'modalBannerContent', false, false, null);
+        });
+        $('#myCampanaBanner').on('hidden.bs.modal', function (e) {
+            $('#EditAction').val("2");
+            $('#modalBannerContent').empty();
+        });
+
+
+         $("#myImageBanner").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            var row = getGridSelectedRow("jqGridBanner");
+            var jsonData = {
+                requestId: $("#rowId").val()
+            };
+             controllerGetAction('@Url.Action("PreviewImage", "Campania")', jsonData, 'modalImageContent', false, false, null);
+        });
+    });
+
+    function onClickMenuBar(key) {
+        switch (key) {
+            case '@ButtonMenuBarActionConstant.SAVE':
+                saveData(key);
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                controllerGetAction('@Url.Action("Bandeja", "Campania", new { area = "ec" })', null, 'workspace', false, false, null);
+                break;
+        }
+
+    }
+
+    function onClickOkImage() {
+
+    }
+
+    function onClickSlideMenuBar(key)
+    {
+        switch (key) {
+            case '@ButtonMenuBarActionConstant.NEW':
+                $('#EditAction').val("1");
+                $("#myCampanaSlide").modal('show');
+                break;
+            case '@ButtonMenuBarActionConstant.EDIT':
+                $('#EditAction').val("2");
+                $("#myCampanaSlide").modal('show');
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                break;
+        }
+    }
+
+    function onClickBannerMenuBar(key)
+    {
+        switch (key)
+        {
+            case '@ButtonMenuBarActionConstant.NEW':
+                  $('#EditAction').val("1");
+                  $("#myCampanaBanner").modal('show');
+                break;
+            case '@ButtonMenuBarActionConstant.EDIT':
+                $('#EditAction').val("2");
+                $("#myCampanaBanner").modal('show');
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                break;
+        }
+    }
+
+    function saveData() {
+
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var jsonData = {
+            __RequestVerificationToken: token,
+            Header: JSON.stringify($('#form1').serializeObject()),
+            EditAction: $("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("Create", "Campania", new { area = "ec" })", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                controllerGetAction('@Url.Action("Bandeja", "Campania", new { area = "ec" })', null, 'workspace', false, false, null);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+
+    }
+
+    function fileSlideMin(control) {
+        var slide = "s" + control.rel;
+        $("#rowId").val(slide);
+        $("#myImageBanner").modal('show');
+    }
+
+
+    function fileBannerMin(control) {
+        var banner = "b" + control.rel;
+        $("#rowId").val(banner);
+        $("#myImageBanner").modal('show');
+    }
+
+
+
+    function onClickOkSlide() {
+
+        if (isEmptyElement("Titulo", "Ingrese titulo"))
+            return false;
+
+        if (isEmptyElement("SubTitulo", "Ingrese Sub titulo"))
+            return false;
+
+        if (isEmptyElement("TextoAdicional", "Ingrese titulo adicional"))
+            return false;
+
+        var filesMin = $("#ImagenMin").get(0).files;
+        var filesMax = $("#ImagenMax").get(0).files;
+
+        var formdata = new FormData();
+        for (var i = 0; i < filesMin.length; i++) {
+            formdata.append("fileBaseMin", filesMin[i]);
+        }
+        for (var i = 0; i < filesMax.length; i++) {
+            formdata.append("fileBaseMax", filesMax[i]);
+        }
+        formdata.append("fileBaseMin", filesMin[i]);
+        formdata.append("fileBaseMax", filesMax[i]);
+        formdata.append("Form", JSON.stringify($('#form1').serializeObject()));
+        formdata.append("Header", JSON.stringify($('#modalSlideContent').serializeObject()));
+        formdata.append("EditAction", $('#EditAction').val());
+
+
+         $.ajax({
+            url: '@Url.Action("CreateSlide", "Campania")',
+            type: "POST",
+            contentType: false, // Not to set any content header
+            processData: false, // Not to process data
+            data: formdata,
+            async: false,
+            success: function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    $("#myCampanaSlide").modal('hide');
+                    jQuery("#jqGridSlide").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                } else {
+                    MsgAlert(4, response.message);
+                }
+            },
+            error: function (err) {
+                alert(err.statusText);
+            }
+        });
+    }
+
+    function onClickOkBanner() {
+
+        if (isEmptyElement("Titulo", "Ingrese titulo"))
+            return false;
+
+        if (isEmptyElement("SubTitulo", "Ingrese Sub titulo"))
+            return false;
+
+        if (isEmptyElement("TextoAdicional", "Ingrese titulo adicional"))
+            return false;
+
+       var filesMin = $("#ImagenMin").get(0).files;
+        var filesMax = $("#ImagenMax").get(0).files;
+
+        var formdata = new FormData();
+        for (var i = 0; i < filesMin.length; i++) {
+            formdata.append("fileBaseMin", filesMin[i]);
+        }
+        for (var i = 0; i < filesMax.length; i++) {
+            formdata.append("fileBaseMax", filesMax[i]);
+        }
+        formdata.append("fileBaseMin", filesMin[i]);
+        formdata.append("fileBaseMax", filesMax[i]);
+        formdata.append("Form", JSON.stringify($('#form1').serializeObject()));
+        formdata.append("Header", JSON.stringify($('#modalBannerContent').serializeObject()));
+        formdata.append("EditAction", $('#EditAction').val());
+
+
+         $.ajax({
+            url: '@Url.Action("CreateBanner", "Campania")',
+            type: "POST",
+            contentType: false, // Not to set any content header
+            processData: false, // Not to process data
+            data: formdata,
+            async: false,
+            success: function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    $("#myCampanaBanner").modal('hide');
+                    jQuery("#jqGridBanner").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                } else {
+                    MsgAlert(4, response.message);
+                }
+            },
+            error: function (err) {
+                alert(err.statusText);
+            }
+        });
+    }
+
+</script>
+
+
+

@@ -1,0 +1,486 @@
+﻿@using eRPBusiness.Helpers
+@using eRPBusiness.Common
+@{
+    ViewData["Title"] = "Index";
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>Listado Documentos Envio</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                       new ItemMenuBar(MenuBarButtonType.Print,false),
+                                       new ItemMenuBar(MenuBarButtonType.Anular,false),
+                                       new ItemMenuBar(MenuBarButtonType.Resumen,false),
+                                       new ItemMenuBar(MenuBarButtonType.Mail,false),
+                                       new ItemMenuBar(MenuBarButtonType.Sunat,false)
+                                   })
+<div class="row">
+    <div class="col-lg-12" id="seachPanel">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="col-lg-11">
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            @Html.CRM().TextBox("Codigo", null, "col-lg-5", "Código", "col-lg-2").Attributes(new { @placeholder = "Numero documento" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBox("RazonSocial", null, "col-lg-10", "Cliente", "col-lg-2").Attributes(new { @placeholder = "Razon Social" })
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("DocumentoComercialId", null, @ViewBag.DocComerciaList, "col-lg-10", "Documento", "col-lg-2", new { @onchange = "onChangeDocComercial(this);" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().DateTimePicker("FechaPedido", null, "col-lg-10", "Fecha", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha pedido" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-1">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridPedido').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonLimpiar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('input:text').val(''); $('#jqGridPedido').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');$('#DocumentoComercialId option:first').prop('selected','selected');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-body" id="panel">
+                <table id="jqGridPedido"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.CRM().Popup("myModalReporte", "Reporte Facturas", "onClickOkReporte", SizePopup.Large))
+{
+    <div class="row">
+        <div class="col-lg-12 col-md-12 form-horizontal">
+            <div class="form-group">
+                @Html.CRM().DropDownList("FormatoId", "TC", @ViewBag.ListFormato, "col-lg-4", "Formato", "col-lg-2", new { @onchange = "onChangeFormato(this)" })
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div id="PDFViewer">
+                <div id="PDFViewer" width="850" height="442"></div>
+            </div>
+        </div>
+    </div>
+}
+
+@using (Html.CRM().Popup("myModalAnular", "Anular Comprobante", "onClickOkAnular", SizePopup.Large))
+{
+    <div id="divAnularContent"></div>
+}
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridPedido").jqGrid({
+            url: '@Url.Action("ListarBandeja", "Documento", new { area = "op" })',
+            mtype: "POST",
+            postData: {
+                codigo: function () { return $("#Codigo").val() },
+                fechaPedido: function () { return $("#FechaPedido").val() },
+                razonSocial: function () { return $("#RazonSocial").val() },
+                docComercialId: function () { return $("#DocumentoComercialId").val() }
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'EnvioDocumentoId', key: true, hidden: true },
+                { label: '', name: 'OrdenId', hidden: true },
+                { label: 'RequestId', name: 'RequestId', hidden: true },
+                { label: 'TipoDocumento', name: 'TipoDocumento', hidden: true },
+                { label: 'Estado', name: 'EstadoLetra', hidden: true },
+                { label: 'FormaPagoFlag', name: 'CodigoFormaPago', hidden: true },
+                { label: 'Código', name: 'Codigo', width: 20, align: 'center' },
+                { label: 'Estado SUNAT', name: 'EstadoTexto', width: 20, sortable: false, formatter: colorCell, align: 'center' },
+                {
+                    label: 'Forma Pago', name: 'FormaPago', width: 25, align: 'center', sortable: false,
+                    formatter: function (cellvalue, options, rowdata) {
+                        switch (rowdata.CodigoFormaPago) {
+                            case '109':
+                                return '<span style="background-color: #3593E0; display: block; width: 100%; height: 100%; color:#fff; ">' + rowdata.FormaPago; + '</span>';
+                                break;
+                            default:
+                                return '<span style="background-color: #F0A94A; display: block; width: 100%; height: 100%; color:#fff; ">' + rowdata.FormaPago; + '</span>';
+                                break;
+                        }
+
+                    }
+                },
+                { label: 'Documento', name: 'Documento', width: 40, sortable: false },
+                { label: 'Fecha Emisión', name: 'FechaEmision', width: 24, sortable: false, align: 'center' },
+                { label: 'Fecha Envio', name: 'FechaEnvio', width: 20, align: 'center', sortable: false },
+                { label: 'Nro Documento', name: 'NumeroDocumento', width: 25, sortable: false },
+                { label: 'Cliente', name: 'Cliente', width: 70, sortable: false },
+                { label: 'Descripcion', name: 'Descripcion', width: 60, sortable: false },
+                {
+                    label: 'PDF', name: 'Pdf', width: 10, align: 'center', hidden: true, formatter: function (cellvalue, options, rowObject) {
+                         var link = '<a href="#" rel="' + rowObject.RequestId + '" onclick="filePdfPrint(this)"><span class="glyphicon glyphicon-print"></span></a>';
+                         return link;
+                    }
+                },
+                {
+                    label: 'XML', name: 'xml', width: 10, align: 'center', formatter: function (cellvalue, options, rowObject) {
+                        var link = '<a href="#" rel="' + rowObject.RequestId + '" onclick="fileDownloadXml(this)"><span class="glyphicon glyphicon-download-alt"></span></a>';
+                         return link;
+                    }
+                },
+                {
+                    label: 'CDR', name: 'cdr', width: 10, align: 'center', formatter: function (cellvalue, options, rowObject) {
+                        var link = '<a href="#" rel="' + rowObject.RequestId + '" onclick="fileDownloadCdr(this)"><span class="glyphicon glyphicon-download-alt"></span></a>';
+                         return link;
+                    }
+                }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: 350,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            multiselect: true,
+            pager: "#jqGridPager",
+            loadComplete: function () {
+                ////var grid = $("#jqGridPedido"), i;
+                ////var cbs = $("tr.jqgrow > td > input.cbox:even", grid[0]);
+                ////cbs.attr("disabled", "disabled");
+            },
+            beforeSelectRow: function (rowid, e) {
+                //var grid = $("#jqGridPedido"), i;
+                //var cbsdis = $("tr#" + rowid + ".jqgrow > td > input.cbox:disabled", grid[0]);
+                //if (cbsdis.length === 0) {
+                //    return true;    // allow select the row
+                //} else {
+                //    return false;   // not allow select the row
+                //}
+            },
+            onSelectAll: function (aRowids, status) {
+                //var grid = $("#jqGridPedido"), i;
+                //if (status) {
+                //    // uncheck "protected" rows
+                //    var cbs = $("tr.jqgrow > td > input.cbox:disabled", grid[0]);
+                //    cbs.removeAttr("checked");
+
+                //    //modify the selarrrow parameter
+                //    grid[0].p.selarrrow = grid.find("tr.jqgrow:has(td > input.cbox:checked)")
+                //        .map(function () { return this.id; }) // convert to set of ids
+                //        .get(); // convert to instance of Array
+                //}
+            },
+            height: (_heightGrid - 130),
+            width: _widthPanel,
+        });
+
+         $("#myModalAnular").on('show.bs.modal', function () {
+             $(this).find('input:text').val('');
+             var row = getGridSelectedRow("jqGridPedido");
+             var postData = {
+                 ordenId: row.OrdenId,
+                 documentoId: row.EnvioDocumentoId,
+             };
+             controllerGetAction('@Url.Action("AnularEdit", "Documento")', postData, 'divAnularContent', false, false, function () {});
+        });
+
+    });
+
+    function colorCell(cellvalue, options, rowObject) {
+        var backgroud = '', colorHex = '';
+        switch (rowObject.EstadoLetra) {
+            case '@EstadoLetraSunat.PENDIENTE':
+                colorHex = '#FA753C';
+                break;
+            case '@EstadoLetraSunat.ENVIADO':
+                colorHex = '#FFD934';
+                break;
+            case '@EstadoLetraSunat.ACEPTADO':
+                colorHex = '#57D99C';
+                break;
+            case '@EstadoLetraSunat.RECHAZADO':
+                colorHex = '#FF0A01';
+                break;
+             case '@EstadoLetraSunat.ANULADO':
+                colorHex = '#FA3E05';
+                break;
+             case '@EstadoLetraSunat.ERRADO':
+                colorHex = '#FA3E05';
+                break;
+            default:
+                return cellvalue;
+                break;
+        }
+        backgroud = '<span style="background-color: ' + colorHex + '; display: block; width: 100%; height: 100%; color:#fff; ">' + rowObject.EstadoTexto + '</span>';
+        return backgroud;
+     }
+
+    function onClickMenuBar(control) {
+
+        var postData = {
+            editAction: '',
+            ordenId: 0
+        };
+        var row = getGridSelectedRow("jqGridPedido");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                postData.editAction = '@EditActionConstant.NEW';
+                controllerGetAction('@Url.Action("Create", "Documento", new { area = "op" })', postData, 'workspace', true, true, null);
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    postData.editAction = '@EditActionConstant.EDIT';
+                    postData.ordenId = row.OrdenId;
+                    controllerGetAction('@Url.Action("Create", "Documento", new { area = "op" })', postData, 'workspace', true, true, null);
+                } else {
+                    MsgAlert(3, 'Seleccione un documento');
+                }
+                break;
+            case "@ButtonMenuBarActionConstant.ENVIAR_MAIL":
+
+               if (!isEmpty(row)) {
+                    postData.editAction = '@EditActionConstant.EDIT';
+                    postData.requestId = row.EnvioDocumentoId;
+                   controllerPostJsonSync('@Url.Action("EnviarCorreo")', postData, true, true, function (response) {
+                       debugger;
+                       if (response.success) {
+                           MsgAlert(1, response.message);
+                       } else {
+                           MsgAlert(3, response.message);
+                       }
+                   });
+                } else {
+                    MsgAlert(3, 'Seleccione un documento');
+                }
+                break;
+            case "@ButtonMenuBarActionConstant.ENVIAR_SUNAT":
+
+                var rowObject = [];
+                var rowKey = jQuery("#jqGridPedido").getGridParam("selrow");
+                if (!isEmpty(rowKey)) {
+                    var selectedIDs = jQuery("#jqGridPedido").getGridParam("selarrrow");
+
+                    var _tipoDocumento = "";
+                    var _continue = true;
+                    $.each(selectedIDs, function (item, value) {
+                        var rows = jQuery('#jqGridPedido').getRowData(value);
+                        _tipoDocumento = rows.TipoDocumento;
+                        if (_tipoDocumento != row.TipoDocumento) {
+                            _continue = false;
+                            return false;
+                        } else {
+                            rowObject.push(rows.EnvioDocumentoId);
+                        }
+                    });
+                    if (!_continue) {
+                        MsgAlert(4, "Selecciona solo un tipo de documento");
+                        return false;
+                    }
+
+                var formData = new FormData();
+                //var rowList = _.map(rowObject, 'EnvioDocumentoId');
+                formData.append("rowList", rowObject);
+
+                $.ajax({
+                    beforeSend: function () {
+                        if (true) {
+                            $("#workspace").LoadingOverlay("show", {
+                                image: "",
+                                text: "Loading..."
+                            });
+                        }
+
+                    },
+                    complete: function () {
+                        if (true) {
+                            $("#workspace").LoadingOverlay("hide", true);
+                        }
+                    },
+                    type: 'POST',
+                    url: '@Url.Action("EnviarSunatAsync")',
+                    data: formData,
+                    dataType: 'json',
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        if (response.success) {
+                            MsgAlert(1, response.message);
+                            $('#jqGridPedido').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                        } else {
+                            MsgAlert(4, response.message);
+                            $('#jqGridPedido').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                        }
+                    },
+                    error: function (error) {
+
+                    }
+                });
+
+                }
+
+
+                break;
+            case "@ButtonMenuBarActionConstant.PRINT":
+                  if (!isEmpty(row)) {
+
+                     var url = '@Url.Action("Reporte", "Documento", new { @envioDocumentoId =  "value",@format = "value2"})';
+                     var _urlPdf = url.replace("value", row.EnvioDocumentoId).replace('value2', $("#FormatoId").val());
+                     PDFObject.embed(_urlPdf, "#PDFViewer");
+                     $("#myModalReporte").modal('show');
+
+                } else {
+                    MsgAlert(3, 'Seleccione un documento');
+                }
+
+                break;
+              case "@ButtonMenuBarActionConstant.RESUMEN":
+                   var rowObject = [];
+                var rowKey = jQuery("#jqGridPedido").getGridParam("selrow");
+                if (!isEmpty(rowKey)) {
+                    var selectedIDs = jQuery("#jqGridPedido").getGridParam("selarrrow");
+
+                    var _tipoDocumento = "";
+                    var _continue = true;
+                    $.each(selectedIDs, function (item, value) {
+                        var rows = jQuery('#jqGridPedido').getRowData(value);
+                        _tipoDocumento = rows.TipoDocumento;
+                        if (_tipoDocumento != row.TipoDocumento) {
+                            _continue = false;
+                            return false;
+                        } else {
+                            rowObject.push(rows.EnvioDocumentoId);
+                        }
+                    });
+                    if (!_continue) {
+                        MsgAlert(4, "Selecciona solo un tipo de documento");
+                        return false;
+                    }
+
+                var formData = new FormData();
+                //var rowList = _.map(rowObject, 'EnvioDocumentoId');
+                formData.append("rowList", rowObject);
+
+                $.ajax({
+                    beforeSend: function () {
+                        if (true) {
+                            $("#workspace").LoadingOverlay("show", {
+                                image: "",
+                                text: "Loading..."
+                            });
+                        }
+
+                    },
+                    complete: function () {
+                        if (true) {
+                            $("#workspace").LoadingOverlay("hide", true);
+                        }
+                    },
+                    type: 'POST',
+                    url: '@Url.Action("EnviarResumenAsync")',
+                    data: formData,
+                    dataType: 'json',
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        if (response.success) {
+                            MsgAlert(1, response.message);
+                            $('#jqGridPedido').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                        } else {
+                            MsgAlert(4, response.message);
+                            $('#jqGridPedido').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                        }
+                    },
+                    error: function (error) {
+
+                    }
+                });
+
+                }
+                break;
+             case "@ButtonMenuBarActionConstant.ANULAR":
+                    $("#myModalAnular").modal('show');
+                break;
+        }
+    };
+
+
+    function filePdfPrint(control) {
+        var url = '@Url.Action("PdfDoc", "Documento", new { requestId =  "value"})';
+        var _urlPdf = url.replace("value", control.rel);
+          PDFObject.embed(_urlPdf, "#PDFViewer");
+        $("#myModalReporte").modal('show');
+    }
+
+    function fileDownloadXml(control) {
+            $.fileDownload('@Url.Action("DownloadXml")', {
+                httpMethod: 'POST',
+                dataType: "json",
+                contentType: "application/json",
+                data: {
+                    requestId: control.rel
+                },
+                successCallback: function (url) {
+                },
+                failCallback: function (responseHtml, url) {
+                }
+
+            });
+    }
+
+    function fileDownloadCdr(control) {
+          $.fileDownload('@Url.Action("DownloadCdr")', {
+              httpMethod: 'POST',
+              dataType: "json",
+              contentType: "application/json",
+              data: {
+                  requestId: control.rel
+              },
+              successCallback: function (url) {
+              },
+              failCallback: function (responseHtml, url) {
+              }
+
+          });
+    }
+
+    function onClickOkAnular(){
+
+        if (isEmptyElement("Motivo", "Ingrese motivo anulacion"))
+            return false;
+
+        var jsonData = {
+            Header: JSON.stringify($('#divAnularContent').serializeObject()),
+        };
+        controllerSaveResponse("@Url.Action("AnularDocumento")", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $('#jqGridPedido').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                $("#myModalAnular").modal('hide');
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+    function onChangeFormato(control)
+    {
+        var row = getGridSelectedRow("jqGridPedido");
+        var url = '@Url.Action("Reporte", "Documento", new { @envioDocumentoId =  "value" , @format = "value2"})';
+        //var _urlPdf = url.replace("value", row.RequestId).replace("value2", row.OrdenId).replace("value3", control.value);
+        var _urlPdf = url.replace("value", row.EnvioDocumentoId).replace('value2', $("#FormatoId").val());
+        PDFObject.embed(_urlPdf, "#PDFViewer");
+        $("#myModalReporte").modal('show');
+   }
+</script>
+
+

@@ -1,0 +1,327 @@
+﻿@model eRPBusiness.Transport.SaldoDTO
+@using eRPBusiness.Helpers;
+@using eRPBusiness.Common;
+@{
+
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>@ViewBag.Title</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                           new ItemMenuBar(MenuBarButtonType.Save),
+                           new ItemMenuBar(MenuBarButtonType.Exit)
+                       })
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { @id = "form1" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @Html.CRM().DateTimePickerFor(m => m.FechaEmision, "col-lg-4", "Fecha. Emision", "col-lg-2").PickerType(DateTimePickerType.DateTime).Attributes(new { })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().Select2List("ClienteId", Model.ClienteId, ViewBag.ListarCliente, "col-lg-10", "Razón Social", "col-lg-2")
+                        </div>
+
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @Html.CRM().TextAreaFor(m => m.Descripcion, "col-md-10", "Descripcion", "col-lg-2").Attributes(new { @placeholder = "Descripcion" })
+                        </div>
+                    </div>
+                    @Html.HiddenFor(m => m.SaldoId)
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                @Html.CRM().MenuBar("PlanMenuBar", "onClickPlanMenuBar", new ItemMenuBar[]{
+                                new ItemMenuBar(MenuBarButtonType.New,!ViewBag.IsNew),
+                                new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                new ItemMenuBar(MenuBarButtonType.Save,true),
+                                new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                            }, MenuBarType.Small)
+            </div>
+            <div class="panel-body" id="panel">
+                <table id="jqGridDetalle"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.CRM().Popup("myModalPlanConta", "Plan Contable", "onClickOkPlanConta", SizePopup.Large))
+{
+    <div id="divPlanContaContent"></div>
+}
+
+
+
+<script type="text/javascript">
+    var _widthPanel = $("#panel").width();
+    var _heightGrid = getHeightForResize(100);
+
+    $(document).ready(function () {
+
+      $("#jqGridDetalle").jqGrid({
+           url: '@Url.Action("ListarItem", "SaldoInicial", new { area = "ct" })',
+           postData: {
+               saldoId: function () { return $("#SaldoId").val(); }
+           },
+           mtype: "POST",
+           datatype: "json",
+           colModel: [
+               { label: 'SaldoItemId', name: 'SaldoItemId', hidden: true, formatter: 'integer', key: true },
+               { label: 'SaldoId', name: 'SaldoId', hidden: true, formatter: 'integer'},
+               { label: 'PlanContableId', name: 'PlanContableId', hidden: true, formatter: 'integer'},
+               { label: 'Código', name: 'Codigo', width: 10 },
+               { label: 'Nombre', name: 'Nombre', width: 40 },
+               {
+                   label: 'Creditos', name: 'ValorCredito', formatter: 'integer', width: 10, editable: true, align: 'right',
+                   formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                       dataInit: function (elem, options) {
+                           $(elem).inputmask('decimal', {
+                               placeholder: "0",
+                               digits: 2,
+                               digitsOptional: false,
+                               autoGroup: true,
+                               allowPlus: false,
+                               allowMinus: false,
+                               clearMaskOnLostFocus: false,
+                               removeMaskOnSubmit: true
+                           });
+
+                           
+                           $(elem).blur(function () {
+                               var valorCredito = 0;
+                               var valorCreditoSum = 0;
+                               var dataIndex = $("#jqGridDetalle").jqGrid('getDataIDs');
+                               $.each(dataIndex, function (item, value) {
+                                   valorCredito = stringToDecimal(jQuery("#" + value + "_ValorCredito").val());
+                                   valorCreditoSum += valorCredito;
+                                   $("#jqGridDetalle").jqGrid('footerData', 'set', { Nombre: 'SUMAS IGUALES', ValorCredito: valorCreditoSum });
+                               });
+                           });
+                       }
+                   }
+               },
+               {
+                   label: 'Debitos', name: 'ValorDebito', formatter: 'integer', width: 10, editable: true, align: 'right',
+                   formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                       dataInit: function (elem, options) {
+                           $(elem).inputmask('decimal', {
+                               placeholder: "0",
+                               digits: 2,
+                               digitsOptional: false,
+                               autoGroup: true,
+                               allowPlus: false,
+                               allowMinus: false,
+                               clearMaskOnLostFocus: false,
+                               removeMaskOnSubmit: true
+                           });
+                     
+                           $(elem).blur(function () {
+                               var valorDebito = 0;
+                               var valorDebitoSum = 0;
+                               var dataIndex = $("#jqGridDetalle").jqGrid('getDataIDs');
+                               $.each(dataIndex, function (item, value) {
+                                   valorDebito = stringToDecimal(jQuery("#" + value + "_ValorDebito").val());
+                                   valorDebitoSum += valorDebito;
+                                   $("#jqGridDetalle").jqGrid('footerData', 'set', { Nombre: 'SUMAS IGUALES', ValorDebito: valorDebitoSum });
+                               });
+                           });
+                       }
+                   }
+               }
+           ],
+           viewrecords: false,
+           page: 1,
+           emptyrecords: '',
+           footerrow: true,
+           rownumbers: true,
+           loadComplete: function () {},
+           gridComplete: function () {
+               var $grid = $('#jqGridDetalle');
+               var valorCredito = $grid.jqGrid('getCol', 'ValorCredito', false, 'sum');
+               var valorDebito = $grid.jqGrid('getCol', 'ValorDebito', false, 'sum');
+
+               $("#jqGridDetalle").jqGrid('footerData', 'set', {
+                   Nombre: 'SUMAS IGUALES',
+                   ValorCredito: valorCredito,
+                   ValorDebito: valorDebito
+               });
+           },
+          pager: "#jqGridPager",
+          height: (_heightGrid - 340),
+          width: (_widthPanel - 15)
+    });
+
+
+
+        $("#myModalPlanConta").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            controllerGetAction('@Url.Action("PlanContaEdit", "SaldoInicial")', null, 'divPlanContaContent', false, false, function () {
+            });
+        });
+        $('#myModalPlanConta').on('hidden.bs.modal', function (e) {
+            $('#divPlanContaContent').empty();
+        });
+
+        $("#ClienteId").select2({
+            ajax: {
+                url: '@Url.Action("GetCliente")',
+                dataType: 'json',
+                delay: 250,
+                type: 'POST',
+                data: function (params) {
+                    return {
+                        query: params.term // search ter
+                    };
+                },
+                processResults: function (data, params) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.RazonSocial,
+                                id: item.ClienteId
+                            };
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Busqueda de cliente razon social o RUC',
+            allowClear: true,
+            escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function () {
+                    return "Busqueda de cliente razon social o RUC.";
+                }
+            }
+        });
+
+
+    });
+
+
+
+    function onClickPlanMenuBar(key) {
+        switch (key) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                $('#myModalPlanConta').modal('show');
+                break;
+            case "@ButtonMenuBarActionConstant.SAVE":
+                InsertData();
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                break;
+        }
+    }
+
+    function onClickMenuBar(key) {
+        var editAction = $("#EditAction").val();
+        switch (key) {
+            case '@ButtonMenuBarActionConstant.SAVE':
+                InsertData();
+                break;
+            case '@ButtonMenuBarActionConstant.PRINT':
+
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                controllerGetAction('@Url.Action("Bandeja", "SaldoInicial", new { area = "ct" })', null, 'workspace', false, false, null);
+                break;
+        }
+    }
+
+
+
+    function InsertData() {
+
+
+        if (isEmptyElement("ClienteId", "Seleccione denominacion"))
+            return false;
+
+        if (isEmptyElement("Descripcion", "Ingrese descripcion."))
+            return false;
+
+        
+
+
+        gridDataIDs('jqGridDetalle').forEach(function (index) {
+            $("#jqGridDetalle").jqGrid('saveRow', index, { url: 'clientArray' });
+        });
+
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var disabled = form.find('select:disabled').removeAttr('disabled');
+        var data = $('#jqGridDetalle').getRowData();
+        if (jQuery.isEmptyObject(data)) {
+            MsgAlert(3, "Selecciona saldo.");
+            return false;
+        }
+        var jsonData = {
+            __RequestVerificationToken: token,
+            Header: JSON.stringify($('#form1').serializeObject()),
+            Row: JSON.stringify(data),
+            EditAction: $("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("Create", "SaldoInicial", new { area = "ct" })", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                controllerGetAction('@Url.Action("Bandeja", "SaldoInicial", new { area = "ct" })', null, 'workspace', false, false, null);
+            } else {
+                MsgAlert(3, response.message);
+            }
+            disabled.attr('disabled', 'disabled');
+        });
+    }
+
+    function onClickOkPlanConta() {
+        var rowKey = jQuery("#jqGridPlanContas").getGridParam("selrow");
+        if (!isEmpty(rowKey)) {
+
+            var jsonList = [];
+            var selectedIDs = jQuery("#jqGridPlanContas").getGridParam("selarrrow");
+            $.each(selectedIDs, function (item, value) {
+                var rows = jQuery('#jqGridPlanContas').getRowData(value);
+                jsonList.push(jQuery('#jqGridPlanContas').getRowData(value));
+            });
+            var newRowId;
+            $.each(jsonList, function (item, value) {
+                newRowId = gridRowCount("jqGridDetalle");
+                var count = newRowId + 1;
+                var cantidad = 1;
+                var setcelll = {
+                    rowID: newRowId + 1,
+                    initdata: {
+                        SaldoItem: 0,
+                        SaldoId: 0,
+                        PlanContableId: value.PlanContableId,
+                        Codigo: value.Codigo,
+                        Nombre: value.Nombre
+                    },
+                    position: "afterSelected"
+                };
+                jQuery("#jqGridDetalle").jqGrid('addRow', setcelll);
+            });
+        }
+
+        $("#myModalPlanConta").modal('hide');
+    }
+
+</script>

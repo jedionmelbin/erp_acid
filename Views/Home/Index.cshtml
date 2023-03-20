@@ -1,0 +1,445 @@
+﻿@model eRPBusiness.Web.Models.HomeViewModel
+@using eRPBusiness.Helpers
+@using eRPBusiness.Common
+@{
+    ViewBag.Title = "Home Page";
+}
+
+
+<div class="row">
+    <div class="col-lg-6">
+        <div id="container" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
+    </div>
+    <div class="col-lg-6">
+        <div id="container2" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
+    </div>
+</div>
+
+<div class="row" style="margin-top:20px;">
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-heading text-center">
+                <h4> Top productos</h4>
+            </div>
+            <div class="panel-body">
+                <div id="divContentTopProd"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-heading text-center">
+                <h4> Top clientes</h4>
+            </div>
+            <div class="panel-body">
+                <div id="divContentTopCustomer"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-heading text-center">
+                <h4>Productos por agotarse </h4>
+            </div>
+            <div class="panel-body">
+                <div id="divContentStockProd"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@Html.HiddenFor(m => m.Aperturado)
+
+@using (Html.CRM().Popup("myModalCaja", "Caja Chica", "onClickCajaChica", SizePopup.Medium))
+{
+    <div id="modalContentCaja"></div>
+}
+<script id="entryTopProducto" type="text/x-handlebars-template">
+
+    {{#each products}}
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-lg-2"><b>{{Codigo}}</b></div>
+                    <div class="col-lg-8"><b>{{Descripcion}}</b></div>
+                    <div class="col-lg-2"><b>{{Cantidad}}</b></div>
+                </div>
+            </div>
+    </div>
+    {{/each}}
+</script>
+
+<script id="entryTopCliente" type="text/x-handlebars-template">
+
+    {{#each customers}}
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-lg-2"><b>{{NumeroDocumento}}</b></div>
+                <div class="col-lg-8"><b>{{Denominacion}}</b></div>
+                <div class="col-lg-2"><b>{{Cantidad}}</b></div>
+            </div>
+        </div>
+    </div>
+    {{/each}}
+</script>
+
+<script id="entryStockProducto" type="text/x-handlebars-template">
+
+    {{#each products}}
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-lg-2"><b>{{Codigo}}</b></div>
+                <div class="col-lg-8"><b>{{Descripcion}}</b></div>
+                <div class="col-lg-2"><b>{{Cantidad}}</b></div>
+            </div>
+        </div>
+    </div>
+    {{/each}}
+</script>
+@section Scripts
+{
+
+    <script type="text/javascript">
+     var chartSaleWeek;
+     var chartSaleMonth;
+
+    $(document).ready(function () {
+        chartSaleWeek = new Highcharts.chart('container', {
+            chart: {
+                type: 'areaspline'
+            },
+            title: {
+                text: 'Venta semanal'
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'left',
+                verticalAlign: 'top',
+                x: 150,
+                y: 100,
+                floating: true,
+                borderWidth: 1,
+                backgroundColor:
+                    Highcharts.defaultOptions.legend.backgroundColor || '#FFFFFF'
+            },
+            xAxis: {
+                categories: [
+                    'Lunes',
+                    'Martes',
+                    'Miércoles',
+                    'Jueves',
+                    'Viernes',
+                    'Sábado',
+                    'Domingo'
+                ],
+                plotBands: [{ // visualize the weekend
+                    from: 4.5,
+                    to: 6.5,
+                    color: 'rgba(68, 170, 213, .2)'
+                }]
+            },
+            yAxis: {
+                title: {
+                    text: 'Venta de producto'
+                }
+            },
+            tooltip: {
+                shared: true,
+                valueSuffix: ' units'
+            },
+            credits: {
+                enabled: false
+            },
+            plotOptions: {
+                areaspline: {
+                    fillOpacity: 0.5,
+                    //lineColor: '#1386FA'
+                }
+            },
+            series: [
+                //{
+                //name: 'John',
+                //data: [3, 4, 3, 5, 4, 1, 12]
+                //}, {
+                //name: 'Jane',
+                //data: [1, 3, 4, 3, 3, 5, 4]
+                //}
+            ]
+        });
+
+        chartSaleMonth = Highcharts.chart('container2', {
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: 'Ventas promedio mensual'
+            },
+            subtitle: {
+                text: 'Promedio mensual'
+            },
+            xAxis: {
+                categories: [
+                    'Enero',
+                    'Febrero',
+                    'Marzo',
+                    'Abril',
+                    'Mayo',
+                    'Junio',
+                    'Julio',
+                    'Agosto',
+                    'Septiembre',
+                    'Octubre',
+                    'Noviembre',
+                    'Diciembre'
+                ],
+                crosshair: true
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: 'Venta mensual'
+                }
+            },
+            tooltip: {
+                headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                    '<td style="padding:0"><b>{point.y:.1f} mm</b></td></tr>',
+                footerFormat: '</table>',
+                shared: true,
+                useHTML: true
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0.2,
+                    borderWidth: 0
+                }
+            },
+            series: [
+                //{
+                //name: 'Tokyo',
+                //data: [49.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4]
+                //},
+                //{
+                //    name: 'New York',
+                //    data: [83.6, 78.8, 98.5, 93.4, 106.0, 84.5, 105.0, 104.3, 91.2, 83.5, 106.6, 92.3]
+
+                //}
+            ]
+        });
+
+        var unidadList = sessionStorage.getItem('unidadList');
+        var marcaLista = sessionStorage.getItem('marcaLista');
+        var tipoAfectaLista = sessionStorage.getItem('tipoAfectaLista');
+        var tipoAfectacion = sessionStorage.getItem('tipoAfectacion');
+        var formaPago = sessionStorage.getItem('formaPago');
+        var monedaList = sessionStorage.getItem('monedaList');
+
+        if (jQuery.isEmptyObject(unidadList)) {
+            $.post("@Url.Action("ListUnidadMedida")", function (response) {
+                sessionStorage.setItem('unidadList', addItem(response));
+            });
+        }
+        if (jQuery.isEmptyObject(marcaLista)) {
+            $.post("@Url.Action("ListarMarca")", function (response) {
+                sessionStorage.setItem('marcaLista', addJqItem(response.data));
+            });
+        }
+
+        if (jQuery.isEmptyObject(tipoAfectaLista)) {
+            $.post("@Url.Action("ListarTipoAfecta")", function (response) {
+                sessionStorage.setItem('tipoAfectaLista', addJqItem(response.data));
+            });
+        }
+
+        if (jQuery.isEmptyObject(tipoAfectacion)) {
+            $.post("@Url.Action("LitaTipoAfectacion")", function (response) {
+                sessionStorage.setItem('tipoAfectacion', JSON.stringify(response.data));
+            });
+        }
+
+        if (jQuery.isEmptyObject(formaPago)) {
+            $.post("@Url.Action("ListarFomaPago")", function (response) {
+                sessionStorage.setItem('formaPago', addJqItem(response.data));
+            });
+        }
+        if (jQuery.isEmptyObject(monedaList)) {
+            $.post("@Url.Action("ListarMoneda")", function (response) {
+                sessionStorage.setItem('monedaList', addJqItem(response.data));
+            });
+        }
+
+          $("#myModalCaja").on('show.bs.modal', function () {
+                $(this).find('input:text').val('');
+                var postData = {   };
+                controllerGetAction('@Url.Action("Create", "Home")', postData, 'modalContentCaja', false, false, null);
+            });
+
+        var apertura = $("#Aperturado").val();
+        if (apertura == "0") {
+            $("#myModalCaja").modal('show');
+        }
+
+        requestSaleWeek();
+        requestSaleMonth();
+        requestTopProducto();
+    });
+
+
+     function requestTopProducto() {
+         $.ajax({
+             url: '@Url.Action("LitaTopProducto", "Home")',
+                type: "POST",
+                dataType: "json",
+                data: { },
+                success: function (response) {
+                    if (response.success) {
+                        $('#divContentTopProd').empty();
+                        var source = $("#entryTopProducto").html();
+                        var template = Handlebars.compile(source);
+                        $('#divContentTopProd').append(template({ products: response.data }));
+                    }
+                },
+                cache: false
+         });
+
+           $.ajax({
+             url: '@Url.Action("LitaTopCliente", "Home")',
+                type: "POST",
+                dataType: "json",
+                data: { },
+                success: function (response) {
+                    if (response.success) {
+                        $('#divContentTopCustomer').empty();
+                        var source = $("#entryTopCliente").html();
+                        var template = Handlebars.compile(source);
+                        $('#divContentTopCustomer').append(template({ customers: response.data }));
+                    }
+                },
+                cache: false
+           });
+
+          $.ajax({
+             url: '@Url.Action("LitaTopStock", "Home")',
+                type: "POST",
+                dataType: "json",
+                data: { },
+                success: function (response) {
+                    if (response.success) {
+                        $('#divContentStockProd').empty();
+                        var source = $("#entryStockProducto").html();
+                        var template = Handlebars.compile(source);
+                        $('#divContentStockProd').append(template({ products: response.data }));
+                    }
+                },
+                cache: false
+            });
+      }
+
+     function requestSaleWeek() {
+         $.ajax({
+             url: '@Url.Action("ListWeekSale", "Home")',
+                type: "POST",
+                dataType: "json",
+                data: { },
+                success: function (response) {
+                    if (response.success) {
+                        var collectList = [];
+                        if (response.data.length > 0) {
+                            $.each(response.data, function (item, value) {
+                                var day = value.Dia - 1;
+                                var collect = [0, 0, 0, 0, 0, 0, 0];
+                                var series = {
+                                    name: value.Usuario,
+                                    data: collect,
+                                };
+                                var filters = _.filter(collectList, {
+                                    'name': value.Usuario
+                                });
+                                if (filters.length == 0) {
+                                    series.data.splice(day, 1, value.Cantidad);
+                                    collectList.push(series);
+                                } else {
+                                    $.each(collectList, function (it, val) {
+                                        val.data.splice(day, 1, value.Cantidad);
+                                    });
+                                }
+                            });
+
+                            $.each(collectList, function (i, v) {
+                                chartSaleWeek.addSeries(v);
+                            });
+                        } else {
+                            var collect = [0, 0, 0, 0, 0, 0, 0];
+                            var series = {
+                                name: 'sistema',
+                                data: collect,
+                            };
+                            chartSaleWeek.addSeries(series);
+                        }
+
+
+                    }
+                },
+                cache: false
+            });
+     }
+
+     function requestSaleMonth() {
+         $.ajax({
+             url: '@Url.Action("ListMonthSale", "Home")',
+                type: "POST",
+                dataType: "json",
+                data: { },
+                success: function (response) {
+                    if (response.success) {
+                        var collectList = [];
+                        var monthList = [0.0,0,0,0,0,0,0.0,0,0,0,0,0];
+                        if (response.data.length > 0) {
+                            $.each(response.data, function (item, value) {
+                                var month = value.Mes - 1;
+                                var _model = _.find(collectList, function (x) { return x.name == value.RazonSocial });
+                                var _index = _.findIndex(collectList, function (indexIt) { return indexIt.name == value.RazonSocial })
+                                if (_model === undefined) {
+                                    var collect = {
+                                        name: value.RazonSocial,
+                                        data: [value.Promedio]
+                                    };
+                                    collectList.push(collect);
+                                    monthList.splice(month, 1, value.Promedio);
+                                } else {
+                                    monthList.splice(month, 1, value.Promedio);
+                                    collectList[_index].data.push(value.Promedio);
+                                }
+
+                            });
+                            $.each(collectList, function (i, v) {
+                                chartSaleMonth.addSeries(v);
+                            });
+                        }
+                    }
+                },
+                cache: false
+            });
+     }
+
+     function onClickCajaChica() {
+
+        var jsonData = {
+            Header: JSON.stringify($('#modalContentCaja').serializeObject()),
+            EditAction: 1
+        };
+        controllerSaveResponse("@Url.Action("Create", "Home")", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                window.location.href = response.url;
+                 $("#myModalCaja").modal('hide');
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+    </script>
+}

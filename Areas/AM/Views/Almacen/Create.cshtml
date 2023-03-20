@@ -1,0 +1,228 @@
+﻿@model eRPBusiness.Transport.AlmacenDTO
+@using eRPBusiness.Helpers
+@using eRPBusiness.Common
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>@ViewBag.Title</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                                   new ItemMenuBar(MenuBarButtonType.Save),
+                                                   new ItemMenuBar(MenuBarButtonType.Exit)
+
+                                               })
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { @class = "form-horizontal", @id = "form1" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("EmpresaId", Model.EmpresaId, @ViewBag.EmpresaList, "col-lg-10", "Empresa", "col-lg-2", new { @onchange = "onChangeSucursal(this)" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("SucursalId", Model.SucursalId, @ViewBag.SucursalList, "col-lg-10", "Sucursal", "col-lg-2")
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Nombre, "col-lg-10", "Nombre", "col-lg-2").Attributes(new { @placeholder = "Nombre de almacen" })
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Direccion, "col-lg-10", "Direccion", "col-lg-2").Attributes(new { @placeholder = "Dirección" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Telefono, "col-lg-4", "Telefono", "col-lg-2")
+                            @*@Html.CRM().CheckBoxFor(m => m.StockSn, "col-lg-4", "Stock")*@
+                        </div>
+                    </div>
+                    @Html.HiddenFor(m => m.AlmacenId)
+                    @Html.HiddenFor(m => m.EditAction)
+                    @Html.Hidden("rowsEdit")
+                }
+
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                @Html.CRM().MenuBar("SerieMenuBar", "onClickSerieMenuBar", new ItemMenuBar[]{
+                                                new ItemMenuBar(MenuBarButtonType.New, false),
+                                                new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                new ItemMenuBar(MenuBarButtonType.Delete,true)
+                                            }, MenuBarType.Small)
+            </div>
+            <div class="panel-body" id="panel">
+                <table id="jqGridSerie"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@using (Html.CRM().Popup("divSerie", "Serie", "onClickOkSerie", SizePopup.Default))
+{
+    <div id="divSerieContent"></div>
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#jqGridSerie").jqGrid({
+            url: '@Url.Action("ListarSerie", "Almacen", new { area = "AM" })',
+            mtype: "POST",
+            postData: {
+                almacenId: function () { return $("#AlmacenId").val() },
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'SerieId', key: true, hidden: true },
+                { label: 'Numero Serie', name: 'NumeroSerie', width: 25 },
+                { label: 'Numero Linea', name: 'NumeroLinea', width: 25 },
+                { label: 'Formato Documento', name: 'FormatoDocumento', width: 25, hidden: true },
+                { label: 'Documento', name: 'Nombre', width: 90 },
+                { label: 'Observacion', name: 'Observacion', width: 100 }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: 280,
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            onSelectRow: function (rowid) {
+                if (rowid == null || rowid == 0)
+                    return;
+
+                $("#SerieMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.EDIT',
+                    disabled: false
+                });
+
+            },
+            pager: "#jqGridPager"
+        });
+
+
+        $("#divSerie").on('show.bs.modal', function () {
+            $(this).find('input:text').val('')
+            var row = getGridSelectedRow('jqGridSerie');
+            var postData= {
+                editAction: $("#rowsEdit").val(),
+                serieId:row.SerieId
+            };
+            controllerGetAction('@Url.Action("SerieEdit", "Almacen", new { area = "AM" })', postData, 'divSerieContent', false, false, null);
+        });
+
+        $('#divSerie').on('hidden.bs.modal', function (e) {
+            $('#divSerieContent').empty();
+        });
+    });
+
+    function onClickMenuBar(control) {
+        switch (control) {
+            case '@ButtonMenuBarActionConstant.SAVE':
+                saveData(control);
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                controllerGetAction('@Url.Action("Bandeja", "Almacen", new { area = "AM" })', null, 'workspace', false, false, null);
+                break;
+        }
+
+    };
+
+
+    function onClickSerieMenuBar(control) {
+        switch (control) {
+            case '@ButtonMenuBarActionConstant.NEW':
+                $("#rowsEdit").val("1");
+                $("#divSerie").modal('show');
+                break;
+            case '@ButtonMenuBarActionConstant.EDIT':
+                var row = getGridSelectedRow("jqGridSerie");
+                if (!isEmpty(row)) {
+                    $("#rowsEdit").val("2");
+                    $("#divSerie").modal('show');
+                } else {
+                    MsgAlert(3, 'Seleccione un cliente');
+                }
+                break;
+        }
+
+    };
+
+    function onClickOkSerie() {
+
+        if (isEmptyElement('NumeroSerie', 'Ingrese el campo numero de serie'))
+            return false;
+
+        var postData = {
+            Header: JSON.stringify($('#form1').serializeObject()),
+            Detail: JSON.stringify($('#divSerieContent').serializeObject()),
+            EditAction: $("#rowsEdit").val()
+        };
+
+        controllerSaveResponse('@Url.Action("GrabarSerie", "Almacen")', postData, false, false, function (response) {
+            if (response.success) {
+                $("#jqGridSerie").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                $("#divSerie").modal('hide');
+                MsgAlert(1, response.message);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+
+    function saveData() {
+        if (isEmptyElement("Nombre", "Ingrese nombre"))
+            return false;
+
+        if (isEmptyElement("Direccion", "Ingrese direccion"))
+            return false;
+
+        if (isEmptyElement("Telefono", "Ingrese telefono"))
+            return false;
+
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var jsonData = {
+            __RequestVerificationToken: token,
+            Header: JSON.stringify($('#form1').serializeObject()),
+            EditAction: $("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("Create", "Almacen", new { area = "am" })", jsonData, false, false, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                controllerGetAction('@Url.Action("Bandeja", "Almacen", new { area = "am" })', null, 'workspace', false, false, null);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+    function onChangeSucursal(control) {
+
+        $.post('@Url.Action("GetSucursal", "Almacen")',
+         {
+             empresaId: control.value
+         }, function (response) {
+             $('#SucursalId').find('option').remove().end();
+             $("#SucursalId").addItems(response.data);
+             $("#SucursalId").prop("disabled", false);
+             //$("#SucursalId").prop("selectedIndex", 1);
+          
+
+         });
+    }
+</script>

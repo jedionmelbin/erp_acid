@@ -1,0 +1,33 @@
+﻿@model eRPBusiness.Transport.CaracteristicaDTO
+@using eRPBusiness.Helpers
+@{
+    ViewBag.Title = "Categoria";
+}
+
+<div class="panel panel-default">
+    <div class="panel-body form-horizontal" id="panel">
+        @if (Model.AtributoId != null)
+        {
+            <div class="form-group">
+                @Html.CRM().DropDownList("AtributoId", Model.AtributoId, ViewBag.ListaAtributo, "col-lg-10", "Atributo", "col-lg-2")
+            </div>
+        }
+        else
+        {<div class="form-group">
+                @Html.CRM().DropDownList("AtributoId", null, ViewBag.ListaAtributo, "col-lg-10", "Atributo", "col-lg-2")
+            </div>
+        }
+        <div class="form-group">
+            @Html.CRM().TextBoxFor(m => m.Nombre, "col-lg-10", "Label", "col-lg-2").Attributes(new { @placeholder = "Label" })
+        </div>
+        <div class="form-group">
+            @Html.CRM().TextAreaFor(m => m.Descripcion, "col-lg-10", "Valor", "col-lg-2").Attributes(new { @placeholder = "Valor" })
+        </div>
+        <div class="form-group" style="display:none;">
+            @Html.CRM().TextAreaFor(m => m.Observacion, "col-lg-10", "Observacion", "col-lg-2").Attributes(new { @placeholder = "Observacion" })
+        </div>
+        @Html.HiddenFor(m => m.CaracteristicaId)
+        @Html.HiddenFor(m => m.CaracteristicaPadreId)
+        @Html.HiddenFor(m => m.PadreId)
+    </div>
+</div>

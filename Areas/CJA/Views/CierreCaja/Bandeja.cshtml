@@ -1,0 +1,256 @@
+﻿@model eRPBusiness.Transport.CajaChicaMovimientoDTO
+@using eRPBusiness.Helpers
+@using eRPBusiness.Common
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>Cierre de Caja</label>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6" id="seachPanel">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="row">
+                    <div class="col-md-12">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th colspan="4" style="text-align:center; background-color:#157cfa;color:#ffffff;">SALDO INICIAL</th>
+                                </tr>
+                            </thead>
+                            <tbody id="divLeft">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="row">
+                    <div class="col-md-12">
+                        <button type="button" class="btn btn-custom btn-lg btn-block" onclick="fnOnclickCerrar(this)">
+                             <span class="glyphicon glyphicon-floppy-saved"></span> Cerrar Caja
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6" id="seachPanel">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div id="divCaja">
+                    <div class="row">
+                        <div class="col-lg-12" id="divRight"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+
+    </div>
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="row" id="divFooters">
+                   
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="entry-template" type="text/x-handlebars-template">
+    {{#with movimientos}}
+    <tr>
+        <td><b style="text-transform:uppercase;">Sucursal</b></td>
+        <td colspan="3">{{Sucursal}}</td>
+    </tr>
+    <tr>
+        <td><b style="text-transform:uppercase;">Fecha</b></td>
+        <td colspan="3">{{FechaInicio}}</td>
+    </tr>
+    <tr>
+        <td><b style="text-transform:uppercase;">Usuario</b></td>
+        <td colspan="3">{{Personal}}</td>
+    </tr>
+    <tr>
+        <td><b style="text-transform:uppercase;">Moneda Soles</b></td>
+        <td>{{MonedaSoles}}</td>
+        <td><b style="text-transform:uppercase;">Moneda Dolares</b></td>
+        <td>{{MonedaDolar}}</td>
+    </tr>
+    <tr>
+        <td><b style="text-transform:uppercase;">Monto Soles</b></td>
+        <td style="text-align:right;"><span style="color: #ff0000;"> {{formatCurrency MontoSoles}}</span></td>
+        <td><b style="text-transform:uppercase;">Monto Dolares</b></td>
+        <td style="text-align:right;"><span style="color: #ff0000;">{{formatCurrency MontoDolares}}</span></td>
+    </tr>
+    {{/with}}
+</script>
+
+<script id="entry-caja" type="text/x-handlebars-template">
+    {{#each movimiento}}
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-7">
+                        <h6><b>Nro Documento:</b> {{NumeroDocumento}}</h6>
+                        <h6><b>Cliente:</b> {{Denominacion}}</h6>
+                        <h6><b>Tipo Movimiento:</b> <span style="color:#157cfa;"><b>{{TipoMovimiento}}</b></span></h6>
+                        <h6><b>Fecha Emisión:</b> {{FechaInicio}}</h6>
+                        <h6><b>Concepto:</b> <span style="color:#ff0000;">{{Concepto}}</span></h6>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><b>Moneda:</b> {{Moneda}}</h6>
+                        @*<h6><b>Sub Total:</b> <span style="color: #0DBA9A;">{{formatCurrency SubTotal}}</span></h6>
+                        <h6><b>I.G.V:</b> <span style="color: #0DBA9A;">{{formatCurrency TotalImpuesto}}</span> </h6>*@
+                        <h6><b>Total:</b> <span style="color: #0DBA9A;">{{formatCurrency TotalPedido}}</span></h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{/each}}
+
+</script>
+<script id="entry-footer" type="text/x-handlebars-template">
+    {{#with totals}}
+    <div class="col-lg-4">
+        <h6>Ingresos S/ : <span style="color: #3B56E0;">{{formatCurrency IngresoSoles}}</span> </h6>
+    </div>
+    <div class="col-lg-4">
+        <h6>Salidas S/ : <span style="color: #3B56E0;">{{formatCurrency SalidaSoles}}</span></h6>
+    </div>
+    <div class="col-lg-4">
+        <h6>Saldo S/ : <span style="color: #3B56E0;">{{formatCurrency TotalSoles}}</span> </h6>
+    </div>
+    <div class="col-lg-4">
+        <h6>Ingresos $ : <span style="color: #3B56E0;">{{formatCurrency IngresoDolar}}</span> </h6>
+    </div>
+    <div class="col-lg-4">
+        <h6>Salidas $ : <span style="color: #3B56E0;">{{formatCurrency SalidaDolar}}</span></h6>
+    </div>
+    <div class="col-lg-4">
+        <h6>Saldo $ : <span style="color: #3B56E0;">{{formatCurrency TotalDolar}}</span></h6>
+    </div>
+    {{/with}}
+</script>
+<style>
+    #divCaja {
+        overflow-y:scroll;
+        overflow-x:hidden;
+        height:400px;
+    }
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        loadPOS();
+    });
+
+    function loadPOS(values) {
+        $.post('@Url.Action("Listar")', {}, function (response) {
+            var jsonData = {
+                Sucursal: "",
+                FechaInicio: "",
+                Personal: "",
+                MonedaSoles: "",
+                MonedaDolar: "",
+                MontoSoles: 0,
+                MontoDolares: 0
+            };
+            $.each(response, function (item, value) {
+                jsonData.Sucursal = value.Sucursal;
+                jsonData.FechaInicio = value.FechaInicio;
+                jsonData.Personal = value.Personal;
+                if (item === 0) {
+                    jsonData.MonedaSoles = value.Moneda;
+                } else {
+                    jsonData.MonedaDolar = value.Moneda;
+                }
+                jsonData.MontoSoles = value.MontoSoles;
+                jsonData.MontoDolares = value.MontoDolares;
+            });
+            var source = $("#entry-template").html();
+            var template = Handlebars.compile(source);
+            $('#divLeft').append(template({ movimientos: jsonData}));
+        });
+
+
+        $.post('@Url.Action("ListarMovimiento")', {}, function (response) {
+
+            var source = $("#entry-caja").html();
+            var template = Handlebars.compile(source);
+            $('#divRight').append(template({ movimiento: response.rows }));
+
+            var sourceFooter = $("#entry-footer").html();
+            var templateFooter = Handlebars.compile(sourceFooter);
+            var totals = {
+                IngresoSoles: 0,
+                SalidaSoles: 0,
+                IngresoDolar: 0,
+                SalidaDolar: 0,
+                TotalSoles: 0,
+                TotalDolar: 0
+            };
+            $.each(response.totals, function (item, value) {
+                debugger;
+                totals.IngresoSoles += value.IngresoSoles;
+                totals.SalidaSoles += value.SalidaSoles;
+                totals.IngresoDolar += value.IngresoDolar;
+                totals.SalidaDolar += value.SalidaDolar;
+                totals.TotalSoles += value.TotalSoles;
+                totals.TotalDolar += value.TotalDolar;
+            });
+            $('#divFooters').append(templateFooter({ totals: totals }));
+        });
+    }
+
+    function fnOnclickCerrar() {
+
+                 const swalWithBootstrapButtons = Swal.mixin({
+                      customClass: {
+                        confirmButton: 'btn btn-success',
+                        cancelButton: 'btn btn-danger'
+                      },
+                      buttonsStyling: false
+                    })
+
+                    swalWithBootstrapButtons.fire({
+                      title: 'Estás seguro de cerrar caja?',
+                      text: "¡No podrás revertir esto!",
+                      icon: 'warning',
+                      showCancelButton: true,
+                      confirmButtonText: 'Si, Aceptar!',
+                      cancelButtonText: 'No, cancelar!',
+                      reverseButtons: true
+                    }).then((result) => {
+                        if (result.value) {
+                         $.post('@Url.Action("CerrarCaja")', {}, function (response) {
+                            if (response.success) {
+                                MsgAlert(1, response.message);
+                            }
+                        });
+
+                      } else if (
+                        result.dismiss === Swal.DismissReason.cancel
+                      ) {
+                        swalWithBootstrapButtons.fire(
+                          'Cancelled',
+                          'Tu caja chica está seguro',
+                          'error'
+                        )
+                      }
+                    })
+    }
+</script>

@@ -1,0 +1,186 @@
+﻿@using eRPBusiness.Helpers
+@using eRPBusiness.Common
+@{
+    /**/
+
+    ViewData["Title"] = "Index";
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>Listado Plan Contable</label>
+        </nav>
+    </div>
+</div>
+@*@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+        new ItemMenuBar(MenuBarButtonType.New),
+        new ItemMenuBar(MenuBarButtonType.Edit)
+    })*@
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+
+            <div class="panel-body form-horizontal">
+                <div class="col-lg-11">
+                    <div class="col-lg-5">
+                        <div class="form-group">
+                            @Html.CRM().TextBox("Codigos", null, "col-lg-4 col-md-4", "Código", "col-lg-2").Attributes(new { @placeholder = "Código" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBox("Nombres", null, "col-lg-10", "Nombre", "col-lg-2").Attributes(new { @maxlength = "100", @placeholder = "Nombre" })
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+
+                    </div>
+                </div>
+                <div class="col-lg-1">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridBienAlmacen').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('input:text').val('');$('#AlmacenId').val(null).trigger('change');$('#jqGridBienAlmacen').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            @Html.CRM().MenuBar("PlanMenuBar", "onClickPlanMenuBar", new ItemMenuBar[]{
+                                                     new ItemMenuBar(MenuBarButtonType.New,false),
+                                                     new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                     new ItemMenuBar(MenuBarButtonType.Save,true),
+                                                     new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                                                      }, MenuBarType.Small)
+            <div class="panel-body" id="panel">
+                <table id="jqGridBienAlmacen"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+@Html.Hidden("esNuevo")
+@using (Html.CRM().Popup("myModal", "Plan contable", "onClickOkPlanConta", SizePopup.Default))
+{
+    <div id="modalContent"></div>
+}
+
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridBienAlmacen").jqGrid({
+            url: '@Url.Action("ListarBandeja", "PlanContable", new { area = "ct" })',
+            mtype: "POST",
+            postData: {
+                codigo: function () { return $("#Codigos").val() },
+                nombre: function () { return $("#Nombres").val() },
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'PlanContableId', key: true, hidden: true },
+                { label: 'Codigo', name: 'Codigo', width: 10, align: 'center', formatter: colorCell },
+                { label: 'Nombre', name: 'Nombre', width: 50, sortable: false },
+                { label: 'Plan Contable', name: 'PlanContable', width: 50, sortable: false }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 300),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            onSelectRow: function (rowid) {
+                $("#PlanMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.EDIT',
+                    disabled: false
+                });
+
+            },
+            pager: "#jqGridPager"
+        });
+
+        $("#myModal").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            var row = getGridSelectedRow("jqGridBienAlmacen");
+            var postData = {
+                editAction: $("#esNuevo").val(),
+                planContableId: row.PlanContableId
+            };
+            controllerGetAction('@Url.Action("Create", "PlanContable")', postData, 'modalContent', false, false, function () { });
+        });
+
+    });
+
+
+    function colorCell(cellvalue, options, rowObject) {
+        var backgroud = '<b>' + cellvalue + '</b>';
+        return backgroud;
+    }
+
+
+    function onClickPlanMenuBar(control) {
+
+        var postData = {
+            editAction: '',
+            movimientoAlmacenId: 0
+        };
+        var row = getGridSelectedRow("jqGridBienAlmacen");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                postData.editAction = '@EditActionConstant.NEW';
+                $("#esNuevo").val("1");
+                $("#myModal").modal('show');
+                @*controllerGetAction('@Url.Action("Create", "PlanContable", new { area = "ct" })', postData, 'workspace', true, true, null);*@
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    postData.editAction = '@EditActionConstant.EDIT';
+                    postData.planContableId = row.PlanContableId;
+                    $("#esNuevo").val("2");
+                    $("#myModal").modal('show');
+                    @*controllerGetAction('@Url.Action("Create", "PlanContable", new { area = "ct" })', postData, 'workspace', true, true, null);*@
+                } else {
+                    MsgAlert(3, 'Seleccione un inventario para ver el detalle');
+                }
+                break;
+            case "@ButtonMenuBarActionConstant.PRINT":
+
+                break;
+            case "@ButtonMenuBarActionConstant.IMPORT_XLS":
+                $("#myModal").modal('show');
+                break;
+            case "@ButtonMenuBarActionConstant.DOWNLOAD":
+                break;
+        }
+     }
+
+     function onClickOkPlanConta() {
+
+         if (isEmptyElement('Codigo', 'Ingrese codigo'))
+            return false;
+
+        if (isEmptyElement('Nombre', 'Ingrese nombre'))
+            return false;
+
+        var postData = {
+            Header: JSON.stringify($('#modalContent').serializeObject()),
+            EditAction: $("#esNuevo").val()
+        };
+
+        controllerSaveResponse('@Url.Action("Create", "PlanContable")', postData, false, false, function (response) {
+            if (response.success) {
+                $("#jqGridBienAlmacen").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                $("#myModal").modal('hide');
+                MsgAlert(1, response.message);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+
+</script>

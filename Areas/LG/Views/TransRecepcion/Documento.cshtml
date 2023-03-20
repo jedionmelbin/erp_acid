@@ -1,0 +1,264 @@
+﻿@model eRPBusiness.Transport.ViewModel.DocumentoViewModel
+@{
+    Layout = "";
+    var filePath = HttpContext.Current.Server.MapPath("~/Content/File/");
+    string srcLogo = string.Concat(filePath, Model.empresaView.LogoTipo);
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Documento</title>
+    <link rel="stylesheet" />
+    <style type="text/css">
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 960px;
+            margin-left: 50px;
+            margin-right: 50px;
+            font: 11pt "Tahoma";
+        }
+
+        .table {
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        #factura th {
+            padding-top: 5px;
+            padding-bottom: 5px;
+            text-align: left;
+        }
+
+        #header td {
+            padding-top: 3px;
+            padding-bottom: 3px;
+            text-align: left;
+            font-size: 9px;
+        }
+
+        .header .table {
+            border: 1px solid #3d3e40;
+            font-size: 9px;
+        }
+
+
+        #items {
+            font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+            #items th {
+                font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+                border-collapse: collapse;
+                font-size: 8px;
+                background-color: #000000;
+                color: #ffffff;
+            }
+
+            #items td, #items th {
+                border: 1px solid #3d3e40;
+            }
+
+            #items th {
+                padding-top: 10px;
+                padding-bottom: 10px;
+                text-align: center;
+            }
+
+            #items td {
+                font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+                border-collapse: collapse;
+                font-size: 10px;
+                padding: 5px;
+            }
+
+        .column1 {
+            float: left;
+            width: 20.33%;
+            padding: 10px;
+            height: 150px;
+        }
+
+            .column1 p {
+                text-align: center;
+            }
+
+        .column2 {
+            float: left;
+            width: 50.33%;
+            padding: 10px;
+            height: 150px;
+        }
+
+        .column3 {
+            float: left;
+            width: 100%;
+            padding: 10px;
+            height: 150px;
+        }
+
+            .column3 .table {
+                border: 1px solid black;
+            }
+
+
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        .text-bold {
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .column2, p {
+            margin: 0px;
+            font-size: 12px;
+            text-align: justify;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="row">
+            <div class="column1">
+                <img src="@srcLogo " alt="" width="90" height="90" />
+            </div>
+            <div class="column2">
+                <h4>@Model.empresaView.RazonSocial</h4>
+                <p>@Model.empresaView.Direccion</p>
+                <p>Telefono: @Model.empresaView.Telefono</p>
+                <p>@Model.PaginaWeb</p>
+            </div>
+            <div class="column3">
+                <table class="table" id="factura">
+                    <thead>
+                        <tr>
+                            <th style="text-align:center">R.U.C @Model.empresaView.NumeroDocumento</th>
+                        </tr>
+                        <tr>
+                            <th style="text-align:center">NOTA DE </th>
+                        </tr>
+                        <tr>
+                            <th style="text-align:center">INGRESO</th>
+                        </tr>
+                        <tr>
+                            <th style="text-align:center"> Nº @Model.Codigo</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </header>
+    <section>
+        <article class="header">
+            <table class="table" id="header">
+                <tbody>
+                    <tr>
+                        <td class="text-bold">FECHA EMISION:</td>
+                        <td>@Model.FechaEmision</td>
+                        <td class="text-bold">FORMA DE PAGO :</td>
+                        <td>@Model.FormaPago</td>
+                    </tr>
+                    <tr>
+                        <td class="text-bold">RUC: </td>
+                        <td>@Model.Ruc</td>
+                        <td class="text-bold">FECHA VENCIMIENTO:</td>
+                        <td>01/01/2019</td>
+                    </tr>
+                    <tr>
+                        <td class="text-bold">SEÑOR(ES):</td>
+                        <td>@Model.Cliente</td>
+                        <td class="text-bold">GUIA REMISION:</td>
+                        <td>00000</td>
+                    </tr>
+                    <tr>
+                        <td class="text-bold">DIRECCION:</td>
+                        <td>@Model.Direccion</td>
+                        <td class="text-bold">GUIA TRASPORTE:</td>
+                        <td>00000</td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </article>
+
+        <article>
+            <table class="table" id="items" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>CANT.</th>
+                        <th>CODIGO</th>
+                        <th>U.M.</th>
+                        <th>DESCRIPCION</th>
+                        <th>PRE.UNI.</th>
+                        <th>DESCUENTO</th>
+                        <th>IMP. DSCTO</th>
+                        <th>IMPORTE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.listItem)
+                    {
+                        <tr>
+                            <td width="15%">@item.Cantidad</td>
+                            <td width="20%">@item.CodigoBien</td>
+                            <td width="10%">@item.UnidadMedida</td>
+                            <td width="90%">@item.Descripcion</td>
+                            <td class="text-right" width="18%">@item.ValorUnitario</td>
+                            <td class="text-right" width="18%">00.00</td>
+                            <td class="text-right" width="18%">00.00</td>
+                            <td class="text-right" width="18%">@item.Importe</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="8">
+                            <b> SON</b> : VEINTISEIS CON 27/100 SOLES
+                        </td>
+                    </tr>
+                </tfoot>
+                <tfoot>
+                    <tr>
+                        <td rowspan="4" colspan="4"></td>
+                        <td colspan="2">OP. GRAVADA </td>
+                        <td colspan="2" class="text-right">0.0</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"> TOTAL DSCTO</td>
+                        <td colspan="2" class="text-right">0.0</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">IGV (18%)</td>
+                        <td colspan="2" class="text-right">0.0</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">TOTAL</td>
+                        <td colspan="2" class="text-right">0.0</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </article>
+    </section>
+</body>
+</html>

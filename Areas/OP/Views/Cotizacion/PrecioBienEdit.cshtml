@@ -1,0 +1,232 @@
+﻿@using eRPBusiness.Helpers;
+@using eRPBusiness.Common;
+<div class="row">
+    <div class="col-lg-12">
+        @Html.CRM().MenuBar("PrecioMenuBar", "onClickPrecioMenuBar", new ItemMenuBar[]{
+                                    new ItemMenuBar(MenuBarButtonType.New,false),
+                                    new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                    new ItemMenuBar(MenuBarButtonType.Save,true),
+                                    new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                                     }, MenuBarType.Small)
+        <table id="jqGridBienPrecio"></table>
+        <div id="jqGridPrecio"></div>
+    </div>
+</div>
+@Html.Hidden("esNuevo")
+<script type="text/javascript">
+    $(document).ready(function () {
+         $("#jqGridBienPrecio").jqGrid({
+            url: '@Url.Action("ListarPrecio", "Cotizacion", new { area = "op" })',
+            mtype: "POST",
+            postData: {
+                bienServicioId: function () { return $("#BienServicioId").val(); }
+            },
+            datatype: "json",
+            colModel: [
+                { label: '', name: 'BienPrecioId', hidden: true },
+                { label: '', name: 'BienAlmacenId', hidden: true },
+                { label: '', name: 'TipoPrecioId', hidden: true },
+                { label: 'Tipo Precio', name: 'Nombre', width: 13 },
+                {
+                    label: 'Descuento %', name: 'Margen', width: 10, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', { digits: 2 });
+                        }
+                    }
+                },
+                {
+                    label: 'Costo S/N IGV', name: 'PrecioSinIgv', width: 13, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', { digits: 2 });
+                        }
+                    }
+                },
+                {
+                    label: 'Precio Nacional', name: 'PrecioNacional', width: 12, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', { digits: 2 });
+                        }
+                    }
+                },
+                {
+                    label: 'Precio en Dolar', name: 'PrecioDolares', width: 11, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', { digits: 2 });
+                        }
+                    }
+                }
+                
+            ],
+             viewrecords: false,
+             page: 1,
+             scroll: 1,
+             emptyrecords: '',
+             width: 568,
+             ondblClickRow: function (rowId) {
+                 var rowData = jQuery(this).getRowData(rowId);
+             },
+             onSelectRow: function (rowid) {
+                 $("#PrecioMenuBar").menuBar({
+                     button: '@ButtonMenuBarNameConstant.NEW',
+                     disabled: true
+                 });
+                 $("#PrecioMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.EDIT',
+                    disabled: false
+                });
+
+            },
+            pager: "#jqGridPrecio"
+    });
+    });
+
+    function onClickPrecioMenuBar(control) {
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                $("#esNuevo").val('@DigitosConstante.UNO');
+                var newRowId = gridRowCount("jqGridBandeja");
+                var parameters = {
+                    rowID: newRowId + 1,
+                    initdata: {
+                    },
+                    position: "first"
+                };
+                $("#jqGridBienPrecio").jqGrid('addRow', parameters);
+                actionNuevo();
+                break;
+            case "@ButtonMenuBarActionConstant.SAVE":
+                var rowId = getGridSelectedRowId('jqGridBienPrecio');
+                var row = getGridSelectedRow('jqGridBienPrecio');
+               
+
+                $("#jqGridBienPrecio").jqGrid('saveRow', rowId, {
+                    url: 'clientArray', aftersavefunc: function (id, response, options) {
+                        var row = getGridSelectedRow("jqGridBienPrecio");
+
+                        var postData = {
+                            Row: JSON.stringify(row),
+                            EditAction: $("#esNuevo").val()
+                        };
+                        controllerSaveResponse('@Url.Action("ActualizarPrecio", "BienAlmacen",new { area = "lg" })', postData, true, true, function (response) {
+                            if (response.success) {
+                                MsgAlert(1, response.message);
+                                jQuery("#jqGridBienPrecio").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                            } else {
+                                MsgAlert(4, response.message);
+                            }
+                        });
+                    }
+                });
+                actionSave();
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                actionEdit();
+                $("#esNuevo").val('@DigitosConstante.DOS');
+                var row = getGridSelectedRow('jqGridBienPrecio');
+                if (!isEmpty(row)) {
+                    var rowId = getGridSelectedRowId("jqGridBienPrecio");
+                    $('#jqGridBienPrecio').jqGrid('editRow', rowId);
+                    lastsel = rowId;
+                } else {
+                    MsgAlert(3, 'Selccione un registro');
+                }
+
+                break;
+            case '@ButtonMenuBarActionConstant.CANCEL':
+                actionCancel();
+                var rowid = getGridSelectedRowId("jqGridBienPrecio");
+                $('#jqGridBienPrecio').setGridParam({ datatype: 'json' });
+                $('#jqGridBienPrecio').trigger('reloadGrid');
+                lastsel = 0;
+                break;
+        }
+    }
+
+     function actionNuevo()
+    {
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: true
+        });
+
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: true
+        });
+
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: false
+        });
+
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: false
+        });
+
+    }
+
+    function actionEdit() {
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: true
+        });
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: true
+        });
+
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: false
+        });
+
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: false
+        });
+    }
+
+    function actionSave() {
+         $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: false
+        });
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: true
+        });
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: true
+        });
+        $("#PrecioMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: true
+        });
+    }
+
+    function actionCancel() {
+            $("#PrecioMenuBar").menuBar({
+                button: '@ButtonMenuBarNameConstant.EDIT',
+                disabled: true
+            });
+
+            $("#PrecioMenuBar").menuBar({
+                button: '@ButtonMenuBarNameConstant.SAVE',
+                disabled: true
+            });
+            $("#PrecioMenuBar").menuBar({
+                button: '@ButtonMenuBarNameConstant.NEW',
+                disabled: false
+            });
+            $("#PrecioMenuBar").menuBar({
+                button: '@ButtonMenuBarNameConstant.CANCEL',
+                disabled: true
+            });
+   }
+</script>

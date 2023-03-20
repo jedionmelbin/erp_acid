@@ -1,0 +1,135 @@
+﻿@using Microsoft.AspNet.Identity;
+@using eRPBusiness.Common;
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - ACID</title>
+    @Styles.Render("~/Content/css")
+
+    @Scripts.Render("~/bundles/modernizr")
+
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar Holder -->
+        <nav id="sidebar">
+            <div class="sidebar-header"><h3>ACID</h3></div>
+            <ul class="list-unstyled components" id="main-menu">
+                <li><a href="@Url.Action("Index","Home")"><span class="glyphicon glyphicon-home"></span> Dashboard</a></li>
+            </ul>
+        </nav>
+        <!-- Page Content Holder -->
+        <div id="content">
+            <nav class="navbar navbar-default">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <a href="#" id="sidebarCollapse" class="btn btn-info navbar-btn">
+                            <i class="glyphicon glyphicon-menu-hamburger"></i>
+                            <span></span>
+                        </a>
+
+                    </div>
+                    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                        <ul class="nav navbar-nav navbar-right">
+                            <li><a href="#"><span class="glyphicon glyphicon-usd"></span> T. CAMBIO - @Session[VariableSesionConstante.TIPO_CAMBIO]</a></li>
+                            <li><a href="#"><span class="glyphicon glyphicon-calendar"></span> PERÍODO - @Session[VariableSesionConstante.PERIODO_NOMBRE]</a></li>
+                            <li><a href="#"><span class="glyphicon glyphicon-glass"></span> EMPRESA - @Session[VariableSesionConstante.USUARIO_EMPRESA]</a></li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span>  @Session[VariableSesionConstante.USUARIO_NOMBRE]</a>
+                                <ul id="login-dp" class="dropdown-menu">
+                                    <li>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <form class="form" role="form" method="post" action="login" accept-charset="UTF-8" id="login-nav">
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <div class="thumbnail">
+                                                                <img src="~/Content/image/login_user_profile.png" alt="..." class="img-circle">
+                                                                <div class="caption text-center">
+                                                                    <h6>@Session[VariableSesionConstante.USUARIO_LOGON]</h6>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-8">
+                                                            <h6><strong>NOMBRE: </strong> @Session[VariableSesionConstante.USUARIO_NOMBRE]</h6>
+                                                        </div>
+                                                        <div class="col-md-8">
+                                                            <h6><strong>SUCURSAL: </strong> @Session[VariableSesionConstante.USUARIO_SUCURSAL]</h6>
+                                                        </div>
+                                                        <div class="col-md-8">
+                                                            <h6><strong>ALMACEN: </strong> @Session[VariableSesionConstante.USUARIO_ALMACEN]</h6>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li><a href="@Url.Action("LogOff","Account")"><span class="glyphicon glyphicon-off"></span> SALIR </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <div class="col-lg-12" id="workspace">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/inputmask")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/Highcharts")
+    <script src="~/Scripts/multiple-select.min.js"></script>
+    <link href="~/Content/multiple-select.min.css" rel="stylesheet" />
+    <script src="~/Scripts/sweetalert2@8.js"></script>
+    <script src="~/Scripts/es.js"></script>
+
+    <script type="text/javascript">
+            var buildUL = function (parent, items) {
+                $.each(items, function (item, value) {
+                    if (this.Text) {
+                        var li = $("<li></li>");
+                        var items = this.Text + item;
+                        var enlace = items.replace(/\s/g, '').toLowerCase();
+
+                        var a = $("<a></a>").attr('data-toggle', 'collapse').attr('aria-expanded', "false");
+                        a.attr('href', '#' + enlace);
+                        if (this.Url != "") {
+                            a.attr('onclick', "controllerGetAction('" + this.Url + "',null,'workspace',true,true,null);");
+                        }
+
+                        var i = $("<span></span>");
+                        i.addClass(this.Icon);
+                        i.appendTo(a);
+
+                        var span = $('<span></span>').text(" " + this.Text);
+                        span.addClass("title");
+                        span.appendTo(a);
+
+                        a.appendTo(li);
+
+                        li.appendTo(parent);
+                        if (typeof this.Nodes != "undefined") {
+                            if (this.Nodes.length > 0) {
+                                var ul = $("<ul class='collapse list-unstyled'></ul>").attr("id",enlace);
+                                ul.appendTo(li);
+                                buildUL(ul, this.Nodes);
+                            }
+                        }
+                    }
+                });
+            }
+
+            $(document).ready(function () {
+                $.post('@Url.Action("GetMenu", "Menu")', function (data, textStatus, jqXHR) {
+                    var ul = $('#main-menu');
+                    buildUL(ul, data);
+                });
+            });
+    </script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

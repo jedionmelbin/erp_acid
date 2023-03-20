@@ -1,0 +1,60 @@
+﻿@model eRPBusiness.Transport.TopProductoDto
+@using eRPBusiness.Helpers
+@{
+    ViewBag.Title = "Producto";
+}
+
+<div class="panel panel-default">
+    <div class="panel-body form-horizontal" id="panel">
+      <div class="row">
+          <div class="col-lg-12">
+              <div class="form-group">
+                  @Html.CRM().DropDownList("AlmacenId", Model.AlmacenId, @ViewBag.AlmacenList, "col-lg-10", "Almacen", "col-lg-2", new { })
+              </div>
+              <div class="form-group">
+                  @Html.CRM().Select2List("BienServicioId", Model.BienServicioId, @ViewBag.EmpresaList, "col-lg-10", "Producto", "col-lg-2", new { })
+              </div>
+              @Html.HiddenFor(m => m.TopProductoId)
+          </div>
+      </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#BienServicioId").select2({
+            ajax: {
+                url: '@Url.Action("GetBienServicio","Tops")',
+                dataType: 'json',
+                delay: 250,
+                type: 'POST',
+                data: function (params) {
+                    return {
+                        query: params.term // search ter
+                    };
+                },
+                processResults: function (data, params) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.Descripcion,
+                                id: item.BienServicioId
+                            };
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Busqueda de bienes y servicio, nombre,marca, tipo',
+            allowClear: true,
+            escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function () {
+                    return "Busqueda de bienes y servicio, nombre,marca, tipo";
+                }
+            },
+            dropdownParent: $('#divModalProducto')
+        });
+    })
+</script>

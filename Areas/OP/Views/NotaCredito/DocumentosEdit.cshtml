@@ -1,0 +1,60 @@
+﻿@using eRPBusiness.Helpers
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="col-lg-10 form-horizontal">
+                    <div class="form-group">
+                        @Html.CRM().TextBox("serie", null, "col-lg-4", "Serie", "col-lg-2").Attributes(new { @placeholder = "Codigo" })
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().TextBox("denomiacion", null, "col-lg-10", "Denominación", "col-lg-2").Attributes(new { @placeholder = "Denominación" })
+                    </div>
+                </div>
+                <div class="col-lg-2 form-horizontal text-right">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridDocumento').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('#denomiacion').val(''); $('#jqGridDocumento').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <table id="jqGridDocumento"></table>
+    <div id="jqPagerDocument"></div>
+</div>
+<script type="text/javascript">
+    $("#jqGridDocumento").jqGrid({
+        url: '@Url.Action("ListarDocumento", "NotaCredito", new { area = "op" })',
+        mtype: "POST",
+        postData: {
+            codigo: function () { return $("#serie").val(); },
+            razonSocial: function () { return $("#denomiacion").val(); },
+        },
+        datatype: "json",
+        colModel: [
+            { label: '', name: 'OrdenId', key: true, hidden: true },
+            { label: 'Serie', name: 'Codigo', width: 15 },
+            { label: 'Documento', name: 'Documento', width: 30 },
+            { label: 'Fecha Emision', name: 'FechaEmision', width: 20 },
+            { label: 'Cliente', name: 'Cliente', width: 50 },
+        ],
+        viewrecords: true,
+        loadonce: true,
+        multiselect: true,
+        rowList: [10, 20, 30],
+        height: 220,
+        width: 880,
+        rowNum: 20,
+        ondblClickRow: function (rowId) {
+            //var rowData = jQuery(this).getRowData(rowId);
+        },
+        pager: "#jqPagerDocument"
+    });
+
+</script>

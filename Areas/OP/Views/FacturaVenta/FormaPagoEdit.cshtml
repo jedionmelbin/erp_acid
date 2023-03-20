@@ -1,0 +1,230 @@
+﻿
+@{
+    ViewBag.Title = "FormaPagoEdit";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel">
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <table id="jqGridForma"></table>
+                        <div id="jqGridPagerFm"></div>
+                    </div>
+                    <div class="col-lg-12">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var formaPago = sessionStorage.getItem('formaPago');
+        var monedaLst = sessionStorage.getItem('monedaList');
+
+        $("#jqGridForma").jqGrid({
+            url: '@Url.Action("ListFomaPago", "FacturaVenta")',
+            mtype: "POST",
+            postData: {
+                ordenId: function () { return $("#OrdenId").val(); }
+            },
+            styleUI: 'Bootstrap',
+            datatype: "json",
+            colModel: [
+                {
+                    label: "",
+                    name: "FormaCancelacionId",
+                    sortable: false,
+                    key:true,
+                    hidden:true
+                },
+                {
+                    label: "+",
+                    name: "actions",
+                    width: 20,
+                    sortable: false,
+                    align: 'center',
+                    formatter: function (cellvalue, options, rowObject) {
+                        return "<a href='#' id='" + options.rowId + "' onClick='fnAddRow(this)' ><span class='glyphicon glyphicon-plus'></span></a>";
+                    }
+
+                },
+                {
+                    label: 'Forma Pago', name: 'FormaVentaId', width: 150, edittype: 'select', formatter: 'select', sortable: false, editable: true, editoptions: {
+                        dataInit: function (elem, options) {
+                        }
+                    }
+                },
+                {
+                    label: 'Fecha Emision', name: 'FechaVencimiento', width: 100, editable: true, editoptions: {
+                        placeholder: "DD/MM/YYYY",
+                        // readonly: "readonly",
+                        dataInit: function (elem, options) {
+                            $(elem).datetimepicker({
+                                format: 'D/MM/YYYY',
+                                locale: 'es',
+                            });
+                        }
+                    }
+                },
+                {
+                    label: 'Monto', name: 'ValorTotal', editable: true, width: 100, formatter: 'integer', align: 'right',
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 },
+                    editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', {
+                                placeholder: "0",
+                                digits: 2,
+                                digitsOptional: false,
+                                autoGroup: true,
+                                allowPlus: false,
+                                allowMinus: false,
+                                clearMaskOnLostFocus: false,
+                                removeMaskOnSubmit: true
+                            });
+                        }
+                    }
+                },
+                {
+                    label: 'Pagado Con', name: 'MontoPago', editable: true, width: 100,formatter: 'integer', align: 'right',
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 },
+                    editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', {
+                                placeholder: "0",
+                                digits: 2,
+                                digitsOptional: false,
+                                autoGroup: true,
+                                allowPlus: false,
+                                allowMinus: false,
+                                clearMaskOnLostFocus: false,
+                                removeMaskOnSubmit: true
+                            });
+                        }
+                    }
+                },
+                {
+                      label: "Eliminar",
+                      name: "actions",
+                      width: 40,
+                      sortable: false,
+                      align: 'center',
+                      formatter: function (cellvalue, options, rowObject) {
+                          var _control = "<a href='#' rel='" + options.rowId + "' onClick='fnRemvRow(this)' ><span class='glyphicon glyphicon-trash'></span></a>";
+                          return _control;
+                      }
+
+                  }
+            ],
+            height: 350,
+            width: 840,
+            viewrecords: false,
+            page: 1,
+            emptyrecords: '',
+            //footerrow: true,
+            rownumbers: true,
+            pager: "#jqGridPagerFm",
+            beforeProcessing: function (data) {
+                $(this).setColProp('FormaVentaId', { editoptions: { value: formaPago } });
+            },
+            loadComplete: function () {
+                var ids = jQuery("#jqGridForma").jqGrid('getDataIDs');
+                var _editAction = $("#EditAction").val();
+                var _jsonList = $("#RowList").val();
+                var _jsonData = [];
+                if (_editAction === "1") {
+                    if (_jsonList != "") {
+                        _jsonData = JSON.parse(_jsonList);
+                        var newRowId;
+                        $.each(_jsonData, function (item, value) {
+                            debugger;
+                            newRowId = gridRowCount("jqGridForma");
+                            var count = newRowId + 1;
+                            var cantidad = 1;
+                            var setcelll = {
+                                rowID: newRowId + 1,
+                                initdata: value,
+                                position: "afterSelected"
+                            };
+                            jQuery("#jqGridForma").jqGrid('addRow', setcelll);
+                        });
+                    } else {
+                        var setcelll = {
+                            rowID: 1,
+                            initdata: {
+                                FormaPagoId: 0,
+                                ValorTotal: stringToDecimal($("#TotalPedido").val()),
+                                MontoPago: 0
+                            },
+                            position: "afterSelected"
+                        };
+                        jQuery(this).jqGrid('addRow', setcelll);
+                    }
+                   
+                } else {
+                    if (_jsonList != "") {
+                        _jsonData = JSON.parse(_jsonList);
+                        var newRowId;
+                        $.each(_jsonData, function (item, value) {
+                            newRowId = gridRowCount("jqGridForma");
+                            var count = newRowId + 1;
+                            var cantidad = 1;
+                            var setcelll = {
+                                rowID: newRowId + 1,
+                                initdata: {},
+                                position: "afterSelected"
+                            };
+                            jQuery("#jqGridForma").jqGrid('addRow', setcelll);
+                        });
+                    }
+                    $.each(ids, function (item, value) {
+                        jQuery('#jqGridForma').jqGrid('editRow', value, true);
+                    });
+                }
+             
+            }
+        });
+
+        //var lastSelection;
+        //function editRow(id) {
+        //    //if (id && id !== lastSelection) {
+        //    //    var grid = $("#jqGridForma");
+        //    //    grid.restoreRow(lastSelection);
+        //    //    grid.editRow(id, true);
+        //    //    lastSelection = id;
+        //    //}
+        //}
+
+    });
+
+    function fnAddRow() {
+        var newRowId = gridRowCount("jqGridForma");
+        var _inporteTotal = stringToDecimal($("#TotalPedido").val());
+        var setcell = {
+            rowID: newRowId + 1,
+            initdata: {
+                FormaPagoId: 0,
+                ValoUnitario: 0
+            },
+            position: "afterSelected"
+        };
+        jQuery("#jqGridForma").jqGrid('addRow', setcell);
+        //var lastData = $('#jqGridForma').getRowData();
+        var ids = jQuery("#jqGridForma").jqGrid('getDataIDs');
+        var _countCuota = ids.length;
+        var _cuota = _inporteTotal / _countCuota;
+        $.each(ids, function (item, value) {
+            $("#" + value +"_ValorTotal").val(_cuota);
+            //jQuery('#jqGridForma').jqGrid('editRow', item, true);
+        });
+    }
+
+    function fnRemvRow(control) {
+        $('#jqGridForma').jqGrid('delRowData', control.rel);
+    }
+
+</script>

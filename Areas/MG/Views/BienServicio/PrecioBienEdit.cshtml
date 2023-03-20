@@ -1,0 +1,51 @@
+﻿@using eRPBusiness.Helpers;
+@using eRPBusiness.Common;
+<div class="row">
+    <div class="col-lg-12">
+        @Html.CRM().MenuBar("PrecioMenuBar", "onClickPrecioMenuBar", new ItemMenuBar[]{
+                                    new ItemMenuBar(MenuBarButtonType.New,  false ),
+                                    new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                    new ItemMenuBar(MenuBarButtonType.Save,true),
+                                    new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                                     }, MenuBarType.Small)
+        <table id="jqGridBienPrecio"></table>
+        <div id="jqGridPrecio"></div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+         $("#jqGridBienPrecio").jqGrid({
+            url: '@Url.Action("ListarPrecios", "BienServicio", new { area = "mg" })',
+            mtype: "POST",
+              postData: {
+                  bienServicioId: function () { return $("#BienServicioId").val(); }
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'OrderID', name: 'BienPrecioId', key: true, hidden: true },
+                { label: 'Tipo Precio', name: 'Nombre', width: 100, sortable: false },
+                {
+                    label: 'Margen', name: 'Margen', width: 50, sortable: false, formatter: 'integer', align: 'right', sortable: false, formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    } },
+                {
+                    label: 'Precio S/', name: 'PrecioSoles', width: 50, sortable: false, formatter: 'integer', align: 'right', sortable: false, formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }},
+                {
+                    label: 'Precio $/', name: 'PrecioDolares', width: 50, sortable: false, formatter: 'integer', align: 'right', sortable: false, formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    } }
+            ],
+            viewrecords: false,
+            page: 1,
+            scroll: 1,
+            emptyrecords: '',
+            width: 568,
+            ondblClickRow: function (rowId) {
+                var rowData = jQuery(this).getRowData(rowId);
+            },
+            pager: "#jqGridPrecio"
+    });
+    });
+</script>

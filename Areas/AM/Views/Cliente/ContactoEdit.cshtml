@@ -1,0 +1,86 @@
+﻿@using eRPBusiness.Helpers
+@model eRPBusiness.Transport.ContactoDTO
+
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                @*<div class="form-group">
+                    @Html.CRM().Select2List("ContactoSelect", Model.ContactoId, ViewBag.ContactoList, "col-lg-10", "Busqueda", "col-lg-2", new { @style = "width: 100%;" })
+                </div>*@
+                <div class="form-group">
+                    @Html.CRM().TextBoxFor(m => m.NombreContacto, "col-lg-10", "Nombres", "col-lg-2").Attributes(new { @placeholder = "Nombres y Apellidos" })
+                </div>
+                <div class="form-group">
+                    @Html.CRM().DropDownList("AreaId", Model.AreaId, @ViewBag.AreaList, "col-lg-4", "Area", "col-lg-2")
+                    @Html.CRM().TextBoxFor(m => m.NumeroDocumentoContacto, "col-lg-4", "Nro Doc.", "col-lg-2").Attributes(new { @placeholder = "Nro Documento", @maxlength = "11" })
+                </div>
+                <div class="form-group">
+                    @Html.CRM().TextBoxFor(m => m.TelefonoContacto, "col-lg-4", "Telefono", "col-lg-2").Attributes(new { @placeholder = "Telefono", @maxlength = "10" })
+                    @Html.CRM().TextBoxFor(m => m.CelularContacto, "col-lg-4", "Celular", "col-lg-2").Attributes(new { @placeholder = "Celular", @maxlength = "10" })
+                </div>
+                <div class="form-group">
+                    @Html.CRM().TextBoxFor(m => m.EmailContacto, "col-lg-10", "Correo", "col-lg-2").Attributes(new { @placeholder = "Correo" })
+                </div>
+                <div class="form-group">
+                    @Html.CRM().TextBoxFor(m => m.DireccionContacto, "col-lg-10", "Dirección", "col-lg-2").Attributes(new { @placeholder = "Direccion" })
+                </div>
+              
+                @Html.HiddenFor(m => m.ContactoId)
+            </div>
+        </div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#AreaId").prop("selectedIndex", 1);
+        $("#ContactoSelect").select2({
+            dropdownParent: $('#divContactoList'),
+            ajax: {
+                url: '@Url.Action("GetContacto")',
+                dataType: 'json',
+                delay: 250,
+                type: 'POST',
+                data: function (params) {
+                    return {
+                        query: params.term // search ter
+                    };
+                },
+                processResults: function (data, params) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.Nombre,
+                                id: item.ContactoId
+                            }
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Busqueda contacto existente nombre / DNI',
+            allowClear: true,
+            escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function () {
+                    return "Busqueda contacto existente nombre / DNI";
+                }
+            }
+        });
+      
+        $('#ContactoSelect').on('select2:select', function (e) {
+            var data = e.params.data;
+            $.post('@Url.Action("GetContactoById", "Cliente")', { id: data.id }, function (response) {
+                if (response.success) {
+                    $("#NombreContacto").val(response.data.NombreContacto);
+                    $("#AreaId").val(response.data.AreaId);
+                    $("#NumeroDocumentoContacto").val(response.data.NumeroDocumentoContacto);
+                    $("#TelefonoContacto").val(response.data.TelefonoContacto);
+                    $("#CelularContacto").val(response.data.CelularContacto);
+                    $("#EmailContacto").val(response.data.EmailContacto);
+                    $("#DireccionContacto").val(response.data.DireccionContacto);
+                } else {
+                    MsgAlert(3, response.message);
+                }
+            });
+        });
+    });
+</script>

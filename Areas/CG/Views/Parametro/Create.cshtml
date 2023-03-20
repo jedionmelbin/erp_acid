@@ -1,0 +1,85 @@
+﻿@model eRPBusiness.Transport.ParametroSistemaDTO
+@using eRPBusiness.Helpers
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>@ViewBag.Title</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                                   new ItemMenuBar(MenuBarButtonType.Save),
+                                                   new ItemMenuBar(MenuBarButtonType.Exit)
+
+                                               })
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { @class = "form-horizontal", @id = "form1" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Codigo, "col-lg-4", "Codigo", "col-lg-2").Attributes(new { @maxlength = "4" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Nombre, "col-lg-10", "Nombre", "col-lg-2")
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            @Html.CRM().NumericTextBoxFor(m => m.ValorNumerico, "col-lg-3", "Valor Numerico", "col-lg-3").TextNumericType(NumericType.Integer).CantidadDecimales(2)
+                            @Html.CRM().DateTimePickerFor(m => m.ValorFecha, "col-lg-4", "Valor Fecha", "col-lg-2")
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.ValorCadena, "col-lg-9", "Valor Cadena", "col-lg-3")
+                        </div>
+                    </div>
+                    @Html.HiddenFor(m => m.EditAction)
+                    @Html.HiddenFor(m => m.ParametroSistemaId)
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+<script type="text/javascript">
+    function onClickMenuBar(control) {
+        switch (control) {
+            case '@ButtonMenuBarActionConstant.SAVE':
+                saveData(control);
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                controllerGetAction('@Url.Action("Bandeja", "Parametro", new { area = "CG" })', null, 'workspace', false, false, null);
+                break;
+        }
+
+    };
+
+    function saveData() {
+        if (isEmptyElement("Nombre", "Ingrese nombre"))
+            return false;
+
+      
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var jsonData = {
+            __RequestVerificationToken: token,
+            Header: JSON.stringify($('#form1').serializeObject()),
+            EditAction: $("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("Create", "Parametro", new { area = "CG" })", jsonData, false, false, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                controllerGetAction('@Url.Action("Bandeja", "Parametro", new { area = "CG" })', null, 'workspace', false, false, null);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+</script>

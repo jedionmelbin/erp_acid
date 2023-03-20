@@ -1,0 +1,307 @@
+﻿@model eRPBusiness.Transport.OrdenDTO
+@using eRPBusiness.Helpers;
+@using eRPBusiness.Common;
+@{
+    ViewBag.Title = "ModalPostEdit";
+}
+
+<div class="row">
+    <div class="col-md-7 form-horizontal">
+        @Html.HiddenFor(m => m.DocumentoComercial)
+        @Html.HiddenFor(m => m.Tabla)
+        <div class="form-group">
+            @Html.CRM().DropDownList("SerieId", Model.SerieId, @ViewBag.SerieList, "col-lg-3", "Serie", "col-lg-3")
+            <div class="col-lg-4">
+                @Html.TextBoxFor(m => m.Codigo, new { @class = "form-control", @placeholder = "Nro documento", @readonly = "true" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.CRM().Select2List("FormaPagoId", Model.FormaPagoId, @ViewBag.FormaPago, "col-lg-9", "Forma de Pago", "col-lg-3")
+        </div>
+        <div class="form-group">
+            @Html.CRM().Select2List("MonedaId", Model.MonedaId, @ViewBag.MonedaList, "col-lg-9", "Moneda", "col-lg-3")
+        </div>
+        <div class="form-group">
+            @Html.CRM().TextBoxButtonFor(m => m.NumeroRuc, "col-lg-6", "Nro Doc.", "col-lg-3").OnButtonClick("onChangeRucCliente()").FontButton("glyphicon glyphicon-search").Attributes(new { @placeholder = "R.U.C/D.N.I" })
+            <div class="col-md-2">
+                <div class="input-group">
+                    <span class="input-group-addon" id="basic-addon" onclick="onClickClienteNuevo(this)"><span class="glyphicon glyphicon-plus"></span></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.CRM().Select2List("ClienteId", Model.ClienteId, ViewBag.ListarCliente, "col-lg-9", "Razón Social", "col-lg-3")
+        </div>
+        <div class="form-group">
+            @Html.CRM().TextBoxFor(m => m.Direccion, "col-lg-9", "Dirección", "col-lg-3").Attributes(new { @placeholder = "Direccion" })
+        </div>
+        <div class="form-group">
+            @Html.CRM().Select2List("Formato", Model.Formato, @ViewBag.ListFormato, "col-lg-9", "Formato", "col-lg-3")
+        </div>
+        <div class="form-group">
+            @Html.CRM().NumericTextBoxFor(m => m.MontoImporte, "col-lg-3", "Importe", "col-lg-3").TextNumericType(NumericType.Integer)
+            @Html.CRM().NumericTextBoxFor(m => m.SubTotal, "col-lg-3", "Gravada", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+        </div>
+
+        <div class="form-group">
+            @Html.CRM().NumericTextBoxFor(m => m.TipoCambio, "col-lg-3", "Tipo Cambio", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { })
+            @Html.CRM().NumericTextBoxFor(m => m.Descuento, "col-lg-3", "Descuento", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+        </div>
+        <div class="form-group">
+            <div class="col-md-3"></div>
+            <div class="col-md-3">
+                @Html.CRM().CheckBoxFor(m => m.Envio, "Enviar", "Enviar Sunat")
+            </div>
+            @Html.CRM().NumericTextBoxFor(m => m.TotalImpuesto, "col-lg-3", "I.G.V", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+        </div>
+        <div class="form-group">
+            <div class="col-md-6"></div>
+            @Html.CRM().NumericTextBoxFor(m => m.TotalPedido, "col-lg-3", "Total", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+        </div>
+        <div class="form-group">
+            <div class="col-md-6"></div>
+            @Html.CRM().NumericTextBoxFor(m => m.MontoVuelto, "col-lg-3", "Vuelto", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+        </div>
+        @*<div class="form-group">
+        </div>*@
+    </div>
+    <div class="col-md-5 form-horizontal">
+        <div class="form-group text-center">
+            <div class="btn-group" role="group" aria-label="">
+                <button type="button" onclick="fnOnChangeSerie(this)" id="btnNotaVenta" class="btn btn-success btn-lg" data-info="@TablaConstante.NOTA_VENTA" value="@TablaConstanteValor.NOTA_VENTA">
+                    <span class="glyphicon glyphicon-folder-close"></span> Nota Venta
+                </button>
+                <button type="button" onclick="fnOnChangeSerie(this)" id="btnBoletaVenta" class="btn btn-danger btn-lg" data-info="@TablaConstante.BOLETA" value="@TablaConstanteValor.BOLETA">
+                    <span class="glyphicon glyphicon-book"></span> Boleta
+                </button>
+                <button type="button" onclick="fnOnChangeSerie(this)" id="btnFactura" class="btn btn-danger btn-lg" data-info="@TablaConstante.FACTURA" value="@TablaConstanteValor.FACTURA">
+                    <span class="glyphicon glyphicon-file"></span> Factura
+                </button>
+            </div>
+        </div>
+        <div class="form-group" style="margin-left:50px;">
+            <div class="col-md-10 text-center">
+                @for (int i = 1; i < 10; i++)
+                {
+                    <button type="button" onclick="fnCalculator(this)" class="btn btn-default" style="margin:3px; height:55px; width:55px;" value="@i"><b>@i</b></button>
+                }
+                <button type="button" onclick="fnCalculator(this)" class="btn btn-default" style="margin:3px; height:55px; width:55px;" value="."><b>.</b></button>
+                <button type="button" onclick="fnCalculator(this)" class="btn btn-default" style="margin:3px; height:55px; width:55px;" value="0"><b>0</b></button>
+                <button type="button" onclick="fnCalcRemove(this)" class="btn btn-default" style="margin:3px; height:55px; width:55px;" value="0"><b>C</b></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .select2-container {
+        width: 100% !important;
+        padding: 0;
+    }
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#ClienteId").select2({
+            ajax: {
+                url: '@Url.Action("GetCliente")',
+                dataType: 'json',
+                delay: 250,
+                type: 'POST',
+                data: function (params) {
+                    return {
+                        query: params.term // search ter
+                    };
+                },
+                processResults: function (data, params) {
+
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.RazonSocial,
+                                id: item.ClienteId
+                            };
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Busqueda de cliente razon social o RUC',
+            allowClear: true,
+            escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function () {
+                    return "Busqueda de cliente razon social o RUC.";
+                }
+            }
+        });
+
+        $('#ClienteId').on('select2:select', function (e) {
+            var data = e.params.data;
+
+            $.post('@Url.Action("BuscarPorId", "FacturaVenta")', { id: data.id }, function (response) {
+                if (response.success) {
+                    $("#NumeroRuc").val(response.data.NumeroDocumento);
+                    $("#Direccion").val(response.data.NombreVia);
+                } else {
+                    MsgAlert(3, response.message);
+                }
+            });
+        });
+
+        var _valorGravada = $("#TotalGravada").val();
+        var _totalImpuesto = $("#TotalImpuestoCard").val();
+        var _ImporteTotal = $("#ImporteTotal").val();
+
+        $("#SubTotal").val(_valorGravada);
+        $("#TotalImpuesto").val(_totalImpuesto);
+        $("#TotalPedido").val(_ImporteTotal);
+
+        $("#MontoImporte").blur(function () {
+
+
+            var montoImporte = stringToDecimal($("#MontoImporte").val());
+            var subTotal = stringToDecimal($("#SubTotal").val());
+            var totalImpuesto = stringToDecimal($("#TotalImpuesto").val())
+            var valorTotal = (subTotal + totalImpuesto);
+            var montoVuelto = montoImporte - valorTotal;
+            if (montoImporte != 0) {
+                $("#MontoVuelto").val(montoVuelto);
+            } else {
+                $("#MontoVuelto").val(0);
+            }
+        });
+
+    });
+
+    function onChangeRucCliente() {
+        var rucCliente = $("#NumeroRuc").val();
+
+        $.post('@Url.Action("BuscarPorRuc")', { numeroRuc: rucCliente }, function (response) {
+            if (response.success) {
+                if (!jQuery.isEmptyObject(response.data)) {
+                    $('#ClienteId').empty().trigger("change");
+                    var data = { id: response.data.ClienteId, text: response.data.RazonSocial };
+                    var newOption = new Option(data.text, data.id, false, false);
+                    $('#ClienteId').append(newOption).trigger('change');
+                    $("#NumeroRuc").val(response.data.NumeroDocumento);
+                    $("#Direccion").val(response.data.NombreVia);
+                } else {
+                    $("#myModalCliente").modal('show');
+                    $("#NumeroDocumento").val(rucCliente);
+
+                }
+
+            } else {
+            }
+        });
+    }
+
+    function fnCalculator(control) {
+        var totalCal = 0;
+        var montoImporte = stringToDecimal($("#MontoImporte").val());
+        if (montoImporte!= 0) {
+            totalCal = montoImporte + control.value;
+        } else {
+            totalCal = control.value;
+        }
+
+        $("#MontoImporte").val(totalCal);
+
+        var _montoImporte = stringToDecimal($("#MontoImporte").val());
+        var _totalPedido = stringToDecimal($("#TotalPedido").val());
+
+        var _montoVuelto = _montoImporte - _totalPedido;
+        $("#MontoVuelto").val(_montoVuelto);
+
+    }
+    function fnCalcRemove() {
+        $("#MontoImporte").val("0.0");
+        var montoImporte = stringToDecimal($("#MontoImporte").val());
+        if (montoImporte == 0) {
+            $("#MontoVuelto").val(0);
+        }
+    }
+
+    function fnOnChangeSerie(control) {
+
+        $("#btnNotaVenta").addClass('btn-danger');
+        $("#btnBoletaVenta").addClass('btn-danger');
+        $("#btnFactura").addClass('btn-danger');
+
+        $(control).removeClass('btn-danger');
+        $(control).addClass('btn-success');
+
+        $("#DocumentoComercial").val(control.value);
+        $("#Tabla").val($(control).attr('data-info'));
+
+        $.post('@Url.Action("ListarSerie")', {
+            documento: control.value
+        }, function (response) {
+            if (response.success) {
+                $('#SerieId').find('option').remove().end();
+                $("#SerieId").addItems(response.data);
+                $("#SerieId").prop("disabled", false);
+            }
+        });
+    }
+
+    function onClickClienteNuevo() {
+        $("#myModalCliente").modal('show');
+    }
+
+    function onClickCreateCliente() {
+        if (isEmptyElement("DocumentoIdentidadId", "Seleccione documento identidad"))
+            return false;
+
+        if (isEmptyElement("NumeroDocumento", "Ingrese numero documento identidad"))
+            return false;
+
+        if (isEmptyElement("TipoPersonaId", "Seleccione tipo proveedor"))
+            return false;
+
+        if (isEmptyElement("PersonalId", "Seleccione Asesor"))
+            return false;
+
+        var _tipoDoc = $("#DocumentoIdentidadId").val();
+        if (_tipoDoc == "27") {
+            if (isEmptyElement("RazonSocial", "Ingrese el campo Razon Social"))
+                return false;
+            if (isEmptyElement("NombreComercial", "Ingrese el campo nombre comercial"))
+                return false;
+        } else if (_tipoDoc == "24") {
+            if (isEmptyElement("Nombres", "Ingrese el campo nombres"))
+                return false;
+            if (isEmptyElement("ApellidoPaterno", "Ingrese el campo apellido paterno"))
+                return false;
+            if (isEmptyElement("ApellidoMaterno", "Ingrese el campo apellido materno"))
+                return false;
+        } else if (_tipoDoc == "26") {
+            if (isEmptyElement("Nombres", "Ingrese el campo nombre"))
+                return false;
+            if (isEmptyElement("ApellidoPaterno", "Ingrese el campo apellido paterno"))
+                return false;
+            if (isEmptyElement("ApellidoMaterno", "Ingrese el campo apellido materno"))
+                return false;
+        }
+
+        var jsonData = {
+            Header: JSON.stringify($('#modalContentCliente').serializeObject()),
+            EditAction:'1'
+        };
+        controllerSaveResponse("@Url.Action("CrearCliente", "Cliente", new { area = "am" })", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $("#NumeroRuc").val(response.data.NumeroDocumento);
+                var data = { id: response.data.ClienteId, text: response.data.RazonSocial };
+                var newOption = new Option(data.text, data.id, false, false);
+                $('#ClienteId').append(newOption).trigger('change');
+                $("#Direccion").val(response.data.NombreVia);
+                $("#myModalCliente").modal('hide');
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+</script>

@@ -1,0 +1,68 @@
+﻿@model IEnumerable<eRPBusiness.Transport.FormaCancelacionDTO>
+@using eRPBusiness.Helpers;
+@using eRPBusiness.Common;
+@{
+    int index = 0;
+}
+
+
+@foreach (var item in Model)
+{
+    <div class="form-group">
+
+        @if (item.FormaPago.Equals(FormaPagoConstant.CONTADO) || item.FormaPago.Equals(FormaPagoConstant.EFECTIVO))
+        {
+            @Html.CRM().DropDownList("FormaVentaId", item.FormaVentaId, item.LstFormaVenta, "col-lg-3", "Cond. de Pago", "col-lg-2", new { })
+            @Html.CRM().TextBox("Referencia", null, "col-lg-3", "Referencia", "col-lg-1").Attributes(new { @placeholder = "Referencia" })
+            @Html.CRM().NumericTextBox("ValorTotal", item.ValorTotal, "col-lg-2", "ValorTotal", "col-lg-1").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { })
+        }
+        else if (item.FormaPago.Equals(FormaPagoConstant.CREDITO_CUOTAS) || item.FormaPago.Equals(FormaPagoConstant.CREDITO))
+        {
+            <input type="hidden" name="@(index)_cuotas" id="@(index)_cuotas" class="cuotas" value="@item.Cantidad" />
+            <label class="col-lg-2 control-label">Cond. Pago</label>
+            <div class="col-lg-3">
+                <select class="form-control" id="@(index)_FormaVentaId" name="@(index)_FormaVentaId">
+                    @foreach (var forma in item.LstFormaVenta)
+                    {
+                        <option selected="@forma.Selected" value="@forma.Value">@forma.Text</option>
+                    }
+                </select>
+            </div>
+            <label class="col-lg-1 control-label">Fecha</label>
+            <div class="col-lg-3">
+                <div class="input-group date" id="_divFechaEntrega@(index)" name="_divFechaEntrega@(index)">
+                    <input class="form-control fechaVencimiento" data-format="D/MM/YYYY" id="@(index)_FechaVencimiento" name="@(index)_FechaVencimiento"
+                           value="@item.FechaVencimiento" placeholder="Fecha Vencimiento" type="text">
+                    <span class="input-group-addon"><span class="glyphicon-calendar glyphicon"></span></span>
+                </div>
+            </div>
+            <label class="col-lg-1 control-label">Monto</label>
+            <div class="col-lg-2">
+                <input type="text" class="form-control valor_total" value="@item.ValorTotal" name="@(index)_ValorTotal" id="@(index)_ValorTotal" />
+            </div>
+
+        }
+        else
+        {
+            @Html.CRM().DropDownList("FormaVentaId", item.FormaPagoId,item.LstFormaVenta, "col-lg-3", "Cond. de Pago", "col-lg-2", new { })
+            @Html.CRM().TextBox("Referencia", null, "col-lg-3", "Referencia", "col-lg-1").Attributes(new { @placeholder = "Referencia" })
+            @Html.CRM().NumericTextBox("ValorTotal", item.ValorTotal, "col-lg-2", "ValorTotal", "col-lg-1").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { })
+        }
+    </div>
+    index++;
+}
+
+<script>
+    $(".valor_total").inputmask('decimal', {
+        placeholder: "0",
+        digits: "2", digitsOptional: false,
+        radixPoint: ".", groupSeparator: ",",
+        autoGroup: true,
+        allowPlus: false,
+        allowMinus: false,
+        clearMaskOnLostFocus: false,
+        removeMaskOnSubmit: true
+    });
+
+    $(function () { $('.fechaVencimiento').datetimepicker({ format: 'D/MM/YYYY', locale: 'es' }); });
+</script>

@@ -1,0 +1,685 @@
+﻿@model eRPBusiness.Transport.CuentaBancoDTO
+@using eRPBusiness.Common;
+@using eRPBusiness.Helpers
+@{
+    ViewBag.Title = "Bandeja";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>Cuentas bancarias</label>
+        </nav>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12 col-md-12" id="seachPanel">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Cuentas bancarias</div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-12 form-horizontal">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        @Html.CRM().MenuBar("BancoMenuBar", "onClickBancoMenuBar", new ItemMenuBar[]{
+                                                                             new ItemMenuBar(MenuBarButtonType.New,false),
+                                                                             new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                                             new ItemMenuBar(MenuBarButtonType.Save,true),
+                                                                             new ItemMenuBar(MenuBarButtonType.Print,false),
+                                                                             new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                                                                         }, MenuBarType.Small)
+                                    </div>
+                                    <div class="panel-body">
+                                        <div class="row">
+                                            @using (Html.BeginForm("Upload", "Upload", FormMethod.Post, new { @id = "form1" }))
+                                            {
+                                                @Html.ValidationSummary(true)
+                                                @Html.Hidden("EditAction", "1")
+                                                @Html.HiddenFor(m => m.CuentaBancoId)
+                                                @Html.AntiForgeryToken()
+                                                <div class="col-lg-12">
+                                                    <div class="form-group">
+                                                        @Html.CRM().Select2List("EmpresaId", Model.EmpresaId, @ViewBag.ListarEmpresa, "col-lg-4 col-md-4", "Empresa", "col-lg-2", new { @disabled = "disabled" })
+                                                        @Html.CRM().TextBox("Asesor", null, "col-lg-4 col-md-4", "Asesor", "col-lg-2").Attributes(new { @placeholder = "Asesor", @disabled = "disabled" })
+                                                    </div>
+                                                    <div class="form-group">
+                                                        @Html.CRM().Select2List("BancoId", null, @ViewBag.ListarBanco, "col-lg-4 col-md-4", "Banco", "col-lg-2", new { @disabled = "disabled" })
+                                                        @Html.CRM().TextBox("Telefono", null, "col-lg-4 col-md-4", "Telefono", "col-lg-2").Attributes(new { @placeholder = "Telefono", @disabled = "disabled" })
+                                                    </div>
+                                                    <div class="form-group">
+                                                        @Html.CRM().Select2List("MonedaId", null, @ViewBag.ListarMoneda, "col-lg-4 col-md-4", "Moneda", "col-lg-2", new { @disabled = "disabled" })
+                                                        @Html.CRM().NumericTextBox("SaldoInicial", null, "col-lg-3", "Saldo Inicial", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @disabled = "disabled" })
+                                                    </div>
+                                                    <div class="form-group">
+                                                        @Html.CRM().TextBox("NumeroCuenta", null, "col-lg-4 col-md-4", "Nro Cuenta", "col-lg-2").Attributes(new { @placeholder = "Nro Cuenta", @disabled = "disabled" })
+                                                        @Html.CRM().NumericTextBox("SaldoActual", null, "col-lg-3", "Saldo Actual", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @disabled = "disabled" })
+                                                    </div>
+                                                    <div class="form-group">
+                                                        @Html.CRM().TextBox("NumeroCuentaCi", null, "col-lg-4 col-md-4", "Nro CCI", "col-lg-2").Attributes(new { @placeholder = "Nro CCI", @disabled = "disabled" })
+                                                        @Html.CRM().NumericTextBox("SaldoDisponible", null, "col-lg-3", "Saldo Disponible", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @disabled = "disabled" })
+                                                    </div>
+                                                    <div class="form-group">
+                                                        @Html.CRM().NumericTextBox("TotalCheque", null, "col-lg-3", "Total Cheque", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @disabled = "disabled" })
+                                                    </div>
+                                                </div>
+                                            }
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 form-horizontal">
+                                <div class="panel panel-default" id="tabs">
+                                    <div class="panel-body">
+                                        <div class="row">
+                                            <div class="col-lg-10">
+                                                <div class="form-group">
+                                                    @Html.CRM().DateTimePicker("FechaInicioMov", null, "col-lg-4", "Fecha Inicio", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Inicio" })
+                                                    @Html.CRM().DateTimePicker("FechaFinalMov", null, "col-lg-4", "Fecha Final", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Final" })
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-2">
+                                                <div class="form-group">
+                                                    <button type="button" class="btn-primary btn-sm">Buscar</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-lg-12" id="panel">
+                                                <table id="jqGrid"></table>
+                                                <div id="jqGridPager"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Movimientos</div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-12 form-horizontal">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        @Html.CRM().MenuBar("MoviMenuBar", "onClickMoviMenuBar", new ItemMenuBar[]{
+                                                                             new ItemMenuBar(MenuBarButtonType.New,false),
+                                                                             new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                                             new ItemMenuBar(MenuBarButtonType.Save,true),
+                                                                             new ItemMenuBar(MenuBarButtonType.Print,false),
+                                                                             new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                                                                         }, MenuBarType.Small)
+                                    </div>
+                                    <div class="panel-body">
+                                        <div class="row">
+                                            @using (Html.BeginForm("Upload", "Upload", FormMethod.Post, new { @id = "form2" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.ValidationSummary(true)
+                                                @Html.Hidden("EditAction", "1")
+                                                @Html.Hidden("BancoMovimientoId")
+                                            <div class="col-lg-12">
+                                                <div class="form-group">
+                                                    @Html.CRM().DropDownList("CuentaBancoId", null, @ViewBag.ListaCuenta, "col-lg-4 col-md-4", "Cuenta", "col-lg-2", new { @disabled = "disabled" })
+                                                    @Html.CRM().DropDownList("TipoMovimientoId", null, @ViewBag.ListOperacion, "col-lg-4 col-md-4", "Operacion", "col-lg-2", new { @disabled = "disabled" })
+                                                </div>
+                                                <div class="form-group">
+                                                    @Html.CRM().Select2List("MonedaId", null, @ViewBag.ListarMoneda, "col-lg-4 col-md-4", "Moneda", "col-lg-2", new { @disabled = "disabled" })
+                                                    @Html.CRM().DateTimePicker("FechaMovimiento", DateTime.Now, "col-lg-4", "Fecha", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha movimiento", @disabled = "disabled" })
+                                                </div>
+                                                <div class="form-group">
+                                                    @Html.CRM().NumericTextBox("TipoCambio", Model.TipoCambio, "col-lg-3 col-md-3", "Tipo Cambio", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @placeholder = "Tipo Cambio", @disabled = "disabled" })
+                                                </div>
+                                                <div class="form-group">
+                                                    @Html.CRM().NumericTextBox("Monto", null, "col-lg-3", "Monto", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @disabled = "disabled" })
+                                                </div>
+                                                <div class="form-group">
+                                                    @Html.CRM().TextBox("Descripcion", null, "col-lg-10 col-md-10", "Descripción", "col-lg-2").Attributes(new { @placeholder = "Descripcion", @disabled = "disabled" })
+                                                </div>
+
+                                            </div>
+                                            }
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 form-horizontal">
+                                <div class="panel panel-default">
+                                    <div class="panel-body">
+                                        <div class="row">
+                                            <div class="col-lg-10">
+                                                <div class="form-group">
+                                                    @Html.CRM().DateTimePicker("FechaInicioMov", null, "col-lg-4", "Fecha Inicio", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Inicio" })
+                                                    @Html.CRM().DateTimePicker("FechaFinalMov", null, "col-lg-4", "Fecha Final", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Final" })
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-2">
+                                                <div class="form-group">
+                                                  <button type="button" class="btn-primary btn-sm">Buscar</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-lg-12" id="panel">
+                                                <table id="jqGridMov"></table>
+                                                <div id="jqGridPagerMov"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<input  type="hidden" id="rowId" name="rowId"/>
+<script type="text/javascript">
+       var _widthPanel = $("#panel").width();
+       var _heightGrid = getHeightForResize(75);
+        $(document).ready(function () {
+            $("#jqGrid").jqGrid({
+                url: '@Url.Action("ListarCuentas")',
+                mtype: "POST",
+                datatype: "json",
+                colModel: [
+                    { label: 'CuentaBancoId', name: 'CuentaBancoId', key: true, hidden: true },
+                    { label: 'Empresa', name: 'RazonSocial', hidden: true  },
+                    { label: 'Banco', name: 'Banco', width: 100 },
+                    { label: 'Moneda', name: 'Moneda', width: 90,align:'center' },
+                    {
+                        label: 'Saldo Inicial', name: 'SaldoInicial', width: 90, editable: false, formatter: 'integer', align: 'right', sortable: false,
+                          formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                              readonly: 'readonly',
+                              dataInit: function (elem, options) {
+                                  $(elem).inputmask('decimal', { digits: 2 });
+                              }
+                          }
+                    },
+                   {
+                       label: 'Saldo Actual', name: 'SaldoActual', width: 100, editable: false, formatter: 'integer', align: 'right', sortable: false,
+                      formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                          readonly: 'readonly',
+                          dataInit: function (elem, options) {
+                              $(elem).inputmask('decimal', { digits: 2 });
+                          }
+                      }
+                   },
+
+                     {
+                         label: 'Sald. Disponible', name: 'SaldoDisponible', width: 120, editable: false, formatter: 'integer', align: 'right', sortable: false,
+                           formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                               readonly: 'readonly',
+                               dataInit: function (elem, options) {
+                                   $(elem).inputmask('decimal', { digits: 2 });
+                               }
+                          }
+                    },
+                    {
+                        label: 'Total Cheque', name: 'TotalCheque', width: 100, editable: false, formatter: 'integer', align: 'right', sortable: false,
+                        formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                            readonly: 'readonly',
+                            dataInit: function (elem, options) {
+                                $(elem).inputmask('decimal', { digits: 2 });
+                            }
+                        }
+                    },
+                     { label: 'Nro Cuenta', name: 'NumeroCuenta', width: 120 },
+                     { label: 'Nro CCI', name: 'NumeroCuentaCi', width: 140 },
+                     { label: 'Asesor', name: 'Asesor', hidden: true },
+                     { label: 'Telefono', name: 'Telefono', hidden: true },
+                     {
+                        label: 'Eliminar', name: 'Pdf', width: 100, align: 'center', formatter: function (cellvalue, options, rowObject) {
+                             var link = '<a href="#" rel="' + rowObject.CuentaBancoId + '" onclick="fnRowDelete(this)"><span class="glyphicon glyphicon-trash"></span></a>';
+                            return link;
+                        }
+                     }
+                ],
+				width: _widthPanel,
+                height: (_heightGrid - 95),
+                viewrecords: true,
+                loadonce: true,
+                rowNum: 20,
+                rownumbers: true,
+                shrinkToFit: false,
+                rowList: [10, 20, 30],
+                onSelectRow: function (rowid) {
+                    var row = $("#jqGrid").getRowData(rowid);
+
+                    var jsonValue = {
+                        cuentaId: row.CuentaBancoId
+                    };
+                    $("#rowId").val(row.CuentaBancoId);
+                    $('#jqGridMov').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+
+
+                    controllerGetJson('@Url.Action("GetCuenta")', jsonValue, false, false, function (response) {
+                        if (response.success) {
+                            $("#form1 #CuentaBancoId").val(response.data.CuentaBancoId);
+                            $("#BancoId").val(response.data.BancoId);
+                            $("#MonedaId").val(response.data.MonedaId);
+                            var data = { id: response.data.BancoId, text: response.data.BancoNombre };
+                            var moneda = { id: response.data.MonedaId, text: response.data.Moneda };
+                            var newOption = new Option(data.text, data.id, false, false);
+                            var newOptionMon = new Option(moneda.text, moneda.id, false, false);
+                            $('#BancoId').empty().trigger("change");
+                            $('#MonedaId').empty().trigger("change");
+
+                            $('#BancoId').append(newOption).trigger('change');
+                            $('#MonedaId').append(newOptionMon).trigger('change');
+                            $("#NumeroCuenta").val(response.data.NumeroCuenta);
+                            $("#NumeroCuenta").val(response.data.NumeroCuenta);
+                            $("#NumeroCuentaCi").val(response.data.NumeroCuentaCi);
+                            $("#Asesor").val(response.data.Asesor);
+                            $("#Telefono").val(response.data.Telefono);
+                            $("#SaldoInicial").val(response.data.SaldoInicial);
+                            $("#SaldoActual").val(response.data.SaldoActual);
+                            $("#SaldoDisponible").val(response.data.SaldoDisponible);
+                        }
+                    });
+
+                    $("#BancoMenuBar").menuBar({
+                        button: '@ButtonMenuBarNameConstant.EDIT',
+                        disabled: false
+                    });
+                },
+                pager: "#jqGridPager"
+            });
+
+            $("#jqGridMov").jqGrid({
+                url: '@Url.Action("ListarMoviento")',
+                mtype: "POST",
+                postData: {
+                    cuentaBancoId: function () { return $("#rowId").val(); },
+                    fechaInicio: function () { return $("#FechaInicioMov").val(); },
+                    fechaFinal: function () { return $("#FechaFinalMov").val(); }
+                },
+                datatype: "json",
+                colModel: [
+                    { label: 'CuentaBancoId', name: 'BancoMovimientoId', key: true, hidden: true },
+                    { label: 'Operación', name: 'Nombre', width: 90, formatter: colorStatusCell,align:'center' },
+                    { label: 'Banco', name: 'Banco', width: 100 },
+                    { label: 'Moneda', name: 'Simbolo', width: 60, align: 'center' },
+                    {
+                        label: 'T. Cambio', name: 'TipoCambio', width: 70, editable: false, formatter: 'integer', align: 'right', sortable: false,
+                        formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                            readonly: 'readonly',
+                            dataInit: function (elem, options) {
+                                $(elem).inputmask('decimal', { digits: 2 });
+                            }
+                        }
+                    },
+                    {
+                        label: 'Monto Ingreso', name: 'MontoIngreso', width: 100, editable: false, formatter: 'integer', align: 'right', sortable: false,
+                        formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                            readonly: 'readonly',
+                            dataInit: function (elem, options) {
+                                $(elem).inputmask('decimal', { digits: 2 });
+                            }
+                        }
+                    },
+                    {
+                        label: 'Monto Salida', name: 'MontoSalida', width: 90, editable: false, formatter: 'integer', align: 'right', sortable: false,
+                        formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                            readonly: 'readonly',
+                            dataInit: function (elem, options) {
+                                $(elem).inputmask('decimal', { digits: 2 });
+                            }
+                        }
+                    },
+                    { label: 'Nro Cuenta', name: 'NumeroCuenta', width: 120 },
+                    { label: 'Nro CCI', name: 'NumeroCuentaCi', width: 150,  },
+                    { label: 'Fecha', name: 'FechaMovimiento', width: 90 },
+                    { label: 'Descripción', name: 'Descripcion', hidden: true },
+                    {
+                        label: 'Eliminar', name: 'Pdf', width: 70, align: 'center', formatter: function (cellvalue, options, rowObject) {
+                            var link = '<a href="#" rel="' + rowObject.BancoMovimientoId + '" onclick="fnRowDelete(this)"><span class="glyphicon glyphicon-trash"></span></a>';
+                            return link;
+                        }
+                    }
+                ],
+                width: _widthPanel,
+                height: (_heightGrid - 100),
+                viewrecords: true,
+                loadonce: true,
+                rowNum: 20,
+                rowList: [10, 20, 30],
+                footerrow: true,
+                rownumbers: true,
+                shrinkToFit: false,
+                loadComplete: function () {
+                    var grid = $(this);
+                    var _monto = grid.jqGrid('getCol', 'MontoIngreso', false, 'sum');
+                    var _montoSalida = grid.jqGrid('getCol', 'MontoSalida', false, 'sum');
+                    grid.jqGrid('footerData', 'set', { Producto: 'Total', MontoIngreso: _monto, MontoSalida: _montoSalida });
+
+                },
+                pager: "#jqGridPagerMov"
+            });
+        });
+
+    function colorStatusCell(cellvalue, options, rowObject) {
+        var backgroud = '', colorHex = '';
+        switch (rowObject.Nombre) {
+            case 'INGRESO':
+                colorHex = '#2BE07E';
+                break;
+            case 'SALIDA':
+                colorHex = '#F7235B';
+                break;
+            default:
+                return cellvalue;
+                break;
+        }
+        backgroud = '<span style="background-color: ' + colorHex + '; display: block; width: 100%; height: 100%; color:#fff; ">' + cellvalue + '</span>';
+        return backgroud;
+    }
+        function onClickBancoMenuBar(key) {
+            switch (key) {
+                case "@ButtonMenuBarActionConstant.NEW":
+                    disableCuenta();
+                    $("#EditAction").val("1");
+                    break;
+                case "@ButtonMenuBarActionConstant.SAVE":
+                    fnsertData();
+                    break;
+                case "@ButtonMenuBarActionConstant.EDIT":
+                    disableCuenta();
+                    break;
+                case '@ButtonMenuBarActionConstant.CANCEL':
+                    enableCuenta();
+                    break;
+            }
+    }
+
+    function disableCuenta() {
+        $("#EmpresaId").prop('disabled', false);
+        $("#NumeroCuenta").prop('disabled', false);
+        $("#Asesor").prop('disabled', false);
+        $("#MonedaId").prop('disabled', false);
+        $("#BancoId").prop('disabled', false);
+        $("#NumeroCuentaCi").prop('disabled', false);
+        $("#Telefono").prop('disabled', false);
+        $("#SaldoInicial").prop('disabled', false);
+        $("#SaldoActual").prop('disabled', false);
+        $("#TotalCheque").prop('disabled', false);
+        $("#SaldoDisponible").prop('disabled', false);
+
+        $("#EditAction").val("2");
+        $("#BancoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: false
+        });
+        $("#BancoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: false
+        });
+
+        $("#BancoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: true
+        });
+
+        $("#BancoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: true
+        });
+    }
+
+    function enableCuenta() {
+        $("#EmpresaId").prop('disabled', true);
+        $("#NumeroCuenta").prop('disabled', true);
+        $("#Asesor").prop('disabled', true);
+        $("#MonedaId").prop('disabled', true);
+        $("#BancoId").prop('disabled', true);
+        $("#NumeroCuentaCi").prop('disabled', true);
+        $("#Telefono").prop('disabled', true);
+        $("#SaldoInicial").prop('disabled', true);
+        $("#BancoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: true
+        });
+        $("#BancoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: true
+        });
+        $("#BancoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: false
+        });
+    }
+
+    function onClickMoviMenuBar(key) {
+            switch (key) {
+                case "@ButtonMenuBarActionConstant.NEW":
+                    disableMovimiento();
+                    break;
+                case "@ButtonMenuBarActionConstant.SAVE":
+                   fnsertDataMov();
+                    break;
+                case "@ButtonMenuBarActionConstant.EDIT":
+
+                    break;
+                case '@ButtonMenuBarActionConstant.CANCEL':
+                    enableMovi();
+                    break;
+            }
+    }
+
+    function disableMovimiento() {
+        $("#form2 #CuentaBancoId").prop('disabled', false);
+        //$("#CuentaBancoId").prop('disabled', false);
+        $("#form2 #MonedaId").prop('disabled', false);
+        $("#Descripcion").prop('disabled', false);
+        $("#FechaMovimiento").prop('disabled', false);
+        $("#TipoMovimientoId").prop('disabled', false);
+        $("#TipoCambio").prop('disabled', false);
+        $("#Monto").prop('disabled', false);
+        /*$("#Observacion").prop('disabled', false);*/
+
+
+        $("#MoviMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: false
+        });
+        $("#MoviMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: false
+        });
+
+        $("#MoviMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: true
+        });
+    }
+
+    function enableMovimiento() {
+        $("#form2 #CuentaBancoId").val('');
+        $("#form2 #CuentaBancoId").prop('disabled', true);
+        $("#form2 #MonedaId").prop('disabled', true);
+        $("#Descripcion").prop('disabled', true);
+        $("#FechaMovimiento").prop('disabled', true);
+        $("#TipoMovimientoId").prop('disabled', true);
+        $("#TipoMovimientoId").val('');
+        $("#TipoCambio").prop('disabled', true);
+        $("#Monto").prop('disabled', true);
+  
+
+        $("#MoviMenuBar").menuBar({
+              button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: false
+        });
+        $("#MoviMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: true
+        });
+
+        $("#MoviMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: true
+        });
+    }
+
+    function enableMovi() {
+
+        $("#CuentaBancoId").prop('disabled', true);
+        $("#form2 #MonedaId").prop('disabled', true);
+        $("#Descripcion").prop('disabled', true);
+        $("#FechaMovimiento").prop('disabled', true);
+        $("#TipoMovimientoId").prop('disabled', true);
+        $("#TipoCambio").prop('disabled', true);
+        $("#Monto").prop('disabled', true);
+        $("#Observacion").prop('disabled', true);
+        $("#MoviMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: true
+        });
+        $("#MoviMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: true
+        });
+
+        $("#MoviMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: false
+        });
+    }
+
+
+    function fnsertData() {
+
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+
+
+
+        if (isEmptyElement("EmpresaId", "Seleccione empresa"))
+            return false;
+
+        if (isEmptyElement("BancoId", "Seleccione banco"))
+            return false;
+
+
+        if (isEmptyElement("MonedaId", "Seleccione moneda"))
+            return false;
+
+        if (isEmptyElement("NumeroCuenta", "Ingrese numero de cuenta"))
+            return false;
+
+        if (isEmptyElement("NumeroCuentaCi", "Ingrese numero de cuenta interbancaria"))
+            return false;
+
+        if (isEmptyElement("Asesor", "Ingrese nombre de asesor"))
+            return false;
+
+
+
+
+        var jsonData = {
+            __RequestVerificationToken: token,
+            Header: JSON.stringify($('#form1').serializeObject()),
+            EditAction: $("#EditAction").val(),
+            Row: ''
+        };
+        controllerSaveResponse("@Url.Action("Create")", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $('#jqGrid').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                $("#BancoMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.SAVE',
+                    disabled: true
+                });
+                $("#BancoMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.CANCEL',
+                    disabled: true
+                });
+                 $("#BancoMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.NEW',
+                    disabled: false
+                });
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+    function fnsertDataMov() {
+        var form = $('#form2');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+
+
+
+        if (isEmptyElement("CuentaBancoId", "Seleccione cuenta bancaria"))
+            return false;
+
+        //if (isEmptyElement("MonedaId", "Seleccione moneda"))
+        //    return false;
+
+
+        //if (isEmptyElement("MonedaId", "Seleccione moneda"))
+        //    return false;
+
+        if (isEmptyElement("Descripcion", "Ingrese descripción"))
+            return false;
+
+        if (isEmptyElement("FechaMovimiento", "Ingrese fecha deUrlmovimiento"))
+            return false;
+
+        if (isEmptyElement("TipoMovimientoId", "Seleccione operación"))
+            return false;
+
+        //if (isEmptyElement("TipoCambio", "Ingrese tipo de cambio"))
+        //    return false;
+
+
+        var jsonData = {
+            __RequestVerificationToken: token,
+            Header: JSON.stringify($('#form2').serializeObject()),
+            EditAction: $("#EditAction").val(),
+            Row: ''
+        };
+        controllerSaveResponse("@Url.Action("CreateMov")", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $('#jqGridMov').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                $('#jqGrid').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                enableMovimiento();
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+    function fnRowDelete(control) {
+
+        alertify.confirm('Eliminar movimiento', 'Estas seguro de eliminar movimiento ?', function () {
+             var jsonData = {
+                 movimientoId: control.rel
+            };
+            controllerSaveResponse("@Url.Action("EliminarMovimiento", "CuentaBancaria")", jsonData, true, true, function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    jQuery("#jqGridMov").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                } else {
+                    MsgAlert(4, response.message);
+                }
+            });
+        }, function () {
+
+            alertify.error('Cancel');
+        });
+    }
+</script>

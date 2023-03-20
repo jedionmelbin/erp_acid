@@ -1,0 +1,73 @@
+﻿@using eRPBusiness.Helpers
+<div class="row">
+    <div class="col-lg-12">
+        <table id="jqGridOrdenCompra"></table>
+        <div id="jqPagerCompra"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $("#jqGridOrdenCompra").jqGrid({
+        url: '@Url.Action("ListarOrdenCompra", "FacturaVenta", new { area = "op" })',
+        mtype: "POST",
+        postData: {
+
+        },
+        datatype: "json",
+        colModel: [
+            { label: 'Id', name: 'OrdenCompraId', key: true, hidden: true },
+            { label: 'Id', name: 'OrdenCompra', hidden: true },
+            { label: 'Código', name: 'Codigo', width: 13, formatter: colorBold, align: 'center' },
+            { label: 'Estado', name: 'EstadoOperacion', width: 13, align: 'center', formatter: colorCell},
+            { label: 'Operacion', name: 'Operacion', width: 13, hidden: true },
+            { label: 'Fecha Emision', name: 'FechaEmision', width: 13 },
+            { label: 'Fecha Entrega', name: 'FechaEntrega', width: 13 },
+            { label: 'Documento', name: 'NumeroDocumento', width: 15 },
+            { label: 'Razon Social', name: 'RazonSocial', width: 50 }
+        ],
+        viewrecords: false,
+        loadonce: true,
+        rowList: [10, 20, 30],
+        height: 150,
+        width: 870,
+        rowNum: 20,
+        rownumbers: true,
+        ondblClickRow: function (rowId) {
+            var rowData = jQuery(this).getRowData(rowId);
+            onClickOkOrdenCom(rowData);
+        },
+        pager: "#jqPagerCompra"
+    });
+
+    function colorBold(cellvalue, options, rowObject) {
+        var colorHex = '#FF4242';
+        backgroud = '<span style="display: block; width: 100%; height: 100%; font-weigh:bold; ">' + cellvalue + '</span>';
+        return backgroud;
+    }
+
+    function colorCell(cellvalue, options, rowObject) {
+        var backgroud = '', colorHex = '';
+        switch (rowObject.Operacion) {
+            case 'P':
+                colorHex = '#3593E0';
+                break;
+            case 'A':
+                colorHex = '#009494';
+                break;
+            case 'D':
+                colorHex = '#F08D00';
+                break;
+            case 'C':
+                colorHex = '#F02F04';
+                break;
+            case 'T':
+                colorHex = '#1CD9C9';
+                break;
+            default:
+                return cellvalue;
+                break;
+        }
+        backgroud = '<span style="background-color: ' + colorHex + '; display: block; width: 100%; height: 100%; color:#fff; ">' + cellvalue + '</span>';
+        return backgroud;
+    }
+</script>

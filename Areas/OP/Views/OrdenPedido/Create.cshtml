@@ -1,0 +1,1753 @@
+﻿@model eRPBusiness.Transport.OrdenCompraDTO
+@using eRPBusiness.Helpers;
+@using eRPBusiness.Common;
+@{
+
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>@ViewBag.Title</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+new ItemMenuBar(MenuBarButtonType.Save),
+new ItemMenuBar(MenuBarButtonType.Print,true),
+new ItemMenuBar(MenuBarButtonType.Exit)
+})
+<div class="row">
+    <div class="col-lg-12" id="ContentHeader">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { @id = "form1" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.FlagImpuesto)
+                    @Html.HiddenFor(m => m.OrdenCompraId)
+                    @Html.HiddenFor(m => m.PersonalId)
+                    @Html.HiddenFor(m => m.EditAction)
+                    @Html.HiddenFor(m => m.ValorImpuesto)
+                <div class="col-md-6">
+                    <div class="form-group">
+                        @if (ViewBag.IsNew)
+                        {
+                            @Html.CRM().Select2List("SerieId", Model.SerieId, @ViewBag.SerieList, "col-lg-2", "Serie", "col-lg-2") }
+                        else
+                        {
+                            @Html.CRM().Select2List("SerieId", Model.SerieId, @ViewBag.SerieList, "col-lg-2", "Serie", "col-lg-2", new { @disabled = "disabled" })
+                        }
+                        <div class="col-lg-4">
+                            @Html.TextBoxFor(m => m.Codigo, new { @class = "form-control", @placeholder = "Orden de compra", @readonly = "true" })
+                        </div>
+                        @Html.CRM().Select2List("DocumentoComercialId", Model.DocumentoComercialId, @ViewBag.DocComerciaList, "col-lg-4", "", "col-lg-2", new { @disabled = "disabled" })
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().DateTimePickerFor(m => m.FechaEmision, "col-lg-4", "Fecha Pedido", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha pedido" })
+                        @Html.CRM().DateTimePickerFor(m => m.FechaEntrega, "col-lg-4", "Fecha Entrega", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha entrega" })
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().Select2List("FormaPagoId", Model.FormaPagoId, @ViewBag.FormaPago, "col-lg-4", "Codición Pago", "col-lg-2")
+                        @Html.CRM().TextBoxButtonFor(m => m.NumeroCotizacion, "col-lg-4", "Cotización", "col-lg-2").OnButtonClick("onChangeCotizacion()").FontButton("glyphicon glyphicon-search").Attributes(new { @placeholder = "Cotización" })
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().Select2List("MonedaId", Model.MonedaId, @ViewBag.MonedaList, "col-lg-4", "Moneda", "col-lg-2")
+                        @Html.CRM().Select2List("ImpuestoId", Model.ImpuestoId, @ViewBag.ImpuestoList, "col-lg-4", "I.G.V", "col-lg-2", new { @onchange = "onChangeImpuesto(this)" })
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().Select2List("TipoPrecioId", Model.TipoPrecioId, @ViewBag.TipoPrecioList, "col-lg-4", "Tipo Precio", "col-lg-2", new { @onchange = "onChangeImpuesto()" })
+                        @Html.CRM().NumericTextBoxFor(m => m.TipoCambio, "col-lg-4", "Tipo Cambio", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { })
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().TextAreaFor(m => m.Observacion, "col-md-10", "Observación", "col-lg-2").Attributes(new { @placeholder = "Observaciones" })
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        @if (ViewBag.IsNew)
+                        {
+                            @Html.CRM().Select2List("AlmacenId", Model.AlmacenId, @ViewBag.almacenList, "col-lg-10", "Almacen", "col-lg-2")
+                        }
+                        else
+                        {
+                            @Html.CRM().Select2List("AlmacenId", Model.AlmacenId, @ViewBag.almacenList, "col-lg-10", "Almacen", "col-lg-2", new { @disabled = "disabled" })
+                        }
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().TextBoxButtonFor(m => m.NumeroRuc, "col-lg-4", "R.U.C", "col-lg-2").OnButtonClick("onChangeRucCliente()").FontButton("glyphicon glyphicon-search").Attributes(new { @placeholder = "R.U.C" })
+                        @Html.CRM().Select2List("EstadoOperacionId", EstadoOperacionConstant.PENDIENTE, @ViewBag.EstadoOperacionList, "col-lg-4", "Estado", "col-lg-2", new { @disabled = "disabled" })
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().Select2List("ClienteId", Model.ClienteId, ViewBag.ListarCliente, "col-lg-10", "Cliente", "col-lg-2")
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().DropDownList("DireccionId", Model.DireccionId, ViewBag.ListarDireccion, "col-lg-10", "Dirección", "col-lg-2")
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().TextBoxFor(m => m.LugarEntrega, "col-md-10", "Lugar Entrega", "col-lg-2").Attributes(new { @placeholder = "Lugar de Entrega" })
+                    </div>
+                </div>
+
+
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                @Html.CRM().MenuBar("BienesMenuBar", "onClickBienesMenuBar", new ItemMenuBar[]{
+                                new ItemMenuBar(MenuBarButtonType.New,false),
+                                new ItemMenuBar(MenuBarButtonType.Edit,false),
+                                new ItemMenuBar(MenuBarButtonType.Save,true),
+                                new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                            }, MenuBarType.Small)
+            </div>
+            <div class="panel-body" id="panel">
+                <table id="jqGridDetalle"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12 col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { @id = "form3", @class = "form-horizontal" }))
+                {
+                <div class="row">
+                    <div class="col-lg-7 col-md-7"></div>
+                    <div class="col-lg-5 col-md-5">
+                        <div class="form-group">
+                            @Html.CRM().NumericTextBoxFor(m => m.SubTotal, "col-lg-4", "Gravada", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+                            @Html.CRM().NumericTextBoxFor(m => m.Descuento, "col-lg-4", "Descuento", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().NumericTextBoxFor(m => m.TotalExonerado, "col-lg-4", "Exonerada", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+                            @Html.CRM().NumericTextBoxFor(m => m.TotalImpuesto, "col-lg-4", "I.G.V", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().NumericTextBoxFor(m => m.TotalInafecto, "col-lg-4", "Inafecto", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+                            @Html.CRM().NumericTextBoxFor(m => m.MontoTotal, "col-lg-4", "Total", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+                        </div>
+                    </div>
+                </div>
+                }
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.CRM().Popup("myModalProducto", "Bienes y Servicios", "onClickOkProducto", SizePopup.Large))
+{
+    <div id="divProductoContent"></div>
+}
+
+@using (Html.CRM().Popup("myModalCotizacion", "Cotizaciones", "onClickOkCotizacion", SizePopup.Large))
+{
+    <div id="divCotizacionContent"></div>
+}
+
+@using (Html.CRM().Popup("myModalFormaPago", "Forma de Pago", "onClickOkFormaPago", SizePopup.Small))
+{
+    <div id="divFormaPagoContent"></div>
+}
+
+
+<script type="text/javascript">
+    var _widthPanel = $("#panel").width();
+    var _heightGrid = getHeightForResize(100);
+    var _impuestoNacional = parseInt($("#ValorImpuesto").val());
+    var unidadList = sessionStorage.getItem('unidadList');
+    var marcaLista = sessionStorage.getItem('marcaLista');
+    var tipoAfecta = sessionStorage.getItem('tipoAfectaLista');
+
+    if (jQuery.isEmptyObject(unidadList)) {
+        $.post("@Url.Action("ListUnidadMedida")", function (response) {
+            sessionStorage.setItem('unidadList', addItem(response));
+        });
+    }
+    if (jQuery.isEmptyObject(marcaLista)) {
+        $.post("@Url.Action("ListarMarca")", function (response) {
+            sessionStorage.setItem('marcaLista', addJqItem(response.data));
+        });
+    }
+
+    $(document).ready(function () {
+
+       $("#jqGridDetalle").jqGrid({
+            url: '@Url.Action("ListarItem", "OrdenPedido", new { area = "op" })',
+            postData: {
+                ordenCompraId: function () { return $("#OrdenCompraId").val(); }
+            },
+            mtype: "POST",
+            datatype: "json",
+            colModel: [
+                { label: 'OrdenCompraBienId', name: 'OrdenCompraBienId', hidden: true, formatter: 'integer'  },
+                { label: 'OrdenCompraId', name: 'OrdenCompraId', hidden: true, formatter: 'integer' },
+                { label: 'BienServicioId', name: 'BienServicioId', hidden: true, formatter: 'integer' },
+                { label: 'BienAlmacenId', name: 'BienAlmacenId', hidden: true, formatter: 'integer' },
+                { label: 'TipoImpuesto', name: 'TipoImpuesto', hidden: true },
+                { label: 'IncluyeImpuesto', name: 'IncluyeImpuesto', hidden: true },
+                { label: 'Código', name: 'Codigo', width: 100, sortable: false, frozen: true },
+                { label: 'Cód Comercial', name: 'CodigoComercial', width: 100, sortable: false, frozen: true },
+                { label: 'Descripción', name: 'Descripcion', width: 390, sortable: false, frozen: true, editable: true },
+                {
+                    label: 'Afectación', name: 'TipoImpuestoId', hidden: true, width: 150, edittype: 'select', formatter: 'select', sortable: false, editable: true, frozen: true, editoptions: {
+                        dataInit: function (elem) {
+
+                        },
+                        dataEvents: [
+                            {
+                                type: 'change',
+                                fn: function (e) {
+                                    //var rowId = $(e.target).attr('rowid');
+                                    //var value = parseInt($(e.target).val(), 10);
+                                    //var dataAfect = JSON.parse(localStorage.getItem('tipoAfectacion'));
+                                    //var findRow = _.find(dataAfect, { 'TipoImpuestoId': value });
+                                    //$("#jqGridDetalle").jqGrid("setCell", rowId, "TipoImpuesto", findRow.Codigo);
+
+
+                                    //var ids = jQuery("#jqGridDetalle").jqGrid('getDataIDs');
+                                    //$.each(ids, function (item,value) {
+
+                                    //});
+
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    label: 'U.M', name: 'UnidadMedidaId', width: 120, edittype: 'select', formatter: 'select', sortable: false, editable: true, frozen: true, editoptions: {
+                        dataInit: function (elem, options) {
+                            //$(elem).select2();
+                        }
+                    }
+                },
+                { label: 'Marca', name: 'MarcaId', width: 0, edittype: 'select', formatter: 'select', sortable: false, editable: true, frozen: true, hidden: true },
+                {
+                    label: 'Precio Unit.', name: 'ValorUnitario', width: 120, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                       // readonly: 'readonly',
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', {
+                                placeholder: "0",
+                                digits: 2,
+                                digitsOptional: false,
+                                autoGroup: true,
+                                allowPlus: false,
+                                allowMinus: false,
+                                clearMaskOnLostFocus: false,
+                                removeMaskOnSubmit: true
+                            });
+                            $(elem).blur(function () {
+
+                                debugger;
+                                var _flagImpuesto = $("#FlagImpuesto").val();
+                                var rowId = $(elem).parent().parent().attr('id');
+                                var rowData = jQuery("#jqGridDetalle").getRowData(rowId);
+
+                                var _precioDescuento = 0;
+                                var _valorImporte = 0;
+                                 var _valorImpuestoSunat = parseFloat($("#ValorImpuesto").val());
+                                var _cantidad = stringToDecimal($("#" + rowId + "_Cantidad").val());
+                                var _valorUnitario = stringToDecimal($("#" + rowId + "_ValorUnitario").val());
+                                var _porcentajeDescuento = stringToDecimal($("#" + rowId + "_PorcentajeDescuento").val());
+
+                                 //Descuento porcentaje
+                                var _valorDescuento = (_valorUnitario * _porcentajeDescuento) / 100;
+                                _precioDescuento = _valorUnitario - _valorDescuento;
+
+                                if (_valorDescuento != 0) {
+                                    $("#" + rowId + "_ImporteDescuento").val(_valorDescuento);
+                                } else {
+                                    $("#" + rowId + "_ImporteDescuento").val(0);
+                                }
+
+                                //Importe descuento
+                                var _valorUnitario = stringToDecimal($("#" + rowId + "_ValorUnitario").val());
+                                var _valorDescuento = stringToDecimal($("#" + rowId + "_ValorDescuento").val());
+                                _precioDescuento = (_valorUnitario - _valorDescuento)
+
+                                if (_valorDescuento != 0) {
+                                    $("#" + rowId + "_ImporteDescuento").val(_valorDescuento);
+                                } else {
+                                    $("#" + rowId + "_ImporteDescuento").val(0);
+                                }
+
+
+
+                                ///Importe total
+                                var _valorDescuento = stringToDecimal($("#" + rowId + "_ValorDescuento").val());
+                                var _cantidadVal = stringToDecimal($("#" + rowId + "_Cantidad").val());
+                                var _valorImpuesto = 0;
+
+                                var _valorImporteTotal = 0;
+                                if (_precioDescuento != 0 || _porcentajeDescuento != 0 ) {
+                                    if (_flagImpuesto == '@LetraConstante.S') {
+                                        _valorImporteTotal = _precioDescuento * _cantidadVal;
+                                    } else {
+                                        //_valorImpuesto = (_precioDescuento * _valorImpuestoSunat) / 100;
+                                        //_valorImporteTotal = (_precioDescuento + _valorImpuesto) * _cantidadVal;
+                                        _valorImporteTotal = _precioDescuento * _cantidadVal;
+                                    }
+                                } else {
+                                    if (_flagImpuesto == '@LetraConstante.S') {
+                                        _valorImporteTotal = (_valorUnitario - _valorDescuento) * _cantidadVal;
+                                    } else {
+                                        //_valorImpuesto = (_valorDescuento * _cantidadVal) * _valorImpuestoSunat / 100;
+                                       // _valorImporteTotal = (_valorDescuento + _valorImpuesto) * _cantidadVal;
+                                        _valorImporteTotal = _valorDescuento * _cantidadVal;
+                                    }
+
+                                }
+
+                                $('#jqGridDetalle').jqGrid('setCell', rowId, 'ImporteTotal', _valorImporteTotal);
+
+                                var descuentoPorcentaje = 0;
+                                var precioDescuento = 0;
+                                var importeTotal = 0;
+                                var importeGravada = 0;
+                                var importeExonerada = 0;
+                                var importeInafecta = 0;
+                                var valorImpuesto = 0;
+                                var cantidad = 0;
+                                var valorUnitario = 0;
+                                var importeDescuento = 0;
+                                var importeFooter = 0;
+                                var ids = jQuery("#jqGridDetalle").jqGrid('getDataIDs');
+                                $.each(ids, function (item, value) {
+
+                                    debugger;
+                                    cantidad = stringToDecimal($("#" + value + "_Cantidad").val());
+                                    valorUnitario = stringToDecimal($("#" + value + "_ValorUnitario").val());
+                                    precioDescuento = stringToDecimal($("#" + value + "_ValorDescuento").val());
+
+                                    var rowData = jQuery('#jqGridDetalle').jqGrid('getRowData', value);
+                                    switch (rowData.TipoImpuesto) {
+                                        case "@TipoAfectacion.GRAVADO_OPERACION_ONEROSA":
+                                                descuentoPorcentaje += stringToDecimal($("#" + value + "_PorcentajeDescuento").val());
+                                                importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+
+                                                if (_flagImpuesto == '@LetraConstante.S') {
+                                                    if (precioDescuento != 0) {
+                                                        importeGravada += ((valorUnitario - precioDescuento) * cantidad) / 1.18;
+                                                        importeFooter += ((valorUnitario - precioDescuento) * cantidad);
+                                                    } else {
+                                                        importeGravada += (cantidad * valorUnitario) / 1.18;
+                                                        importeFooter += (cantidad * valorUnitario);
+                                                    }
+                                                } else {
+                                                    if (precioDescuento != 0) {
+                                                        importeGravada += ((valorUnitario - precioDescuento) * cantidad);
+                                                        importeFooter += ((valorUnitario - precioDescuento) * cantidad);
+                                                    } else {
+                                                        importeGravada += (cantidad * valorUnitario);
+                                                        importeFooter += (cantidad * valorUnitario);
+                                                    }
+
+                                                }
+                                                valorImpuesto = (importeGravada * _impuestoNacional) / 100;
+                                                importeTotal = importeGravada + valorImpuesto;
+                                                break;
+                                        case "@TipoAfectacion.EXONERADO_OPERACION_ONEROSA":
+                                          case "@TipoAfectacion.EXONERADO_TRANFERENCIA_GRATUITA":
+                                            importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+
+                                                descuentoPorcentaje += 0;
+                                                precioDescuento += 0;
+                                                importeGravada += 0;
+                                                importeExonerada += (cantidad * valorUnitario);
+                                                valorImpuesto += 0;
+                                                importeTotal += importeExonerada;
+                                                break;
+                                           case "@TipoAfectacion.INAFECTO_OPERACION_ONEROSA":
+                                        case "@TipoAfectacion.INAFECTO_TRANSFERENCIA_GRATUITO":
+                                                importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                                                descuentoPorcentaje += 0;
+                                                precioDescuento += 0;
+                                                importeExonerada = 0;
+                                                importeInafecta += (cantidad * valorUnitario);
+                                                importeGravada += 0;
+                                                valorImpuesto += 0;
+                                                importeTotal += importeInafecta;
+                                                break;
+                                            case "@TipoAfectacion.GRAVADO_RETIRO_POR_PREMIO":
+                                            case "@TipoAfectacion.GRAVADO_RETIRO_POR_DONACION":
+                                            case "@TipoAfectacion.GRAVADO_RETIRO":
+                                            case "@TipoAfectacion.GRAVADO_POR_RETIRO_PUBLICIDAD":
+                                            case "@TipoAfectacion.GRAVADO_BONIFICACION":
+                                            case "@TipoAfectacion.GRAVADO_ENTREGA_TRABAJADORES":
+                                                 importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+
+                                                break;
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_BONIFICACION":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_MUESTRA_MEDICA":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_CONVENIO_COLECTIVO":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_POR_PREMIO":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_POR_PUBLICIDAD":
+                                               importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                                                break;
+                                             case "@TipoAfectacion.EXPORTACION_BIENES_SERVICIO":
+                                                 importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                                                break;
+                                        }
+                                });
+
+                                $("#jqGridDetalle").jqGrid('footerData', 'set', {
+                                      ValorUnitario: valorUnitario,
+                                      Cantidad : cantidad,
+                                      ImporteTotal: importeFooter
+                                });
+
+                                $("#DescuentoItem").val(importeDescuento);
+                                $("#Descuento").val(importeDescuento);
+                                $("#TotalExonerado").val(importeExonerada);
+                                $("#TotalInafecto").val(importeInafecta);
+                                $("#SubTotal").val(importeGravada);
+                                $("#TotalImpuesto").val(valorImpuesto);
+                                $("#MontoTotal").val(importeTotal);
+
+                            });
+                        }
+                    }
+                },
+                {
+                    label: 'Descuento (%)', name: 'PorcentajeDescuento', width: 100, editable: true, sortable: false, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', {
+                                placeholder: "0",
+                                digits: 2,
+                                digitsOptional: false,
+                                autoGroup: true,
+                                allowPlus: false,
+                                allowMinus: false,
+                                clearMaskOnLostFocus: false,
+                                removeMaskOnSubmit: true
+                            });
+                             $(elem).blur(function () {
+                                var rowId = $(elem).parent().parent().attr('id');
+                                var rowData = jQuery("#jqGridDetalle").getRowData(rowId);
+                                var _flagImpuesto = $("#FlagImpuesto").val();
+                                    var _valorImpuestoSunat = parseFloat($("#ValorImpuesto").val());
+                                var _valorUnitario = stringToDecimal($("#" + rowId + "_ValorUnitario").val());
+                                var _porcentajeDescuento = stringToDecimal($("#" + rowId + "_PorcentajeDescuento").val());
+                                var _valorDescuento = stringToDecimal($("#" + rowId + "_ValorDescuento").val());
+                                var _cantidad = stringToDecimal($("#" + rowId + "_Cantidad").val());
+                                var _valorUnitDescuento = 0;
+                                var _valorImpuesto = 0;
+
+                                 //Descuento porcentaje
+                                var _importeDescuento = (_valorUnitario * _porcentajeDescuento) / 100;
+                                if (_porcentajeDescuento != 0) {
+                                    _valorUnitDescuento = _valorUnitario - _importeDescuento;
+                                    $("#" + rowId + "_ValorDescuento").val(_importeDescuento);
+                                    $("#" + rowId + "_ValorDescuento").prop('disabled', true);
+                                } else {
+
+                                    $("#" + rowId + "_ValorDescuento").val(0);
+                                    $("#" + rowId + "_ValorDescuento").prop('disabled', false);
+                                }
+
+                                var _valorUnitario = stringToDecimal($("#" + rowId + "_ValorUnitario").val());
+                                var _valorDescuento = stringToDecimal($("#" + rowId + "_ValorDescuento").val());
+
+                                if (_valorDescuento != 0) {
+                                    _valorUnitDescuento = (_valorUnitario - _valorDescuento)
+                                    $("#" + rowId + "_ImporteDescuento").val(_valorDescuento);
+                                }
+
+                                var _valorImporte = 0;
+                                if (_valorDescuento != 0 || _porcentajeDescuento != 0) {
+                                    if (_flagImpuesto == '@LetraConstante.S') {
+                                        _valorImporte = (_valorUnitDescuento * _cantidad)
+                                    } else {
+                                        //_valorImpuesto = (_valorUnitDescuento * _valorImpuestoSunat) / 100;
+                                        //_valorImporte = (_valorUnitDescuento + _valorImpuesto) * _cantidad;
+                                        _valorImporte = _valorUnitDescuento * _cantidad;
+                                    }
+                                } else {
+                                    if (_flagImpuesto == '@LetraConstante.S') {
+                                        _valorImporte = (_valorUnitario * _cantidad)
+                                    } else {
+                                        //_valorImpuesto = (_valorUnitario * _valorImpuestoSunat) / 100;
+                                        //_valorImporte = (_valorUnitario + _valorImpuesto) * _cantidad;
+                                        _valorImporte = _valorUnitario * _cantidad;
+                                    }
+                                }
+
+                                $('#jqGridDetalle').jqGrid('setCell', rowId, 'ImporteTotal', _valorImporte);
+
+                                var descuentoPorcentaje = 0;
+                                var precioDescuento = 0;
+                                var importeTotal = 0;
+                                var importeGravada = 0;
+                                var importeExonerada = 0;
+                                var importeInafecta = 0;
+                                var valorImpuesto = 0;
+                                var cantidad = 0;
+                                var valorUnitario = 0;
+                                var importeDescuento = 0;
+                                var importeFooter = 0;
+                                var ids = jQuery("#jqGridDetalle").jqGrid('getDataIDs');
+                                $.each(ids, function (item, value) {
+
+                                    cantidad = stringToDecimal($("#" + value + "_Cantidad").val());
+                                    valorUnitario = stringToDecimal($("#" + value + "_ValorUnitario").val());
+                                    precioDescuento = stringToDecimal($("#" + value + "_ValorDescuento").val());
+
+                                    var rowData = jQuery('#jqGridDetalle').jqGrid('getRowData', value);
+                                    switch (rowData.TipoImpuesto) {
+                                        case "@TipoAfectacion.GRAVADO_OPERACION_ONEROSA":
+                                                descuentoPorcentaje += stringToDecimal($("#" + value + "_PorcentajeDescuento").val());
+                                                importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                                                if (_flagImpuesto == '@LetraConstante.S') {
+                                                    if (precioDescuento != 0) {
+                                                        importeGravada += ((valorUnitario - precioDescuento) * cantidad) / 1.18;
+                                                        importeFooter += ((valorUnitario - precioDescuento) * cantidad);
+                                                    } else {
+                                                        importeGravada += (cantidad * valorUnitario) / 1.18;
+                                                        importeFooter += (cantidad * valorUnitario);
+                                                    }
+                                                } else {
+                                                    if (precioDescuento != 0) {
+                                                        importeGravada += ((valorUnitario - precioDescuento) * cantidad);
+                                                        importeFooter += ((valorUnitario - precioDescuento) * cantidad);
+                                                    } else {
+                                                        importeGravada += (valorUnitario * cantidad);
+                                                        importeFooter += (valorUnitario * cantidad);
+                                                    }
+                                                }
+
+                                                valorImpuesto = (importeGravada * _impuestoNacional) / 100;
+                                                importeTotal = importeGravada + valorImpuesto;
+                                                break;
+                                        case "@TipoAfectacion.EXONERADO_OPERACION_ONEROSA":
+                                          case "@TipoAfectacion.EXONERADO_TRANFERENCIA_GRATUITA":
+                                            importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+
+                                                descuentoPorcentaje += 0;
+                                                precioDescuento += 0;
+                                                importeGravada += 0;
+                                                importeExonerada += (cantidad * valorUnitario);
+                                                valorImpuesto += 0;
+                                                importeTotal += importeExonerada;
+                                                break;
+                                           case "@TipoAfectacion.INAFECTO_OPERACION_ONEROSA":
+                                        case "@TipoAfectacion.INAFECTO_TRANSFERENCIA_GRATUITO":
+                                                importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                                                descuentoPorcentaje += 0;
+                                                precioDescuento += 0;
+                                                importeExonerada = 0;
+                                                importeInafecta += (cantidad * valorUnitario);
+                                                importeGravada += 0;
+                                                valorImpuesto += 0;
+                                                importeTotal += importeInafecta;
+                                                break;
+                                            case "@TipoAfectacion.GRAVADO_RETIRO_POR_PREMIO":
+                                            case "@TipoAfectacion.GRAVADO_RETIRO_POR_DONACION":
+                                            case "@TipoAfectacion.GRAVADO_RETIRO":
+                                            case "@TipoAfectacion.GRAVADO_POR_RETIRO_PUBLICIDAD":
+                                            case "@TipoAfectacion.GRAVADO_BONIFICACION":
+                                            case "@TipoAfectacion.GRAVADO_ENTREGA_TRABAJADORES":
+                                                 importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+
+                                                break;
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_BONIFICACION":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_MUESTRA_MEDICA":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_CONVENIO_COLECTIVO":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_POR_PREMIO":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_POR_PUBLICIDAD":
+                                               importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                                                break;
+                                             case "@TipoAfectacion.EXPORTACION_BIENES_SERVICIO":
+                                                 importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                                                break;
+                                        }
+                                });
+
+                                $("#jqGridDetalle").jqGrid('footerData', 'set', {
+                                      ValorUnitario: valorUnitario,
+                                      Cantidad : cantidad,
+                                      ImporteTotal: importeFooter
+                                });
+
+                                $("#DescuentoItem").val(importeDescuento);
+                                $("#Descuento").val(importeDescuento);
+                                $("#TotalExonerado").val(importeExonerada);
+                                $("#TotalInafecto").val(importeInafecta);
+                                $("#SubTotal").val(importeGravada);
+                                $("#TotalImpuesto").val(valorImpuesto);
+                                $("#MontoTotal").val(importeTotal);
+                            });
+                        }
+                    }
+                },
+                {
+                    label: 'Precio Dscto', name: 'ValorDescuento', width: 100, editable: true, sortable: false, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                       // diabled: 'true',
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', {
+                                placeholder: "0",
+                                digits: 2,
+                                digitsOptional: false,
+                                autoGroup: true,
+                                allowPlus: false,
+                                allowMinus: false,
+                                clearMaskOnLostFocus: false,
+                                removeMaskOnSubmit: true
+                            });
+
+                             $(elem).blur(function () {
+
+                                debugger;
+                                var _flagImpuesto = $("#FlagImpuesto").val();
+                                var rowId = $(elem).parent().parent().attr('id');
+                                var rowData = jQuery("#jqGridDetalle").getRowData(rowId);
+                                   var _valorImpuestoSunat = parseFloat($("#ValorImpuesto").val());
+                                var _valorUnitario = stringToDecimal($("#" + rowId + "_ValorUnitario").val());
+                                var _valorDescuento = stringToDecimal($("#" + rowId + "_ValorDescuento").val());
+                                var _porcentajeDescuento = stringToDecimal($("#" + rowId + "_PorcentajeDescuento").val());
+                                var _cantidad = stringToDecimal($("#" + rowId + "_Cantidad").val());
+                                var _valorImpuesto = 0;
+                                var _importeTotal = 0;
+                                var _valorUnitDescuento = _valorUnitario - _valorDescuento;
+
+                                if (_valorDescuento != 0 && _porcentajeDescuento == 0) {
+                                    if (_flagImpuesto == '@LetraConstante.S') {
+                                        _importeTotal = (_valorUnitDescuento * _cantidad);
+                                    } else {
+                                       // _valorImpuesto = (_valorUnitDescuento * _valorImpuestoSunat) / 100;
+                                       // _importeTotal = (_valorUnitDescuento + _valorImpuesto) * _cantidad;
+                                        _importeTotal = _valorUnitDescuento * _cantidad;
+                                    }
+
+                                    $("#" + rowId + "_ImporteDescuento").val(_valorDescuento);
+                                    $("#" + rowId + "_PorcentajeDescuento").prop('disabled', true);
+                                } else {
+                                    if (_flagImpuesto == '@LetraConstante.S') {
+                                        _importeTotal = _valorUnitario * _cantidad;
+                                    } else {
+                                        //_valorImpuesto = (_valorUnitario  * _valorImpuestoSunat) / 100;
+                                       // _importeTotal = (_valorUnitario + _valorImpuesto) * _cantidad;
+                                        _importeTotal = _valorUnitario * _cantidad;
+                                    }
+                                    $("#" + rowId + "_PorcentajeDescuento").prop('disabled', false);
+                                }
+
+                                if (_valorDescuento == 0 && _porcentajeDescuento == 0) {
+                                    $("#" + rowId + "_ImporteDescuento").val(0);
+                                }
+
+                                $('#jqGridDetalle').jqGrid('setCell', rowId, 'ImporteTotal', _importeTotal);
+
+                                 var descuentoPorcentaje = 0;
+                                var precioDescuento = 0;
+                                var importeTotal = 0;
+                                var importeGravada = 0;
+                                var importeExonerada = 0;
+                                var importeInafecta = 0;
+                                var valorImpuesto = 0;
+                                var cantidad = 0;
+                                var valorUnitario = 0;
+                                var importeDescuento = 0;
+                                var importeFooter = 0;
+                                var ids = jQuery("#jqGridDetalle").jqGrid('getDataIDs');
+                                $.each(ids, function (item, value) {
+
+                                    debugger;
+                                    cantidad = stringToDecimal($("#" + value + "_Cantidad").val());
+                                    valorUnitario = stringToDecimal($("#" + value + "_ValorUnitario").val());
+                                    precioDescuento = stringToDecimal($("#" + value + "_ValorDescuento").val());
+
+                                    var rowData = jQuery('#jqGridDetalle').jqGrid('getRowData', value);
+                                    switch (rowData.TipoImpuesto) {
+                                        case "@TipoAfectacion.GRAVADO_OPERACION_ONEROSA":
+                                                descuentoPorcentaje += stringToDecimal($("#" + value + "_PorcentajeDescuento").val());
+                                                importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                                                if (_flagImpuesto == '@LetraConstante.S') {
+                                                    if (precioDescuento != 0) {
+                                                        importeGravada += (cantidad * (valorUnitario - precioDescuento)) / 1.18;
+                                                        importeFooter += (cantidad * (valorUnitario - precioDescuento));
+                                                    } else {
+                                                        importeGravada += (cantidad * valorUnitario) / 1.18;
+                                                        importeFooter += (cantidad * valorUnitario);
+                                                    }
+                                                } else {
+                                                    if (precioDescuento != 0) {
+                                                        importeGravada += (cantidad * (valorUnitario - precioDescuento));
+                                                        importeFooter += (cantidad * (valorUnitario - precioDescuento));
+                                                    } else {
+                                                        importeGravada += (cantidad * valorUnitario);
+                                                        importeFooter += (cantidad * valorUnitario);
+                                                    }
+                                                }
+                                                valorImpuesto = (importeGravada * _impuestoNacional) / 100;
+                                                importeTotal = importeGravada + valorImpuesto;
+                                                break;
+                                        case "@TipoAfectacion.EXONERADO_OPERACION_ONEROSA":
+                                          case "@TipoAfectacion.EXONERADO_TRANFERENCIA_GRATUITA":
+                                            importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+
+                                                descuentoPorcentaje += 0;
+                                                precioDescuento += 0;
+                                                importeGravada += 0;
+                                                importeExonerada += (cantidad * valorUnitario);
+                                                valorImpuesto += 0;
+                                                importeTotal += importeExonerada;
+                                                break;
+                                           case "@TipoAfectacion.INAFECTO_OPERACION_ONEROSA":
+                                        case "@TipoAfectacion.INAFECTO_TRANSFERENCIA_GRATUITO":
+                                                importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                                                descuentoPorcentaje += 0;
+                                                precioDescuento += 0;
+                                                importeExonerada = 0;
+                                                importeInafecta += (cantidad * valorUnitario);
+                                                importeGravada += 0;
+                                                valorImpuesto += 0;
+                                                importeTotal += importeInafecta;
+                                                break;
+                                            case "@TipoAfectacion.GRAVADO_RETIRO_POR_PREMIO":
+                                            case "@TipoAfectacion.GRAVADO_RETIRO_POR_DONACION":
+                                            case "@TipoAfectacion.GRAVADO_RETIRO":
+                                            case "@TipoAfectacion.GRAVADO_POR_RETIRO_PUBLICIDAD":
+                                            case "@TipoAfectacion.GRAVADO_BONIFICACION":
+                                            case "@TipoAfectacion.GRAVADO_ENTREGA_TRABAJADORES":
+                                                 importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+
+                                                break;
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_BONIFICACION":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_MUESTRA_MEDICA":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_CONVENIO_COLECTIVO":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_POR_PREMIO":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_POR_PUBLICIDAD":
+                                               importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                                                break;
+                                             case "@TipoAfectacion.EXPORTACION_BIENES_SERVICIO":
+                                                 importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                                                break;
+                                        }
+                                });
+
+                                $("#jqGridDetalle").jqGrid('footerData', 'set', {
+                                      ValorUnitario: valorUnitario,
+                                      Cantidad : cantidad,
+                                      ImporteTotal: importeFooter
+                                });
+
+                                $("#DescuentoItem").val(importeDescuento);
+                                $("#Descuento").val(importeDescuento);
+                                $("#TotalExonerado").val(importeExonerada);
+                                $("#TotalInafecto").val(importeInafecta);
+                                $("#SubTotal").val(importeGravada);
+                                $("#TotalImpuesto").val(valorImpuesto);
+                                $("#MontoTotal").val(importeTotal);
+
+                            });
+                        }
+                    }
+                },
+                 {
+                     label: 'Cantidad', name: 'Cantidad', width: 100, editable: true, formatter: 'integer', align: 'right', sortable: false, formatoptions: {
+                         decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                     }, editoptions: {
+                         dataInit: function (elem, options) {
+                             $(elem).inputmask('decimal', {
+                                 placeholder: "0",
+                                 digits: 2,
+                                 digitsOptional: false,
+                                 autoGroup: true,
+                                 allowPlus: false,
+                                 allowMinus: false,
+                                 clearMaskOnLostFocus: false,
+                                 removeMaskOnSubmit: true
+                             });
+                             $(elem).blur(function () {
+
+                                 debugger;
+                                 var _flagImpuesto = $("#FlagImpuesto").val();
+                                 var rowId = parseFloat($(elem).parent().parent().attr('id'));
+                                 var rowData = jQuery("#jqGridDetalle").getRowData(rowId);
+                                 var _valorUnitario = stringToDecimal($("#" + rowId + "_ValorUnitario").val());
+                                 var _porcentajeDescuento = stringToDecimal($("#" + rowId + "_PorcentajeDescuento").val());
+                                 var _cantidad = stringToDecimal($("#" + rowId + "_Cantidad").val());
+                                  var _impuestoNacional = parseFloat($("#ValorImpuesto").val());
+                                 var _valorUnitDescuento = 0;
+
+                                 //Descuento porcentaje
+                                 var _importeDescuento = (_valorUnitario * _porcentajeDescuento) / 100
+                                 _valorUnitDescuento = _valorUnitario - _importeDescuento;
+
+                                 if (_importeDescuento != 0) {
+                                     $("#" + rowId + "_ImporteDescuento").val(_importeDescuento);
+                                 }
+
+                                 //Importe descuento
+                                 var _valorUnitario = stringToDecimal($("#" + rowId + "_ValorUnitario").val());
+                                 var _valorDescuento = stringToDecimal($("#" + rowId + "_ValorDescuento").val());
+                                 _valorUnitDescuento = (_valorUnitario - _valorDescuento)
+
+                                 if (_valorDescuento!= 0) {
+                                     $("#" + rowId + "_ImporteDescuento").val(_valorDescuento);
+                                 }
+
+
+                                 //Importe Total
+                                 var _valorDescuento = stringToDecimal($("#" + rowId + "_ValorDescuento").val());
+                                 var _importeCantidad = stringToDecimal($("#" + rowId + "_Cantidad").val());
+
+                                 var _importeTotal = 0;
+                                 var _impuestoRows = 0;
+                                 if (_valorDescuento != 0 || _porcentajeDescuento != 0) {
+                                     if (_flagImpuesto == '@LetraConstante.S') {
+                                         _importeTotal = _importeCantidad * _valorUnitDescuento;
+                                     } else {
+                                        // _impuestoRows = (_valorUnitDescuento * _impuestoNacional) / 100;
+                                       //  _importeTotal = (_valorUnitDescuento + _impuestoRows) * _importeCantidad;
+                                          _importeTotal = _valorUnitDescuento * _importeCantidad;
+                                     }
+
+                                 } else {
+                                     if (_flagImpuesto == '@LetraConstante.S') {
+                                         _importeTotal = _valorUnitario * _importeCantidad;
+                                     } else {
+                                        // _impuestoRows = (_valorUnitario * _impuestoNacional) / 100;
+                                       //  _importeTotal = (_valorUnitario + _impuestoRows)  * _importeCantidad;
+                                        _importeTotal = _valorUnitario  * _importeCantidad;
+                                     }
+
+                                 }
+
+                                $('#jqGridDetalle').jqGrid('setCell', rowId, 'ImporteTotal', _importeTotal);
+
+                                var descuentoPorcentaje = 0;
+                                var precioDescuento = 0;
+                                var importeTotal = 0;
+                                var importeGravada = 0;
+                                var importeExonerada = 0;
+                                var importeInafecta = 0;
+                                var valorImpuesto = 0;
+                                var cantidad = 0;
+                                var valorUnitario = 0;
+                                var importeDescuento = 0;
+                                var importeFooter = 0;
+                                var ids = jQuery("#jqGridDetalle").jqGrid('getDataIDs');
+                                $.each(ids, function (item, value) {
+
+                                    cantidad = stringToDecimal($("#" + value + "_Cantidad").val());
+                                    valorUnitario = stringToDecimal($("#" + value + "_ValorUnitario").val());
+                                    precioDescuento = stringToDecimal($("#" + value + "_ValorDescuento").val());
+
+                                    var rowData = jQuery('#jqGridDetalle').jqGrid('getRowData', value);
+                                    switch (rowData.TipoImpuesto) {
+                                        case "@TipoAfectacion.GRAVADO_OPERACION_ONEROSA":
+                                                descuentoPorcentaje += stringToDecimal($("#" + value + "_PorcentajeDescuento").val());
+                                                importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                                                if (_flagImpuesto == '@LetraConstante.S') {
+                                                    if (precioDescuento != 0) {
+                                                        importeGravada += (cantidad * (valorUnitario - precioDescuento)) / 1.18;
+                                                        importeFooter += (cantidad * (valorUnitario - precioDescuento));
+                                                    } else {
+                                                        importeGravada += (cantidad * valorUnitario) / 1.18;
+                                                        importeFooter += (cantidad * valorUnitario);
+                                                    }
+                                                } else {
+                                                    if (precioDescuento != 0) {
+                                                        //importeGravada += (cantidad * (valorUnitario - precioDescuento));
+                                                        importeGravada += (cantidad * (valorUnitario - precioDescuento));
+                                                        importeFooter += (cantidad * (valorUnitario - precioDescuento));
+                                                    } else {
+                                                        importeGravada += (cantidad * valorUnitario);
+                                                        importeFooter += (cantidad * valorUnitario);
+                                                    }
+                                                }
+                                                valorImpuesto = (importeGravada * _impuestoNacional) / 100;
+                                                importeTotal = importeGravada + valorImpuesto;
+                                                break;
+                                        case "@TipoAfectacion.EXONERADO_OPERACION_ONEROSA":
+                                          case "@TipoAfectacion.EXONERADO_TRANFERENCIA_GRATUITA":
+                                            importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+
+                                                descuentoPorcentaje += 0;
+                                                precioDescuento += 0;
+                                                importeGravada += 0;
+                                                importeExonerada += (cantidad * valorUnitario);
+                                                valorImpuesto += 0;
+                                                importeTotal += importeExonerada;
+                                                break;
+                                           case "@TipoAfectacion.INAFECTO_OPERACION_ONEROSA":
+                                        case "@TipoAfectacion.INAFECTO_TRANSFERENCIA_GRATUITO":
+                                                importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                                                descuentoPorcentaje += 0;
+                                                precioDescuento += 0;
+                                                importeExonerada = 0;
+                                                importeInafecta += (cantidad * valorUnitario);
+                                                importeGravada += 0;
+                                                valorImpuesto += 0;
+                                                importeTotal += importeInafecta;
+                                                break;
+                                            case "@TipoAfectacion.GRAVADO_RETIRO_POR_PREMIO":
+                                            case "@TipoAfectacion.GRAVADO_RETIRO_POR_DONACION":
+                                            case "@TipoAfectacion.GRAVADO_RETIRO":
+                                            case "@TipoAfectacion.GRAVADO_POR_RETIRO_PUBLICIDAD":
+                                            case "@TipoAfectacion.GRAVADO_BONIFICACION":
+                                            case "@TipoAfectacion.GRAVADO_ENTREGA_TRABAJADORES":
+                                                 importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+
+                                                break;
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_BONIFICACION":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_MUESTRA_MEDICA":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_CONVENIO_COLECTIVO":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_POR_PREMIO":
+                                            case "@TipoAfectacion.INAFECTO_RETIRO_POR_PUBLICIDAD":
+                                               importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                                                break;
+                                             case "@TipoAfectacion.EXPORTACION_BIENES_SERVICIO":
+                                                 importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                                                break;
+                                        }
+                                });
+
+                                $("#jqGridDetalle").jqGrid('footerData', 'set', {
+                                      ValorUnitario: valorUnitario,
+                                      Cantidad : cantidad,
+                                      ImporteTotal: importeFooter
+                                });
+
+                                $("#DescuentoItem").val(importeDescuento);
+                                $("#Descuento").val(importeDescuento);
+                                $("#TotalExonerado").val(importeExonerada);
+                                $("#TotalInafecto").val(importeInafecta);
+                                $("#SubTotal").val(importeGravada);
+                                $("#TotalImpuesto").val(valorImpuesto);
+                                $("#MontoTotal").val(importeTotal);
+                             });
+                         }
+                     }
+                 },
+                {
+                    label: 'Descuento', name: 'ImporteDescuento', width: 100, editable: true, sortable: false, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        readonly: 'readonly',
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', {
+                                placeholder: "0",
+                                digits: 2,
+                                digitsOptional: false,
+                                autoGroup: true,
+                                allowPlus: false,
+                                allowMinus: false,
+                                clearMaskOnLostFocus: false,
+                                removeMaskOnSubmit: true
+                            });
+                        }
+                    }
+                },
+                {
+                    label: 'Importe', name: 'ImporteTotal', width: 100, editable: false, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        readonly: 'readonly',
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', { digits: 2 });
+                        }
+                    }
+                },
+                  {
+                      label: "Eliminar",
+                      name: "actions",
+                      width: 80,
+                      sortable: false,
+                      align: 'center',
+                      formatter: function (cellvalue, options, rowObject) {
+                          return "<a href='#' id='" + options.rowId + "' onClick='fnDeleteRow(this)' ><span class='glyphicon glyphicon-trash'></span></a>";
+                      }
+
+                  }
+
+            ],
+            viewrecords: false,
+            page: 1,
+            //scroll: 1,
+            emptyrecords: '',
+            footerrow: true,
+            rownumbers: true,
+            //shrinkToFit: true,
+            //autowidth: true,
+            beforeProcessing: function (data) {
+                $(this).setColProp('UnidadMedidaId', { editoptions: { value: unidadList } });
+                $(this).setColProp('MarcaId', { editoptions: { value: marcaLista } });
+                $(this).setColProp('TipoImpuestoId', { editoptions: { value: tipoAfecta } });
+
+
+            },
+            loadComplete: function () {
+                var grid = $(this);
+                var _cantidad = grid.jqGrid('getCol', 'Cantidad', false, 'sum');
+                var _pocenajeDescuento = grid.jqGrid('getCol', 'PorcentajeDescuento', false, 'sum');
+                var _valorDescuento = grid.jqGrid('getCol', 'ValorDescuento', false, 'sum');
+                var _importeDescuento = grid.jqGrid('getCol', 'ImporteDescuento', false, 'sum');
+                var _valorUnitario = grid.jqGrid('getCol', 'ValorUnitario', false, 'sum');
+                var _importeTotal = grid.jqGrid('getCol', 'ImporteTotal', false, 'sum');
+                grid.jqGrid('footerData', 'set', {
+                    Producto: 'Sub Total',
+                    Cantidad: _cantidad,
+                    ValorUnitario: _valorUnitario,
+                    PorcentajeDescuento: _pocenajeDescuento,
+                    ValorDescuento: _valorDescuento,
+                    ImporteDescuento: _importeDescuento,
+                    ImporteTotal: _importeTotal
+                });
+           }, gridComplete: function () {
+
+               var row = getGridSelectedRow('jqGridDetalle');
+               var dataIDs = $("#jqGridDetalle").jqGrid('getDataIDs');
+               $.each(dataIDs, function (item, value) {
+                   $("#jqGridDetalle").jqGrid('editRow', value, true);
+               });
+           },
+            pager: "#jqGridPager",
+            height: (_heightGrid - 150),
+            width: (_widthPanel - 15)
+           });
+
+        $("#myModalProducto").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            controllerGetAction('@Url.Action("ProductoEdit", "OrdenPedido")', null, 'divProductoContent', false, false, null);
+        });
+
+        $("#myModalFormaPago").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            controllerGetAction('@Url.Action("FormaPagoEdit", "OrdenPedido")', null, 'divFormaPagoContent', false, false, function () {});
+        });
+
+
+        $("#myModalCotizacion").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            controllerGetAction('@Url.Action("CotizacionEdit", "OrdenPedido")', null, 'divCotizacionContent', false, false, function () {});
+        });
+
+        $('#myModalFormaPago').on('hidden.bs.modal', function (e) {
+            $('#divFormaPagoContent').empty();
+        });
+
+        $('#myModalProducto').on('hidden.bs.modal', function (e) {
+            $('#divProductoContent').empty();
+        });
+
+        $('#myModalCotizacion').on('hidden.bs.modal', function (e) {
+            $('#divCotizacionContent').empty();
+        });
+
+
+         $("#ClienteId").select2({
+            ajax: {
+                url: '@Url.Action("GetCliente")',
+                dataType: 'json',
+                delay: 250,
+                type: 'POST',
+                data: function (params) {
+                    return {
+                        query: params.term // search ter
+                    };
+                },
+                processResults: function (data, params) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.RazonSocial,
+                                id: item.ClienteId
+                            };
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Busqueda de proveedor,cliente',
+            allowClear: true,
+            escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function () {
+                    return "Busqueda de proveedor,cliente";
+                }
+            }
+        });
+
+        $('#ClienteId').on('select2:select', function (e) {
+            var data = e.params.data;
+
+            $.post('@Url.Action("BuscarPorId", "OrdenPedido")', { id: data.id }, function (response) {
+                if (response.success) {
+                    $("#RazonSocial").val(response.data.RazonSocial);
+                  /*  $("#Direccion").val(response.data.NombreVia);*/
+                    $("#NumeroRuc").val(response.data.NumeroDocumento);
+                    $('#DireccionId').find('option').remove().end();
+                    $("#DireccionId").addItems(response.data.List);
+                    $("#DireccionId").prop("disabled", false);
+                    $("#DireccionId").prop("selectedIndex", 1);
+                } else {
+                    MsgAlert(3, response.message);
+                }
+            });
+        });
+    });
+
+   function fnDeleteRow(control) {
+        $("#jqGridDetalle").jqGrid('delRowData', control.id);
+         var descuentoPorcentaje = 0;
+         var precioDescuento = 0;
+         var importeTotal = 0;
+         var importeGravada = 0;
+         var importeExonerada = 0;
+         var importeInafecta = 0;
+         var valorImpuesto = 0;
+         var cantidad = 0;
+         var valorUnitario = 0;
+         var importeDescuento = 0;
+         var importeFooter = 0;
+         var _flagImpuesto = $("#FlagImpuesto").val();
+         var ids = jQuery("#jqGridDetalle").jqGrid('getDataIDs');
+         $.each(ids, function (item, value) {
+
+             cantidad = stringToDecimal($("#" + value + "_Cantidad").val());
+             valorUnitario = stringToDecimal($("#" + value + "_ValorUnitario").val());
+             precioDescuento = stringToDecimal($("#" + value + "_ValorDescuento").val());
+
+             var rowData = jQuery('#jqGridDetalle').jqGrid('getRowData', value);
+             switch (rowData.TipoImpuesto) {
+                 case "@TipoAfectacion.GRAVADO_OPERACION_ONEROSA":
+                         descuentoPorcentaje += stringToDecimal($("#" + value + "_PorcentajeDescuento").val());
+                         importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                         if (_flagImpuesto == '@LetraConstante.S') {
+                             if (precioDescuento != 0) {
+                                 importeGravada += (cantidad * precioDescuento) / 1.18;
+                                 importeFooter += (cantidad * precioDescuento);
+                             } else {
+                                 importeGravada += (cantidad * valorUnitario) / 1.18;
+                                 importeFooter += (cantidad * valorUnitario);
+                             }
+                         } else {
+                             if (precioDescuento != 0) {
+                                 importeGravada += (cantidad * precioDescuento);
+                                 importeFooter += (cantidad * precioDescuento);
+                             } else {
+                                 importeGravada += (cantidad * valorUnitario);
+                                 importeFooter += (cantidad * valorUnitario);
+                             }
+                         }
+
+                         valorImpuesto = (importeGravada * _impuestoNacional) / 100;
+                         importeTotal = importeGravada + valorImpuesto;
+                         break;
+                 case "@TipoAfectacion.EXONERADO_OPERACION_ONEROSA":
+                   case "@TipoAfectacion.EXONERADO_TRANFERENCIA_GRATUITA":
+                     importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+
+                         descuentoPorcentaje += 0;
+                         precioDescuento += 0;
+                         importeGravada += 0;
+                         importeExonerada += (cantidad * valorUnitario);
+                         valorImpuesto += 0;
+                         importeTotal += importeExonerada;
+                         break;
+                    case "@TipoAfectacion.INAFECTO_OPERACION_ONEROSA":
+                 case "@TipoAfectacion.INAFECTO_TRANSFERENCIA_GRATUITO":
+                         importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                         descuentoPorcentaje += 0;
+                         precioDescuento += 0;
+                         importeExonerada = 0;
+                         importeInafecta += (cantidad * valorUnitario);
+                         importeGravada += 0;
+                         valorImpuesto += 0;
+                         importeTotal += importeInafecta;
+                         break;
+                     case "@TipoAfectacion.GRAVADO_RETIRO_POR_PREMIO":
+                     case "@TipoAfectacion.GRAVADO_RETIRO_POR_DONACION":
+                     case "@TipoAfectacion.GRAVADO_RETIRO":
+                     case "@TipoAfectacion.GRAVADO_POR_RETIRO_PUBLICIDAD":
+                     case "@TipoAfectacion.GRAVADO_BONIFICACION":
+                     case "@TipoAfectacion.GRAVADO_ENTREGA_TRABAJADORES":
+                          importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+
+                         break;
+                     case "@TipoAfectacion.INAFECTO_RETIRO_BONIFICACION":
+                     case "@TipoAfectacion.INAFECTO_RETIRO":
+                     case "@TipoAfectacion.INAFECTO_RETIRO_MUESTRA_MEDICA":
+                     case "@TipoAfectacion.INAFECTO_RETIRO_CONVENIO_COLECTIVO":
+                     case "@TipoAfectacion.INAFECTO_RETIRO_POR_PREMIO":
+                     case "@TipoAfectacion.INAFECTO_RETIRO_POR_PUBLICIDAD":
+                        importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                         break;
+                      case "@TipoAfectacion.EXPORTACION_BIENES_SERVICIO":
+                          importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                         break;
+                 }
+         });
+
+         $("#jqGridDetalle").jqGrid('footerData', 'set', {
+               ValorUnitario: valorUnitario,
+               Cantidad : cantidad,
+               ImporteTotal: importeFooter
+         });
+
+         $("#DescuentoItem").val(importeDescuento);
+         $("#Descuento").val(importeDescuento);
+         $("#TotalExonerado").val(importeExonerada);
+         $("#TotalInafecto").val(importeInafecta);
+         $("#SubTotal").val(importeGravada);
+         $("#TotalImpuesto").val(valorImpuesto);
+         $("#MontoTotal").val(importeTotal);
+     }
+
+
+    function onChangeCotizacion() {
+        $("#myModalCotizacion").modal('show');
+    };
+
+    function onChangeRucCliente() {
+        var rucCliente = $("#NumeroRuc").val();
+
+        $.post('@Url.Action("BuscarPorRuc")', { numeroRuc: rucCliente }, function (response) {
+            if (response.success) {
+                var data = {  id: response.data.ClienteId,  text: response.data.RazonSocial };
+                var newOption = new Option(data.text, data.id, false, false);
+                $('#ClienteId').append(newOption).trigger('change');
+                $("#NumeroRuc").val(response.data.NumeroDocumento);
+                $("#Direccion").val(response.data.NombreVia);
+            }
+        });
+    }
+
+
+    function onClickMenuBar(key) {
+        var editAction = $("#EditAction").val();
+        switch (key) {
+            case '@ButtonMenuBarActionConstant.SAVE':
+                InsertData();
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                controllerGetAction('@Url.Action("Bandeja", "OrdenPedido", new { area = "OP" })', null, 'workspace', false, false, null);
+                break;
+        }
+    }
+
+
+
+    function InsertData() {
+
+        if (isEmptyElement("FechaEmision", "Seleccione fecha Emision"))
+            return false;
+
+        if (isEmptyElement("FechaEntrega", "Seleccione fecha de entrega"))
+            return false;
+
+        if (isEmptyElement("FormaPagoId", "Seleccione forma de pago."))
+            return false;
+
+        if (isEmptyElement("MonedaId", "Seleccione moneda."))
+            return false;
+
+        if (isEmptyElement("ImpuestoId", "Seleccione moneda impuesto."))
+            return false;
+
+        if (isEmptyElement("AlmacenId", "Seleccione un almacen."))
+            return false;
+
+
+        if (isEmptyElement("ClienteId", "Seleccione un proveedor."))
+            return false;
+
+        gridDataIDs('jqGridDetalle').forEach(function (index) {
+            $("#jqGridDetalle").jqGrid('saveRow', index, { url: 'clientArray' });
+        });
+
+
+        var data = $('#jqGridDetalle').getRowData();
+        if (jQuery.isEmptyObject(data)) {
+            MsgAlert(3, 'Selecciona bien y servicios.');
+            return false;
+        }
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var disabled = form.find('select:disabled').removeAttr('disabled');
+        var jsonData = {
+            __RequestVerificationToken: token,
+            Header: JSON.stringify($('#form1').serializeObject()),
+            Row: JSON.stringify(data),
+            EditAction: $("#EditAction").val(),
+            Detail: JSON.stringify($('#form3').serializeObject())
+        };
+        controllerSaveResponse("@Url.Action("Create", "OrdenPedido", new { area = "op" })", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                controllerGetAction('@Url.Action("Bandeja", "OrdenPedido", new { area = "op" })', null, 'workspace', false, false, null);
+            } else {
+                MsgAlert(4, response.message);
+            }
+            disabled.attr('disabled', 'disabled');
+        });
+    }
+
+    function onClickOkFormaPago() {
+        $("#myModalFormaPago").modal('hide');
+
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var data = $('#jqGridDetalle').getRowData();
+        var jsonData = {
+            __RequestVerificationToken: token,
+            Header: JSON.stringify($('#form1').serializeObject()),
+            Row: JSON.stringify(data),
+            EditAction: $("#EditAction").val(),
+            Detail: JSON.stringify($('#divFormaPagoContent').serializeObject())
+        };
+        controllerSaveResponse("@Url.Action("Create", "OrdenPedido", new { area = "op" })", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                controllerGetAction('@Url.Action("Bandeja", "OrdenPedido", new { area = "op" })', null, 'workspace', false, false, null);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+        $('#divFormaPagoContent').empty();
+    }
+
+
+
+    function onClickRowProducto(row) {
+        $("#ProductoId").val(row.ProductoId);
+        $("#Producto").val(row.Codigo);
+        $("#Descripcion").val(row.Descripcion);
+        $("#myModalProducto").modal('hide');
+    };
+
+     function onClickOkProducto() {
+
+        var rowKey = jQuery("#jqGridProducto").getGridParam("selrow");
+        if (!isEmpty(rowKey)) {
+
+            var jsonList = [];
+            var selectedIDs = jQuery("#jqGridProducto").getGridParam("selarrrow");
+            $.each(selectedIDs, function (item, value) {
+                var rows = jQuery('#jqGridProducto').getRowData(value);
+                jsonList.push(jQuery('#jqGridProducto').getRowData(value));
+            });
+
+            var rowList = _.map(jsonList, 'BienServicioId');
+            var rowObject = [];
+            jQuery.ajax({
+                type: 'POST',
+                url: '@Url.Action("ListarBienPrecio")',
+                dataType: 'json',
+                cache: false,
+                data: {
+                    data: JSON.stringify(rowList),
+                    tipoPrecioId: $("#TipoPrecioId").val(),
+                    monedaId: $("#MonedaId").val(),
+                    impuestoId: $("#ImpuestoId").val()
+                },
+                success: function (response) {
+                    debugger;
+                    if (response.success) {
+                        $.each(response.data.lista, function (item, value) {
+                            var bienServicios = {
+                                Codigo: value.Codigo,
+                                CodigoComercial: value.CodigoComercial,
+                                TipoImpuestoId: value.TipoImpuestoId,
+                                TipoImpuesto: value.TipoImpuesto,
+                                BienAlmacenId: value.BienAlmacenId,
+                                BienServicioId: value.BienServicioId,
+                                Descripcion: value.Descripcion,
+                                ValorUnitario: value.ValorUnitario,
+                                Cantidad: value.Cantidad,
+                                UnidadMedidaId: value.UnidadMedidaId,
+                                MarcaId: value.MarcaId,
+                                IncluyeImpuesto: value.IncluyeImpuesto,
+                                PorcentajeDescuento: value.PorcentajeDescuento,
+                                ValorDescuento: value.ValorDescuento,
+                                ImporteDescuento: value.ImporteDescuento,
+                                ImporteTotal: value.ImporteTotal,
+
+
+                            };
+                            rowObject.push(bienServicios);
+                        });
+
+                        $("#FlagImpuesto").val(response.data.IncluyeImpuesto);
+                        $("#SubTotal").val(response.data.SubTotal);
+                        $("#Descuento").val(response.data.Descuento);
+                        $("#TotalImpuesto").val(response.data.TotalImpuesto);
+                        $("#MontoTotal").val(response.data.MontoTotal);
+
+                    } else {
+                        MsgAlert(3, response.message);
+                    }
+
+                },
+                async: false
+            });
+
+            var newRowId;
+            $.each(rowObject, function (item, value) {
+                newRowId = gridRowCount("jqGridDetalle");
+                var count = newRowId + 1;
+                var cantidad = 1;
+                var setcelll = {
+                    rowID: newRowId + 1,
+                    initdata: {
+                        CotizacionRequerimientoBienId: 0,
+                        CotizacionRequerimientoId: 0,
+                        TipoImpuestoId: value.TipoImpuestoId,
+                        TipoImpuesto : value.TipoImpuesto,
+                        BienServicioId: value.BienServicioId,
+                        BienAlmacenId: value.BienAlmacenId,
+                        Codigo: value.Codigo,
+                        CodigoComercial: value.CodigoComercial,
+                        UnidadMedidaId: value.UnidadMedidaId,
+                        Descripcion: value.Descripcion,
+                        Cantidad: value.Cantidad,
+                        MarcaId: value.MarcaId,
+                        ValorUnitario: value.ValorUnitario,
+                        PorcentajeDescuento: value.PorcentajeDescuento,
+                        ValorDescuento: value.ValorDescuento,
+                        ImporteDescuento: value.ImporteDescuento,
+                        ImporteTotal: value.ImporteTotal
+                    },
+                    position: "afterSelected"
+                };
+                jQuery("#jqGridDetalle").jqGrid('addRow', setcelll);
+            });
+
+            jQuery("#myModalProducto").modal('hide');
+
+        } else {
+            MsgAlert(2, 'Seleccione almenos un articulo.');
+        }
+
+     var descuentoPorcentaje = 0;
+     var precioDescuento = 0;
+     var importeTotal = 0;
+     var importeGravada = 0;
+     var importeExonerada = 0;
+     var importeInafecta = 0;
+     var valorImpuesto = 0;
+     var cantidad = 0;
+     var valorUnitario = 0;
+     var importeDescuento = 0;
+     var importeFooter = 0;
+     var ids = jQuery("#jqGridDetalle").jqGrid('getDataIDs');
+     var _flagImpuesto = $("#FlagImpuesto").val();
+     $.each(ids, function (item, value) {
+
+         debugger;
+         cantidad = stringToDecimal($("#" + value + "_Cantidad").val());
+         valorUnitario = stringToDecimal($("#" + value + "_ValorUnitario").val());
+         precioDescuento = stringToDecimal($("#" + value + "_ValorDescuento").val());
+
+         var rowData = jQuery('#jqGridDetalle').jqGrid('getRowData', value);
+         switch (rowData.TipoImpuesto) {
+             case "@TipoAfectacion.GRAVADO_OPERACION_ONEROSA":
+                     descuentoPorcentaje += stringToDecimal($("#" + value + "_PorcentajeDescuento").val());
+                 importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                     if (_flagImpuesto == '@LetraConstante.S') {
+                         if (precioDescuento != 0) {
+                             importeGravada += (cantidad * precioDescuento) / 1.18;
+                             importeFooter += (cantidad * valorUnitario);
+                         } else {
+                             importeGravada += (cantidad * valorUnitario) / 1.18;
+                             importeFooter += (cantidad * valorUnitario);
+                         }
+                     } else {
+                         if (precioDescuento != 0) {
+                             importeGravada += (cantidad * precioDescuento);
+                             importeFooter += (cantidad * precioDescuento);
+                         } else {
+                             importeGravada += (cantidad * valorUnitario);
+                             importeFooter += (cantidad * valorUnitario);
+                         }
+                     }
+                     valorImpuesto = (importeGravada * _impuestoNacional) / 100;
+                     importeTotal = importeGravada + valorImpuesto;
+                     break;
+             case "@TipoAfectacion.EXONERADO_OPERACION_ONEROSA":
+               case "@TipoAfectacion.EXONERADO_TRANFERENCIA_GRATUITA":
+                 importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+
+                     descuentoPorcentaje += 0;
+                     precioDescuento += 0;
+                     importeGravada += 0;
+                     importeExonerada += (cantidad * valorUnitario);
+                     valorImpuesto += 0;
+                     importeTotal += importeExonerada;
+                     break;
+                case "@TipoAfectacion.INAFECTO_OPERACION_ONEROSA":
+             case "@TipoAfectacion.INAFECTO_TRANSFERENCIA_GRATUITO":
+                     importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                     descuentoPorcentaje += 0;
+                     precioDescuento += 0;
+                     importeExonerada = 0;
+                     importeInafecta += (cantidad * valorUnitario);
+                     importeGravada += 0;
+                     valorImpuesto += 0;
+                     importeTotal += importeInafecta;
+                     break;
+                 case "@TipoAfectacion.GRAVADO_RETIRO_POR_PREMIO":
+                 case "@TipoAfectacion.GRAVADO_RETIRO_POR_DONACION":
+                 case "@TipoAfectacion.GRAVADO_RETIRO":
+                 case "@TipoAfectacion.GRAVADO_POR_RETIRO_PUBLICIDAD":
+                 case "@TipoAfectacion.GRAVADO_BONIFICACION":
+                 case "@TipoAfectacion.GRAVADO_ENTREGA_TRABAJADORES":
+                      importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+
+                     break;
+                 case "@TipoAfectacion.INAFECTO_RETIRO_BONIFICACION":
+                 case "@TipoAfectacion.INAFECTO_RETIRO":
+                 case "@TipoAfectacion.INAFECTO_RETIRO_MUESTRA_MEDICA":
+                 case "@TipoAfectacion.INAFECTO_RETIRO_CONVENIO_COLECTIVO":
+                 case "@TipoAfectacion.INAFECTO_RETIRO_POR_PREMIO":
+                 case "@TipoAfectacion.INAFECTO_RETIRO_POR_PUBLICIDAD":
+                    importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                     break;
+                  case "@TipoAfectacion.EXPORTACION_BIENES_SERVICIO":
+                      importeDescuento += stringToDecimal($("#" + value + "_ImporteDescuento").val());
+                     break;
+             }
+     });
+
+     $("#jqGridDetalle").jqGrid('footerData', 'set', {
+           ValorUnitario: valorUnitario,
+           Cantidad : cantidad,
+           ImporteTotal: importeFooter
+     });
+
+     $("#DescuentoItem").val(importeDescuento);
+     $("#Descuento").val(importeDescuento);
+     $("#TotalExonerado").val(importeExonerada);
+     $("#TotalInafecto").val(importeInafecta);
+     $("#SubTotal").val(importeGravada);
+     $("#TotalImpuesto").val(valorImpuesto);
+     $("#MontoTotal").val(importeTotal);
+    }
+
+
+    function onClickOkCotizacion(row) {
+
+          if (jQuery.isEmptyObject(row)) {
+             row = getGridSelectedRow("jqGridCotizacion");
+          }
+        $("#NumeroCotizacion").val(row.Codigo);
+        $("#myModalCotizacion").modal('hide');
+        $('#jqGridDetalle').jqGrid('clearGridData');
+
+        $.post('@Url.Action("GetCotizacion", "OrdenPedido")',
+            {
+                cotizacionRequerimientoId: row.CotizacionRequerimientoId
+            }, function (response) {
+
+                var data = { id: response.data.records.ClienteId, text: response.data.records.RazonSocial };
+                var newOption = new Option(data.text, data.id, false, false);
+                $('#ClienteId').append(newOption).trigger('change');
+                $("#Direccion").val(response.data.records.NombreVia);
+                $("#NumeroRuc").val(response.data.records.NumeroDocumento);
+                $("#FechaEntrega").val(response.data.records.FechaEntrega);
+                $('#FormaPagoId').val(response.data.records.FormaPagoId).trigger('change');
+                $('#MonedaId').val(response.data.records.MonedaId).trigger('change');
+                $('#ImpuestoId').val(response.data.records.ImpuestoId).trigger('change');
+                $('#AlmacenId').val(response.data.records.AlmacenId).trigger('change');
+                $("#ImpuestoId").val(response.data.records.ImpuestoId);
+                $("#FlagImpuesto").val(response.data.records.FlagImpuesto);
+                $("#TipoCambio").val(response.data.records.TipoCambio);
+
+                $("#SubTotal").val(response.data.records.SubTotal);
+                $("#Descuento").val(response.data.records.Descuento);
+                $("#TotalExonerado").val(response.data.records.TotalExonerado);
+                $("#TotalInafecto").val(response.data.records.TotalInafecto);
+                $("#TotalImpuesto").val(response.data.records.TotalImpuesto);
+                $("#MontoTotal").val(response.data.records.MontoTotal);
+
+                $.each(response.data.rows, function (item, value) {
+                    newRowId = gridRowCount("jqGridDetalle");
+                    var count = newRowId + 1;
+                    var cantidad = 1;
+                    var setcelll = {
+                        rowID: newRowId + 1,
+                        initdata: {
+                            OrdenCompraBienId: 0,
+                            OrdenCompraId: 0,
+                            Codigo: value.Codigo,
+                            CodigoComercial: value.CodigoComercial,
+                            TipoImpuesto: value.TipoImpuesto,
+                            PesoNeto: value.PesoNeto,
+                            PesoBruto: value.PesoBruto,
+                            BienServicioId: value.BienServicioId,
+                            BienAlmacenId: value.BienAlmacenId,
+                            UnidadMedidaId: value.UnidadMedidaId,
+                            MarcaId: value.MarcaId,
+                            Descripcion: value.Descripcion,
+                            ValorUnitario: value.ValorUnitario,
+                            Cantidad: value.Cantidad,
+                            PorcentajeDescuento: value.PorcentajeDescuento,
+                            ValorDescuento: value.ValorDescuento,
+                            ImporteDescuento: value.ImporteDescuento,
+                            ImporteTotal: value.ImporteTotal
+                        },
+                        position: "afterSelected"
+                    };
+
+                    jQuery("#jqGridDetalle").jqGrid('addRow', setcelll);
+
+                    var _valorUnitario = jQuery("#jqGridDetalle").jqGrid('getCol', 'ValorUnitario', false, 'sum');
+                    var _cantidad = jQuery("#jqGridDetalle").jqGrid('getCol', 'Cantidad', false, 'sum');
+                    var _porcentajeDescuento = jQuery("#jqGridDetalle").jqGrid('getCol', 'PorcentajeDescuento', false, 'sum');
+                    var _valorDescuento = jQuery("#jqGridDetalle").jqGrid('getCol', 'ValorDescuento', false, 'sum');
+                    var _importeDescuento = jQuery("#jqGridDetalle").jqGrid('getCol', 'ImporteDescuento', false, 'sum');
+                    var _importeTotal = jQuery("#jqGridDetalle").jqGrid('getCol', 'ImporteTotal', false, 'sum');
+
+                    jQuery('#jqGridDetalle').jqGrid('footerData', 'set', {
+                        Producto: 'Total',
+                        ValorUnitario: _valorUnitario,
+                        Cantidad: _cantidad,
+                        PorcentajeDescuento: _porcentajeDescuento,
+                        ValorDescuento: _valorDescuento,
+                        ImporteDescuento: _importeDescuento,
+                        ImporteTotal: _importeTotal
+                    });
+                });
+         });
+    }
+
+     function onChangeMovimiento(control) {
+        $.post('@Url.Action("GetTipoOperacion", "OrdenPedido")',
+         {
+             tipoMovimientoId: control.value
+         }, function (response) {
+             $('#TipoOperacionId').find('option').remove().end();
+             $("#TipoOperacionId").addItems(response.data);
+             $("#TipoOperacionId").prop("disabled", false);
+         });
+    };
+
+    function onClickBienesMenuBar(key) {
+        switch (key) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                $('#myModalProducto').modal('show');
+                break;
+            case "@ButtonMenuBarActionConstant.SAVE":
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                var dataIDs = $("#jqGridDetalle").jqGrid('getDataIDs');
+                $.each(dataIDs, function (item, value) {
+                    var rowData = jQuery('#jqGridDetalle').jqGrid('getRowData', value);
+                    $("#jqGridDetalle").jqGrid('editRow', value, true);
+                    if (rowData.PorcentajeDescuento > 0) {
+                        $("#" + value + "_ValorDescuento").prop('disabled', true);
+                    }
+                });
+                break;
+            case '@ButtonMenuBarActionConstant.CANCEL':
+                break;
+        }
+        }
+
+    function onChangeImpuesto(control) {
+
+        debugger;
+        var data = $('#jqGridDetalle').getRowData();
+        if (!isEmpty(data)) {
+
+            var jsonList = [];
+
+            var rowList = _.map(data, 'BienServicioId');
+            var rowObject = [];
+            jQuery.ajax({
+                type: 'POST',
+                url: '@Url.Action("ListarBienPrecio")',
+                dataType: 'json',
+                cache: false,
+                async: false,
+                data: {
+                    data: JSON.stringify(rowList),
+                    tipoPrecioId: $("#TipoPrecioId").val(),
+                    monedaId: $("#MonedaId").val(),
+                    impuestoId: $("#ImpuestoId").val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $.each(response.data.lista, function (item, value) {
+                            var bienServicios = {
+                                Codigo: value.Codigo,
+                                CodigoComercial: value.CodigoComercial,
+                                BienServicioId: value.BienServicioId,
+                                BienAlmacenId: value.BienAlmacenId,
+                                IncluyeImpuesto: value.IncluyeImpuesto,
+                                Descripcion: value.Descripcion,
+                                ValorUnitario: value.ValorUnitario,
+                                Cantidad: value.Cantidad,
+                                UnidadMedidaId: value.UnidadMedidaId,
+                                MarcaId: value.MarcaId,
+                                PorcentajeDescuento: value.PorcentajeDescuento,
+                                ValorDescuento: value.ValorDescuento,
+                                ImporteDescuento: value.ImporteDescuento,
+                                ImporteTotal: value.ImporteTotal,
+                                TipoImpuesto: value.TipoImpuesto,
+                            };
+                            rowObject.push(bienServicios);
+                        });
+                        $("#FlagImpuesto").val(response.data.IncluyeImpuesto);
+                        $("#SubTotal").val(response.data.SubTotal);
+                        $("#Descuento").val(response.data.Descuento);
+                        $("#TotalImpuesto").val(response.data.TotalImpuesto);
+                        $("#MontoTotal").val(response.data.MontoTotal);
+                    } else {
+                        MsgAlert(3, response.message);
+                    }
+
+                }
+
+            });
+
+            var valorUnitario = 0;
+            var importeFooter = 0;
+            var cantidad = 0;
+            $.each(rowObject, function (item, value) {
+                var rowId = 1;
+                $.each(data, function (id, val) {
+                    if (value.BienServicioId == val.BienServicioId) {
+                        valorUnitario += value.ValorUnitario;
+                        importeFooter += value.ImporteTotal;
+                        cantidad += value.Cantidad;
+                        $("#" + rowId + "_ValorUnitario").val(value.ValorUnitario);
+                        $("#" + rowId + "_PorcentajeDescuento").val(value.PorcentajeDescuento);
+                        $("#" + rowId + "_ValorDescuento").val(value.ValorDescuento);
+                        $("#" + rowId + "_ImporteDescuento").val(value.ImporteDescuento);
+                        $("#" + rowId + "_Cantidad").val(value.Cantidad);
+                        jQuery('#jqGridDetalle').jqGrid("setCell", rowId, "ImporteTotal", value.ImporteTotal);
+                    }
+                    rowId++;
+                });
+            });
+
+            $("#jqGridDetalle").jqGrid('footerData', 'set', {
+                ValorUnitario: valorUnitario,
+                Cantidad: cantidad,
+                ImporteTotal: importeFooter
+            });
+
+        } else {
+            //MsgAlert(2, 'Seleccione almenos un articulo.');
+        }
+    }
+</script>

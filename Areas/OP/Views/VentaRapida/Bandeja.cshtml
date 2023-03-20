@@ -1,0 +1,523 @@
+@model eRPBusiness.Transport.OrdenDTO
+@using eRPBusiness.Helpers;
+@using eRPBusiness.Common;
+@{
+    /**/
+
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>Venta Rapida</label>
+        </nav>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-9 col-md-9">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-md-10 form-horizontal" id="panelBusquedas">
+                        <div class="form-group">
+                            @Html.CRM().TextBox("Codigo", null, "col-lg-4", "Código", "col-lg-2").Attributes(new { @placeholder = "Código" })
+                            @Html.CRM().TextBox("CodigoComercial", null, "col-lg-4", "Código Com.", "col-lg-2").Attributes(new { @placeholder = "Código comercial" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBox("Descripcion", null, "col-lg-4", "Bien Servicio", "col-lg-2").Attributes(new { @placeholder = "Descripción del producto o servicio" })
+                            @Html.CRM().DropDownList("ImpuestoId", Model.ImpuestoId, @ViewBag.ImpuestoList, "col-lg-4", "IGV", "col-lg-2", new { @onchange = "onChangeImpuesto(this)" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("MarcaId", Model.AlmacenId, @ViewBag.marcaList, "col-lg-4", "Marca", "col-lg-2")
+                            @Html.CRM().DropDownList("CategoriaId", null, @ViewBag.LstCategoria, "col-lg-4", "Categoria", "col-lg-2", new { @onchange = "onChangeImpuesto(this)" })
+                        </div>
+                        @Html.HiddenFor(m => m.FlagImpuesto)
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <button class="btn btn-primary" type="button" onclick="fnBuscarProducto(this)"><span class="glyphicon glyphicon-search"></span> Buscar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body" id="post">
+
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-3">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="list-group" id="listGroup">
+
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="list-group" id="payment"></div>
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <button class="btn btn-danger" onclick="fnPayMent(this)" type="button">
+                            <span class="glyphicon glyphicon-floppy-saved"></span> Cobrar
+                        </button>
+
+                        <button class="btn btn-warning" id="btnCancelar">
+                            <span class="glyphicon glyphicon-remove"></span> Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@Html.Hidden("RequestId")
+@Html.Hidden("rowId")
+@Html.Hidden("formato")
+
+<script id="entry-template" type="text/x-handlebars-template">
+    <div class="row">
+        {{#each producto}}
+        <div class="col-md-3">
+            <div class="thumbnail">
+                <img src="{{Url}}" alt="http://placehold.it/242x200" height="150" width="150">
+                <div class="caption text-center">
+                    <h6 style="font-size:10px; font-weight:bold;">{{Descripcion}}</h6>
+                    <h6><b>{{Simbolo}} {{formatCurrency ValorUnitario}}</b></h6>
+                    <h6><b>Cód Comercial: {{CodigoComercial}}</b></h6>
+                    <p>
+                        <button value="{{BienServicioId}}" class="btn btn-primary" style="width:100%;background-color:#195b96;"
+                                role="button" id="btnVender" name="btnVender"
+                                onclick="fnVenderProducto(this)">
+                            <span class="glyphicon glyphicon-shopping-cart"></span> Añadir cesta
+                        </button>
+                    </p>
+                </div>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+</script>
+
+<script id="entry-buytemp" type="text/x-handlebars-template">
+    {{#each productos}}
+    <a href="#" class="list-group-item">
+        <input type="hidden" value="{{Id}}" name="[{{Id}}].Id" id="{{Id}}_Id" />
+        <input type="hidden" value="{{BienServicioId}}" name="[{{Id}}].BienServicioId" id="{{Id}}_BienServicioId" />
+        <input type="hidden" value="{{UnidadMedidaId}}" name="[{{Id}}].UnidadMedidaId" id="{{Id}}_UnidadMedidaId" />
+        <input type="hidden" value="{{MarcaId}}" name="[{{Id}}].MarcaId" id="{{Id}}_MarcaId" />
+        <div class="row">
+            <div class="col-lg-1 col-lg-1">
+                <span class="glyphicon glyphicon-remove" onclick="fnRemoveItem(this)" id="{{Id}}_Close" data-value="{{BienServicioId}}"></span>
+            </div>
+            <div class="col-lg-12 col-md-10">
+                <h6 class="list-group-item-heading"><b>{{NombreCorto}}</b></h6>
+                <h6><b>Cód Comercial: {{CodigoComercial}}</b></h6>
+                <p class="list-group-item-text">
+                    {{ Marca }}
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12 col-md-12 form-horizontal">
+                <div class="form-group text-right">
+                    <div class="col-lg-6 text-right">
+
+                    </div>
+                    <div class="col-lg-6 text-right">
+                        <input type="text" class="form-control precio_venta" data-value="{{BienServicioId}}"
+                               value="{{ValorUnitario}}" onchange="fnPrecioMax(this)" name="[{{Id}}].ValorUnitario"
+                               id="{{Id}}_ValorUnitario" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-lg-6 text-right">
+
+                    </div>
+                    <div class="col-lg-6 text-right">
+                        <input type="number" class="form-control cantidad_prod"
+                               data-value="{{BienServicioId}}" onchange="fnMaxCount(this)"
+                               style="text-align:right;" id="{{Id}}_Cantidad" name="[{{Id}}].Cantidad"
+                               value="{{ Cantidad }}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </a>
+    {{/each}}
+</script>
+
+<script id="entry-payment" type="text/x-handlebars-template">
+    <a href="#" class="list-group-item">
+        <div class="row">
+            <div class="col-lg-6 col-md-6">
+                <h5 class="list-group-item-heading"><b>Sub Total: </b></h5>
+                <h5 class="list-group-item-heading"><b>Descuento: </b></h5>
+            </div>
+            <div class="col-lg-6 col-md-6">
+                <input type="hidden" id="TotalGravada" value="{{TotalGravada}}" />
+                <h5 class="list-group-item-heading"><b>{{Moneda}} {{formatCurrency TotalGravada}}</b></h5>
+                <h5 class="list-group-item-heading"><b>{{Moneda}} 0.0</b></h5>
+            </div>
+        </div>
+    </a>
+    <a href="#" class="list-group-item">
+        <div class="row">
+            <div class="col-lg-6 col-md-6">
+                <h5 class="list-group-item-heading"><b> I.G.V: </b></h5>
+                <h5 class="list-group-item-heading"><b> Total: </b></h5>
+            </div>
+            <div class="col-lg-6 col-md-6">
+                <input type="hidden" id="TotalImpuestoCard" value="{{TotalImpuesto}}" />
+                <input type="hidden" id="ImporteTotal" value="{{ImporteTotal}}" />
+                <h5 class="list-group-item-heading"><b>{{Moneda}} {{formatCurrency TotalImpuesto}}</b></h5>
+                <h5 class="list-group-item-heading"><b>{{Moneda}} {{formatCurrency ImporteTotal}}</b></h5>
+            </div>
+        </div>
+    </a>
+</script>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="myModalPos">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Centro de Cobros</h4>
+            </div>
+            <div class="modal-body">
+                <div id="divPosContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Salir</button>
+                <button type="button" class="btn btn-primary" onclick="fnCobrarDocumento(this)"><span class="glyphicon glyphicon-shopping-cart"></span> Cobrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.CRM().Popup("myModalReporte", "Reporte Documento", "onClickOkReporte", SizePopup.Large))
+{
+    <div class="row">
+        <div class="col-lg-12">
+            <div id="PDFViewer">
+                <div id="PDFViewer" width="850" height="442"></div>
+            </div>
+        </div>
+    </div>
+}
+
+@using (Html.CRM().Popup("myModalCliente", "Crear Cliente", "onClickCreateCliente", SizePopup.Large))
+{
+    <div id="modalContentCliente"></div>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        loadPOS();
+
+        $("#btnCancelar").click(function () {
+            deleteAll();
+        });
+
+        $("#Descripcion").change(function () {
+            fnBuscarProducto();
+        });
+
+        $("#myModalPos").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            var postData = {};
+            controllerGetAction('@Url.Action("ModalPostEdit", "VentaRapida")', postData, 'divPosContent', false, false, null);
+        });
+        $('#myModalPos').on('hidden.bs.modal', function (e) {
+            $('#divPosContent').empty();
+        });
+
+        $("#myModalCliente").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            controllerGetAction('@Url.Action("ClienteEdit", "Cliente",new {area="am" })', null, 'modalContentCliente', false, false, null);
+        });
+
+        $('#myModalCliente').on('hidden.bs.modal', function (e) {
+            $('#modalContentCliente').empty();
+        });
+
+
+        $("#myModalReporte").on('show.bs.modal', function () {
+            var resquestId = $("#RequestId").val();
+            var rowId = $("#rowId").val();
+            var _formato = $("#formato").val();
+            var url = '@Url.Action("Reporte", "VentaRapida", new {@ordenId = "value2",@formato = "value3"})';
+            var _urlPdf = url.replace("value3", _formato).replace("value2",rowId);
+              PDFObject.embed(_urlPdf, "#PDFViewer");
+        });
+
+    });
+
+    function fnBuscarProducto() {
+         loadPOS($("#Descripcion").val());
+    }
+
+    function loadPOS(values) {
+        $.post('@Url.Action("ListarBienPrecio")', {
+            query: values,
+            codigo: $("#Codigo").val(),
+            codigoComercial: $("#CodigoComercial").val(),
+            impuestoId: $("#ImpuestoId").val(),
+            marcaId: $("#MarcaId").val(),
+            categoriaId: $("#CategoriaId").val()
+        }, function (response) {
+            $('#post').empty();
+            var source = $("#entry-template").html();
+            var template = Handlebars.compile(source);
+            $('#post').append(template({ producto: response.data}));
+        });
+    }
+
+    function fnVenderProducto(val) {
+
+        $.post('@Url.Action("VenderProducto")', {
+            id: val.value,
+            cantidad: 0,
+            impuestoId: $("#ImpuestoId").val()
+        }, function (response) {
+            if (response == "") {
+                window.location.href = window.location;
+            } else {
+                var source = $("#entry-buytemp").html();
+                var template = Handlebars.compile(source);
+                 $('#listGroup').empty();
+                 $('#listGroup').append(template({ productos: response.data}));
+
+                    $.post('@Url.Action("JsonPayment")',
+                        {
+                            impuestoId: $("#ImpuestoId").val()
+                        }
+                        , function (result) {
+                    var payment = $("#entry-payment").html();
+                    var template = Handlebars.compile(payment);
+                    $('#payment').empty();
+                    $('#payment').append(template(result.data));
+
+                    $(".precio_venta").inputmask('decimal', {
+                        placeholder: "0",
+                        digits: "2",
+                        digitsOptional: false,
+                        radixPoint: ".",
+                        groupSeparator: ",",
+                        autoGroup: true,
+                        allowPlus: false,
+                        allowMinus: false,
+                        clearMaskOnLostFocus: false,
+                        removeMaskOnSubmit: true,
+                        onUnMask: function (maskedValue, unmaskedValue) {
+                            var x = unmaskedValue.split(',');
+                            if (x.length != 2) return '0.00';
+                            return x[0].replace(/\./g, '') + '.' + x[1];
+                        }
+                    });
+                });
+            }
+
+
+        });
+    }
+
+    function onClickOkReporte() {
+
+    }
+
+    function onChangeImpuesto() {
+         $.post('@Url.Action("ListarBienPrecio")', {
+            query: '',
+            impuestoId: $("#ImpuestoId").val()
+        }, function (response) {
+            $('#post').empty();
+            var source = $("#entry-template").html();
+            var template = Handlebars.compile(source);
+            $('#post').append(template({ producto: response.data}));
+        });
+    }
+
+    function fnMaxCount(control) {
+
+        var value = $(control).attr('data-value');
+
+        $.post('@Url.Action("VenderProducto")', {
+            id: value,
+            cantidad: control.value,
+            impuestoId: $("#ImpuestoId").val()
+        }, function (response) {
+            var source = $("#entry-buytemp").html();
+            var template = Handlebars.compile(source);
+            $('#listGroup').empty();
+            $('#listGroup').append(template({ productos: response.data }));
+
+            $(".precio_venta").inputmask('decimal', {
+                    placeholder: "0",
+                    digits: "2",
+                    digitsOptional: false,
+                    radixPoint: ".",
+                    groupSeparator: ",",
+                    autoGroup: true,
+                    allowPlus: false,
+                    allowMinus: false,
+                    clearMaskOnLostFocus: false,
+                    removeMaskOnSubmit: true,
+                    onUnMask: function (maskedValue, unmaskedValue) {
+                        var x = unmaskedValue.split(',');
+                        if (x.length != 2) return '0.00';
+                        return x[0].replace(/\./g, '') + '.' + x[1];
+                    }
+                });
+                $.post('@Url.Action("JsonPayment")',
+                    {
+                        impuestoId: $("#ImpuestoId").val()
+                    }
+                    , function (result) {
+                var payment = $("#entry-payment").html();
+                var template = Handlebars.compile(payment);
+                $('#payment').empty();
+                $('#payment').append(template(result.data));
+            });
+
+        });
+    }
+
+    function fnPrecioMax(control) {
+
+         var value = $(control).attr('data-value');
+
+        $.post('@Url.Action("PrecioProducto")', {
+            id: value,
+            precioUnitario: control.value,
+            impuestoId: $("#ImpuestoId").val()
+        }, function (response) {
+            var source = $("#entry-buytemp").html();
+            var template = Handlebars.compile(source);
+            $('#listGroup').empty();
+            $('#listGroup').append(template({ productos: response.data }));
+
+            $(".precio_venta").inputmask('decimal', {
+                    placeholder: "0",
+                    digits: "2",
+                    digitsOptional: false,
+                    radixPoint: ".",
+                    groupSeparator: ",",
+                    autoGroup: true,
+                    allowPlus: false,
+                    allowMinus: false,
+                    clearMaskOnLostFocus: false,
+                    removeMaskOnSubmit: true,
+                    onUnMask: function (maskedValue, unmaskedValue) {
+                        var x = unmaskedValue.split(',');
+                        if (x.length != 2) return '0.00';
+                        return x[0].replace(/\./g, '') + '.' + x[1];
+                    }
+                });
+
+                $.post('@Url.Action("JsonPayment")',
+
+                    {
+                        impuestoId: $("#ImpuestoId").val()
+                    }, function (result) {
+                var payment = $("#entry-payment").html();
+                var template = Handlebars.compile(payment);
+                $('#payment').empty();
+                $('#payment').append(template(result.data));
+            });
+
+        });
+    }
+
+    function deleteAll() {
+        $.post('@Url.Action("Delete")', function (response) {
+            $('#listGroup').empty();
+        });
+
+    }
+
+    function fnPayMent() {
+        $("#myModalPos").modal('show');
+    }
+
+    function fnCobrarDocumento() {
+        if (isEmptyElement("FormaPagoId", "Seleccione forma de pago"))
+            return false;
+        var _tipoDoc = $("#DocumentoComercial").val();
+        if (_tipoDoc == "01") {
+            if (isEmptyElement("ClienteId","Seleccione Cliente"))
+                return false;
+        } else if (_tipoDoc=="03") {
+            //MsgAlert(3, "Por favor seleccione cliente");
+            //return false;
+        }
+
+        var postData = {
+            Header: JSON.stringify($("#divPosContent").serializeObject()),
+            Form: JSON.stringify($("#listGroup").find('select, textarea, input').serializeObjectTable()),
+            Detail: JSON.stringify($("#panelBusquedas").serializeObject())
+        };
+        if (postData.Form == "" || postData.Form == "{}") {
+            MsgAlert(3, "Por favor ingresa los items de productos");
+            return false;
+        }
+        controllerSaveResponse("@Url.Action("Create", "VentaRapida", new { area = "op" })", postData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $("#RequestId").val(response.RequestId);
+                $("#rowId").val(response.data.OrdenId);
+                $("#formato").val(response.data.Formato);
+                $("#myModalPos").modal('hide');
+                deleteAll();
+                $("#myModalReporte").modal('show');
+
+            } else {
+                MsgAlert(3, response.message);
+            }
+        });
+
+    }
+
+    function fnRemoveItem(control) {
+
+        var value = $(control).attr('data-value');
+
+        $.post('@Url.Action("RemoveItem")', {
+            id: value
+        }, function (response) {
+            var source = $("#entry-buytemp").html();
+            var template = Handlebars.compile(source);
+            $('#listGroup').empty();
+            $('#listGroup').append(template({ productos: response.data }));
+
+            $(".precio_venta").inputmask('decimal', {
+                    placeholder: "0",
+                    digits: "2",
+                    digitsOptional: false,
+                    radixPoint: ".",
+                    groupSeparator: ",",
+                    autoGroup: true,
+                    allowPlus: false,
+                    allowMinus: false,
+                    clearMaskOnLostFocus: false,
+                    removeMaskOnSubmit: true,
+                    onUnMask: function (maskedValue, unmaskedValue) {
+                        var x = unmaskedValue.split(',');
+                        if (x.length != 2) return '0.00';
+                        return x[0].replace(/\./g, '') + '.' + x[1];
+                    }
+                });
+
+                $.post('@Url.Action("JsonPayment")',
+                    {
+                        impuestoId: $("#ImpuestoId").val()
+                    },  function (result) {
+                var payment = $("#entry-payment").html();
+                var template = Handlebars.compile(payment);
+                $('#payment').empty();
+                $('#payment').append(template(result.data));
+            });
+
+        });
+    }
+</script>

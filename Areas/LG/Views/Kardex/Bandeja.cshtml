@@ -1,0 +1,319 @@
+﻿@using eRPBusiness.Helpers
+@{
+    ViewData["Title"] = "Index";
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>Listado Kardex de bienes</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+   //new ItemMenuBar(MenuBarButtonType.Print),
+   new ItemMenuBar(MenuBarButtonType.ExportXls)
+})
+<div class="row">
+    <div class="col-lg-12" id="seachPanel">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="col-lg-11">
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            @Html.CRM().DateTimePicker("FechaInicio", null, "col-lg-4", "Fecha Inicio", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Inicio" })
+                            @Html.CRM().DateTimePicker("FechaFinal", null, "col-lg-4", "Fecha Final", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Final" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().Select2List("TipoMovimientoId", null, @ViewBag.TipoMovimimentoList, "col-lg-10", "Movimiento", "col-lg-2")
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            @Html.CRM().TextBox("BienServicio", null, "col-lg-10 col-md-10", "Bien Servicio", "col-lg-2").Attributes(new { @placeholder = "Bien Servicio" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().Select2List("TipoOperacionId", null, @ViewBag.TipoOperacioList, "col-lg-10", "Operación", "col-lg-2")
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-1">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridKardex').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar")
+                                .OnClick("$('input:text').val('');$('#EmpresaId').val(null).trigger('change');$('#AlmacenId').val(null).trigger('change');$('#AlmacenId').val(null).trigger('change');$('#BienServicioId').val(null).trigger('change');$('#TipoOperacionId').val(null).trigger('change');$('#jqGridKardex').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-body" id="panel">
+                <table id="jqGridKardex"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridKardex").jqGrid({
+            url: '@Url.Action("ListarBandeja", "Kardex", new { area = "lg" })',
+            mtype: "POST",
+            postData: {
+                fechaInicio: function () { return $("#FechaInicio").val(); },
+                fechaFinal: function () { return $("#FechaFinal").val(); },
+                bienServicio: function () { return $("#BienServicio").val(); },
+                tipoMovimientoId: function () { return $("#TipoMovimientoId").val(); },
+                tipoOperacionId: function () { return $("#TipoOperacionId").val(); }
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'OrdenId', key: true, hidden: true },
+                { label: 'Id', name: 'Operacion', hidden: true },
+                { label: 'Operación', name: 'FormatText', width: 12, align: 'center', formatter: colorCell },
+                {
+                    label: 'Fecha', name: 'FechaPedido', width: 18, align: 'center'
+                },
+                { label: 'Descripción', name: 'Descripcion', width: 65, sortable: false },
+                {
+                    label: 'Cantidad', name: 'CantidadIngreso', width: 17, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Costo Unitario', name: 'ValorUnitario', width: 20, formatter: 'integer', sortable: false, align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Costo Total', name: 'MontoIngreso', width: 20, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Cantidad', name: 'CantidadSalida', width: 17, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Costo Unitario', name: 'CostoUnitSalida', width: 20, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Costo Total', name: 'ValorSalida', width: 20, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Cantidad', name: 'CantidadSaldo', width: 17, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Costo Unitario', name: 'CostoUnitSaldo', width: 20, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                },
+                {
+                    label: 'Costo Total', name: 'MontoSaldo', width: 20, formatter: 'integer', align: 'right', formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }
+                }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 160),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            footerrow: true,
+            loadComplete: function () {
+                // var allRowsInGrid = $(this).jqGrid('getRowData');
+                var rows = $(this).getDataIDs();
+                $.each(rows, function (item, value) {
+
+                    jQuery("#jqGridKardex").setCell(value, 'CantidadIngreso', '', { 'color': '#243EF2', 'font-weight': 'bold' });
+                    jQuery("#jqGridKardex").setCell(value, 'ValorUnitario', '', { 'color': '#243EF2', 'font-weight': 'bold' });
+                    jQuery("#jqGridKardex").setCell(value, 'MontoIngreso', '', { 'color': '#243EF2', 'font-weight': 'bold' });
+
+                    jQuery("#jqGridKardex").setCell(value, 'CantidadSalida', '', { 'color': 'red', 'font-weight': 'bold' });
+                    jQuery("#jqGridKardex").setCell(value, 'CostoUnitSalida', '', { 'color': 'red', 'font-weight': 'bold' });
+                    jQuery("#jqGridKardex").setCell(value, 'ValorSalida', '', { 'color': 'red', 'font-weight': 'bold' });
+
+                    jQuery("#jqGridKardex").setCell(value, 'CantidadSaldo', '', { 'color': '#2488F2', 'font-weight': 'bold' });
+                    jQuery("#jqGridKardex").setCell(value, 'CostoUnitSaldo', '', { 'color': '#2488F2', 'font-weight': 'bold' });
+                    jQuery("#jqGridKardex").setCell(value, 'MontoSaldo', '', { 'color': '#2488F2', 'font-weight': 'bold' });
+                });
+            }, gridComplete: function () {
+                var grid = $(this);
+                cantidadIngreso = grid.jqGrid('getCol', 'CantidadIngreso', false, 'sum');
+                valorUnitario = grid.jqGrid('getCol', 'ValorUnitario', false, 'sum');
+                montoIngreso = grid.jqGrid('getCol', 'MontoIngreso', false, 'sum');
+                cantidadSalida = grid.jqGrid('getCol', 'CantidadSalida', false, 'sum');
+                costoUnitSalida = grid.jqGrid('getCol', 'CostoUnitSalida', false, 'sum');
+                valorSalida = grid.jqGrid('getCol', 'ValorSalida', false, 'sum');
+                cantidadSaldo = grid.jqGrid('getCol', 'CantidadSaldo', false, 'sum');
+                costoUnitSaldo = grid.jqGrid('getCol', 'CostoUnitSaldo', false, 'sum');
+                montoSaldo = grid.jqGrid('getCol', 'MontoSaldo', false, 'sum');
+
+                grid.jqGrid('footerData', 'set', {
+                    Producto: 'Sub Total',
+                    CantidadIngreso: cantidadIngreso,
+                    ValorUnitario: valorUnitario,
+                    MontoIngreso: montoIngreso,
+                    CantidadSalida: cantidadSalida,
+                    CostoUnitSalida: costoUnitSalida,
+                    ValorSalida: valorSalida,
+                    CantidadSaldo: cantidadSaldo,
+                    CostoUnitSaldo: costoUnitSaldo,
+                    MontoSaldo: montoSaldo
+                });
+            },
+            pager: "#jqGridPager"
+        });
+
+        $('#jqGridKardex').setGroupHeaders(
+                {
+                useColSpanStyle: true,
+                groupHeaders: [
+                        { "numberOfColumns": 2, "titleText": "Información General", "startColumnName": "FechaPedido" },
+                        { "numberOfColumns": 3, "titleText": "Ingresos", "startColumnName": "CantidadIngreso" },
+                        { "numberOfColumns": 3, "titleText": "Salidas", "startColumnName": "CantidadSalida" },
+                        { "numberOfColumns": 3, "titleText": "Saldo", "startColumnName": "CantidadSaldo" }
+                    ]
+                });
+
+        //$("#jqGridKardex").jqGrid("setFrozenColumns");
+
+            $("#BienServicioId").select2({
+                ajax: {
+                    url: '@Url.Action("GetBienServicio")',
+                    dataType: 'json',
+                    delay: 250,
+                    type: 'POST',
+                    data: function (params) {
+                        return {
+                            query: params.term // search ter
+                        };
+                    },
+                    processResults: function (data, params) {
+                        return {
+                            results: $.map(data.data, function (item) {
+                                return {
+                                    text: item.Descripcion,
+                                    id: item.BienServicioId
+                                };
+                            })
+                        };
+                    },
+                    cache: true
+                },
+                placeholder: 'Busqueda de bienes y servicio',
+                allowClear: true,
+                escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                minimumInputLength: 1,
+                language: {
+                    inputTooShort: function () {
+                        return "Busqueda de bienes y servicio";
+                    }
+                }
+            });
+
+        $('#BienServicioId').on('select2:select', function (e) {
+            $('#jqGridKardex').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+        });
+    });
+
+
+
+    function colorCell(cellvalue, options, rowObject) {
+        var backgroud = '', colorHex = '';
+        var textoOpracion = '';
+        switch (rowObject.Operacion) {
+            case 'IG':
+                colorHex = '#54DC8F';
+                textoOpracion = 'INGRESO';
+                break;
+            case 'IN':
+                colorHex = '#54DC8F';
+                textoOpracion = 'INGRESO';
+                break;
+            case 'SL':
+                colorHex = '#F82A0C';
+                textoOpracion = 'SALIDA';
+                break;
+            case 'TR':
+                colorHex = '#54DC8F';
+                textoOpracion = 'INGRESO';
+                break;
+            default:
+                textoOpracion = '';
+                break;
+        }
+        backgroud = '<span style="background-color: ' + colorHex + '; display: block; width: 100%; height: 100%; color:#fff; ">' + textoOpracion + '</span>';
+        return backgroud;
+    }
+
+     function onChangeMovimiento(control) {
+        $.post('@Url.Action("GetTipoOperacion", "Kardex")',
+         {
+             tipoMovimientoId: control.value
+            }, function (response) {
+             if (response.success) {
+                 $('#TipoOperacionId').find('option').remove().end();
+                 $("#TipoOperacionId").addItems(response.data);
+                 $("#TipoOperacionId").prop("disabled", false );
+             }
+
+         });
+    }
+     function onClickMenuBar(control) {
+
+        var postData = {
+            editAction: '',
+            ordenId: 0
+        };
+        var row = getGridSelectedRow("jqGridPedido");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+             
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+               
+                break;
+             case "@ButtonMenuBarActionConstant.EXPORT_XLS":
+                $.fileDownload('@Url.Action("ExportKardex")', {
+                    httpMethod: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: {
+                        fechaInicio: function () { return $("#FechaInicio").val(); },
+                        fechaFinal: function () { return $("#FechaInicio").val(); },
+                        bienServicio: function () { return $("#BienServicio").val(); },
+                        tipoMovimientoId: function () { return $("#TipoMovimientoId").val(); },
+                        tipoOperacionId: function () { return $("#TipoOperacionId").val(); }
+                    },
+                    successCallback: function (url) {
+
+                    },
+                    failCallback: function (responseHtml, url) {
+
+                    }
+                });
+                break;
+            case "@ButtonMenuBarActionConstant.PRINT":
+            
+                break;
+        }
+    };
+</script>

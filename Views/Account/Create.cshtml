@@ -1,0 +1,160 @@
+﻿@model eRPBusiness.Web.Models.PeriodoEmpresaViewModel
+@using eRPBusiness.Helpers
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ACID</title>
+    <link rel="shortcut icon" type="image/png" href="~/Content/ico/favicon.png" />
+    @Styles.Render("~/Content/perfil")
+    <style type="text/css">
+        body {
+            background-color: rgba(0, 0, 0, .05);
+        }
+
+        .panel-default > .panel-heading {
+            color: #333;
+            background-color: #ffffff;
+            border-color: #ddd;
+        }
+
+        .panel {
+            border-radius: 8px 8px;
+            border: 1px solid #e7ecf3;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.17);
+            margin-bottom: 15px;
+        }
+
+        .panel {
+            background-color: #fff;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+        }
+
+        .panel-title {
+            font-weight: 600;
+            padding: 0 20px 0 20px;
+            font-size: 1.2em;
+            line-height: 50px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .panel-title {
+            background-color: #fff;
+        }
+
+        .control-label {
+            font-size: 11px;
+        }
+
+        .form-control {
+            font-size: 11px;
+            height: 100%;
+            box-shadow: none;
+            border: 1px solid #a9a5a5;
+            transition-duration: .5s;
+        }
+
+        .input-group-addon {
+            min-width: 60%;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="margin-top:50px;" class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+            <div class="panel panel-default">
+                <div class="panel-heading text-center">
+                    <h5> Periodo Empresa</h5>
+                </div>
+                <div class="panel-body">
+                    @using (Html.BeginForm("Create", "Account", FormMethod.Post, new { @class = "form-horizontal" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        <div class="form-group">
+                            <label class="control-label col-lg-2 col-md-2">Empresa</label>
+                            <div class="col-lg-10">
+                                @Html.DropDownListFor(m => m.EmpresaId, Model.empresaList, "(SELECCIONE)", new { @class = "form-control", @onchange = "onChangeEmpresa(this)" })
+                                @Html.ValidationMessageFor(model => model.EmpresaId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-lg-2 col-md-2">Sucursal</label>
+                            <div class="col-lg-10">
+                                @Html.DropDownListFor(m => m.SucursalId, Model.sucursalList, "(SELECCIONE)", new { @class = "form-control", @onchange = "onChangeSucursal(this)" })
+                                @Html.ValidationMessageFor(model => model.SucursalId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-lg-2 col-md-2">Almacen</label>
+                            <div class="col-lg-10">
+                                @Html.DropDownListFor(m => m.AlmacenId, Model.almacenList, "(SELECCIONE)", new { @class = "form-control" })
+                                @Html.ValidationMessageFor(model => model.AlmacenId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-lg-2 col-md-2">Período</label>
+                            <div class="col-lg-10">
+                                @Html.DropDownListFor(m => m.PeriodoId, Model.periodoList, "(SELECCIONE)", new { @class = "form-control" })
+                                @Html.ValidationMessageFor(model => model.PeriodoId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        @Html.HiddenFor(m => m.UsuarioId)
+                        <div class="form-group">
+                            <!-- Button -->
+                            <div class="col-sm-12 text-center">
+                                <a id="btn-fblogin" href="@Url.Action("LogOff","Account")" class="btn btn-primary btn-color btn-bg-color"><span class="glyphicon glyphicon-remove"></span> Cancelar</a>
+                                <button id="btn-login" type="submit" class="btn btn-primary btn-color btn-bg-color"><span class="glyphicon glyphicon-ok"></span> Ingresar  </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/scriptLogin")
+    <script type="text/javascript">
+        $(document).ready(function () {
+            //$("#EmpresaId").select2();
+            //$("#SucursalId").select2();
+            //$("#AlmacenId").select2();
+            //$("#PeriodoId").select2();
+        });
+        function onChangeEmpresa(control) {
+            $.post("@Url.Action("ListarSucursal")", { empresaId: control.value }, function (response) {
+                if (response.success) {
+                    $('#SucursalId').find('option').remove().end();
+                    $('#AlmacenId').find('option').remove().end();
+                    $("#SucursalId").addItems(response.data);
+                    $("#SucursalId").prop("disabled", false);
+                }
+
+            });
+        }
+
+        function onChangeSucursal(control) {
+            $.post("@Url.Action("ListarAlmacen")", { sucursalId: control.value }, function (response) {
+                if (response.success) {
+                    $('#AlmacenId').find('option').remove().end();
+                    $("#AlmacenId").addItems(response.data);
+                    $("#AlmacenId").prop("disabled", false);
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>

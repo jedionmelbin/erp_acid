@@ -1,0 +1,107 @@
+﻿    @using eRPBusiness.Helpers
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label> Lista de modulos</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                                   new ItemMenuBar(MenuBarButtonType.New),
+                                                   new ItemMenuBar(MenuBarButtonType.Edit),
+                                                   new ItemMenuBar(MenuBarButtonType.Delete)
+                                               })
+
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="col-lg-11" id="panelSeach">
+                    <div class="form-group">
+                        @Html.CRM().TextBox("nombre", null, "col-lg-4", "Nombre", "col-lg-2").Attributes(new { @maxlength = "100", @placeholder = "Nombre" })
+                        @Html.CRM().TextBox("imagen", null, "col-lg-4", "Imagen", "col-lg-2").Attributes(new { @maxlength = "100", @placeholder = "Imagen" })
+                    </div>
+                </div>
+                <div class="col-lg-1">
+                    <div class="form-group">        
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridBandeja').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('input:text').val(''); $('#jqGridBandeja').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-body" id="panel">
+                <table id="jqGridBandeja"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+
+    $(document).ready(function () {
+        $("#jqGridBandeja").jqGrid({
+
+            url: '@Url.Action("ListarBandeja", "Modulo", new { area = "SG" })',
+            mtype: "POST",
+            postData: {
+                nombre: function () { return $("#nombre").val() },
+                imagen: function () { return $("#imagen").val() }
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'ModuloId', key: true, hidden: true },
+                { label: 'Nombre', name: 'Nombre', width: 100 },
+                { label: 'Imagen', name: 'Imagen', width: 100 }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: _heightGrid - 250,
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            pager: "#jqGridPager"
+        });
+    });
+
+
+     function onClickMenuBar(control) {
+        var postData = {
+            editAction: '',
+            moduloId: 0
+        };
+        var row = getGridSelectedRow("jqGridBandeja");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                postData.editAction = '@EditActionConstant.NEW';
+                controllerGetAction('@Url.Action("Create", "Modulo", new { area = "SG" })', postData, 'workspace', true, true, null);
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    postData.editAction = '@EditActionConstant.EDIT';
+                    postData.moduloId = row.ModuloId;
+                    controllerGetAction('@Url.Action("Create", "Modulo", new { area = "SG" })', postData, 'workspace', true, true, null);
+                } else {
+                    MsgAlert(2, 'Seleccione un modulo');
+                }
+                break;
+        }
+    }
+
+</script>

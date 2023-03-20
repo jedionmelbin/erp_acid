@@ -1,0 +1,353 @@
+﻿@model eRPBusiness.Transport.SorteoDTO
+@using eRPBusiness.Helpers
+@{
+
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>@ViewBag.Title</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                                   new ItemMenuBar(MenuBarButtonType.Save,!ViewBag.Status),
+                                                   new ItemMenuBar(MenuBarButtonType.Exit)
+                                               })
+<div class="row">
+
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { @id = "form1" }))
+                {
+                    @Html.AntiForgeryToken()
+
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            @if (ViewBag.Status)
+                            {
+                                @Html.CRM().TextBoxFor(m => m.Descripcion, "col-lg-10", "Descripción", "col-lg-2").Attributes(new { @placeholder = "Descripción" })
+                            }
+                            else
+                            {
+                                @Html.CRM().TextBoxFor(m => m.Descripcion, "col-lg-10", "Descripción", "col-lg-2").Attributes(new { @placeholder = "Descripción", @readonly = "true" })
+                            }
+
+                        </div>
+                        <div class="form-group">
+                            @if (ViewBag.Status)
+                            {
+                                @Html.CRM().DateTimePickerFor(m => m.FechaInicio, "col-lg-4", "Fecha Inicio", "col-lg-2").PickerType(DateTimePickerType.Date)
+                                @Html.CRM().DateTimePickerFor(m => m.FechaFinal, "col-lg-4", "Fecha Final", "col-lg-2").PickerType(DateTimePickerType.Date)
+                            }
+                            else
+                            {
+                                @Html.CRM().DateTimePickerFor(m => m.FechaInicio, "col-lg-4", "Fecha Inicio", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @readonly = "true" })
+                                @Html.CRM().DateTimePickerFor(m => m.FechaFinal, "col-lg-4", "Fecha Final", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @readonly = "true" })
+                            }
+
+                        </div>
+                        <div class="form-group">
+                            @if (ViewBag.Status)
+                            {
+                                @Html.CRM().NumericTextBoxFor(m => m.Alternativa, "col-lg-4", "Alternativa", "col-lg-2").TextNumericType(NumericType.Integer).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { })
+                                @Html.CRM().NumericTextBoxFor(m => m.Opciones, "col-lg-4", "Opciones", "col-lg-2").TextNumericType(NumericType.Integer).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { })
+                            }
+                            else
+                            {
+                                @Html.CRM().NumericTextBoxFor(m => m.Alternativa, "col-lg-4", "Alternativa", "col-lg-2").TextNumericType(NumericType.Integer).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+                                @Html.CRM().NumericTextBoxFor(m => m.Opciones, "col-lg-4", "Opciones", "col-lg-2").TextNumericType(NumericType.Integer).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+                            }
+
+                        </div>
+                        <div class="form-group">
+                            @if (ViewBag.Status)
+                            {
+                                @Html.CRM().NumericTextBoxFor(m => m.Costo, "col-lg-4", "Costo", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { })
+                            }
+                            else
+                            {
+                                @Html.CRM().NumericTextBoxFor(m => m.Costo, "col-lg-4", "Costo", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+
+                            }
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+
+                    </div>
+
+                    @Html.HiddenFor(x => x.SorteoId)
+                    @Html.HiddenFor(m => m.EditAction)
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="entry-option" type="text/x-handlebars-template">
+    {{#each optionsValues}}
+    <button type="button" onclick="fnSelectOption(this)" class="btn btn-default" style="margin:3px; height:55px; width:55px;" value="{{id}}"><b>{{id}}</b></button>
+    {{/each}}
+
+</script>
+
+
+@using (Html.CRM().Popup("myModalPremio", "Crear Premios", "onClickOkPremio", SizePopup.Default))
+{
+    <div id="divPremioContent"></div>
+}
+@using (Html.CRM().Popup("myModalCliente", "Crear Cliente", "onClickCreateCliente", SizePopup.Large))
+{
+    <div id="modalContentCliente"></div>
+}
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+         $("#jqGridClient").jqGrid({
+            url: '@Url.Action("ListaSorteoItem")',
+            mtype: "POST",
+			styleUI : 'Bootstrap',
+              datatype: "json",
+              colModel: [
+                  { label: 'SorteoItemId', name: 'SorteoItemId', key: true, hidden: true },
+                  { label: 'ClienteId', name: 'ClienteId', hidden:true },
+                  { label: 'Nro. Documento', name: 'NumeroDocumento', width: 50 },
+                  { label: 'Razon Social', name: 'RazonSocial', width: 150 }
+             ],
+              viewrecords: false,
+              height: 250,
+              rowNum: 20,
+              width: 635,
+              rownumbers: true,
+              pager: "#jqGridPager"
+         });
+
+         $("#jqGridPremio").jqGrid({
+                url: '@Url.Action("ListaPremios")',
+                mtype: "POST",
+				styleUI : 'Bootstrap',
+                datatype: "json",
+                colModel: [
+                    { label: 'OrderID', name: 'OrderID', key: true, width: 75 },
+                    { label: 'Customer ID', name: 'CustomerID', width: 150 },
+                    { label: 'Order Date', name: 'OrderDate', width: 150 },
+                    { label: 'Freight', name: 'Freight', width: 150 },
+                    { label:'Ship Name', name: 'ShipName', width: 150 }
+                ],
+				viewrecords: true,
+                height: 250,
+                rowNum: 20,
+                width: 635,
+                rownumbers: true,
+                pager: "#jqGridPager1"
+         });
+
+         $("#ClienteId").select2({
+            ajax: {
+                url: '@Url.Action("GetCliente")',
+                dataType: 'json',
+                delay: 250,
+                type: 'POST',
+                data: function (params) {
+                    return {
+                        query: params.term // search ter
+                    };
+                },
+                processResults: function (data, params) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.RazonSocial,
+                                id: item.ClienteId
+                            };
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Busqueda de clientes',
+            allowClear: true,
+            escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function () {
+                    return "Busqueda de cliente";
+                }
+            }
+         });
+
+        $('#ClienteId').on('select2:select', function (e) {
+            var data = e.params.data;
+
+            $.post('@Url.Action("BuscarPorId")', { id: data.id }, function (response) {
+                if (response.success) {
+                    $("#RazonSocial").val(response.data.RazonSocial);
+                    $("#Direccion").val(response.data.NombreVia);
+                    $("#NumeroRuc").val(response.data.NumeroDocumento);
+                } else {
+                    MsgAlert(3, response.message);
+                }
+            });
+        });
+
+
+        $("#myModalCliente").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            controllerGetAction('@Url.Action("ClienteEdit", "Cliente",new {area="am" })', null, 'modalContentCliente', false, false, null);
+        });
+
+        $('#myModalCliente').on('hidden.bs.modal', function (e) {
+            $('#modalContentCliente').empty();
+        });
+
+        $("#Alternativa").blur(function () {
+            //writeAltenativa();
+        });
+
+
+    });
+
+
+    function onClickCreateCliente() {
+      if (isEmptyElement("DocumentoIdentidadId", "Seleccione documento identidad"))
+            return false;
+
+        if (isEmptyElement("NumeroDocumento", "Ingrese numero documento identidad"))
+            return false;
+
+        if (isEmptyElement("TipoPersonaId", "Seleccione tipo proveedor"))
+            return false;
+
+        if (isEmptyElement("RazonSocial", "Ingrese el campo Razon Social"))
+            return false;
+
+
+        if (isEmptyElement("PersonalId", "Seleccione Asesor"))
+            return false;
+
+
+
+        var jsonData = {
+            Header: JSON.stringify($('#modalContentCliente').serializeObject()),
+            EditAction:'1'
+        };
+        controllerSaveResponse("@Url.Action("CrearCliente", "Cliente", new { area = "am" })", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $("#NumeroRuc").val(response.data.NumeroDocumento);
+                var data = { id: response.data.ClienteId, text: response.data.RazonSocial };
+                var newOption = new Option(data.text, data.id, false, false);
+                $('#ClienteId').append(newOption).trigger('change');
+                $("#Direccion").val(response.data.NombreVia);
+                $("#myModalCliente").modal('hide');
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+    function onClickClienteNuevo() {
+        $("#myModalCliente").modal('show');
+    }
+    function onClickMenuBar(control) {
+        switch (control) {
+            case '@ButtonMenuBarActionConstant.SAVE':
+                saveData(control);
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                controllerGetAction('@Url.Action("Bandeja", "ProgramSorteo", new { area = "pd" })', null, 'workspace', false, false, null);
+                break;
+        }
+
+    };
+    function saveData(key) {
+
+        var data = $('#jqGridClient').getRowData();
+
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var jsonData = {
+            __RequestVerificationToken: token,
+            Header: JSON.stringify($('#form1').serializeObject()),
+             Row: JSON.stringify(data),
+            EditAction: $("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("Create", "ProgramSorteo", new { area = "pd" })", jsonData, false, false, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                controllerGetAction('@Url.Action("Bandeja", "ProgramSorteo", new { area = "pd" })', null, 'workspace', false, false, null);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    };
+
+
+    function onClickParticiMenuBar() {
+        $("#myModalCliente").modal('show');
+    }
+
+    function onClickPremioMenuBar() {
+            $("#myModalPremio").modal('show');
+    }
+
+    function onClickOkCliente() {
+          var rowKey = jQuery("#jqGridCliente").getGridParam("selrow");
+        if (!isEmpty(rowKey)) {
+
+            var jsonList = [];
+            var selectedIDs = jQuery("#jqGridCliente").getGridParam("selarrrow");
+            $.each(selectedIDs, function (item, value) {
+                jsonList.push(jQuery('#jqGridCliente').getRowData(value));
+            });
+
+              var newRowId;
+            $.each(jsonList, function (item, value) {
+                newRowId = gridRowCount("jqGridClient");
+                var count = newRowId + 1;
+                var cantidad = 1;
+                var setcelll = {
+                    rowID: newRowId + 1,
+                    initdata: {
+                        ClienteId:value.ClienteId,
+                        NumeroDocumento: value.NumeroDocumento,
+                        RazonSocial: value.RazonSocial
+                    },
+                    position: "afterSelected"
+                };
+                jQuery("#jqGridClient").jqGrid('addRow', setcelll);
+            });
+
+            $("#myModalCliente").modal('hide');
+
+        }
+    }
+
+    function onChangeRucCliente() {
+        var rucCliente = $("#NumeroRuc").val();
+
+        $.post('@Url.Action("BuscarPorRuc")', { numeroRuc: rucCliente }, function (response) {
+            if (response.success) {
+                var data = {  id: response.data.ClienteId,  text: response.data.RazonSocial };
+                var newOption = new Option(data.text, data.id, false, false);
+                $('#ClienteId').append(newOption).trigger('change');
+                $("#NumeroRuc").val(response.data.NumeroDocumento);
+                $("#Direccion").val(response.data.NombreVia);
+            }
+        });
+    }
+
+    function fnSelectOption(control) {
+        $(control).css("background-color", "red");
+        $(control).css("color", "#ffffff");
+        $(control).prop('disabled', true);
+    }
+
+</script>
+

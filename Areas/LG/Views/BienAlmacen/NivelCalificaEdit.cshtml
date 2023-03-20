@@ -1,0 +1,14 @@
+﻿@model eRPBusiness.Transport.NivelCalificaDTO
+@using eRPBusiness.Helpers
+@{
+    ViewBag.Title = "Categoria";
+}
+
+<div class="panel panel-default">
+    <div class="panel-body form-horizontal" id="panel">
+        <div class="form-group">
+            @Html.CRM().Select2List("CalificacionId", Model.CalificacionId, ViewBag.LstCalifica, "col-lg-10", "Almacen", "col-lg-2", new { })
+        </div>
+    </div>
+    @Html.HiddenFor(m=>m.NivelClasificaId)
+</div>

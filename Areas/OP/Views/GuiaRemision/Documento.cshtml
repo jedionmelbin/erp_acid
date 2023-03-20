@@ -1,0 +1,302 @@
+﻿@model eRPBusiness.Transport.ViewModel.DocumentoViewModel
+@{
+                /**/
+   Layout = "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Documento</title>
+    <link rel="stylesheet" />
+    <style type="text/css">
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            /*width: 100%;
+            height: 100%;*/
+            width: 960px;
+            margin-left: 50px;
+            margin-right: 50px;
+            /*margin: 0;
+            padding: 0;*/
+            /*background-color: #FAFAFA;*/
+            font: 11pt "Tahoma";
+        }
+
+        .table {
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        #factura th {
+            padding-top: 5px;
+            padding-bottom: 5px;
+            text-align: left;
+        }
+
+        #header th {
+            text-align: center;
+            background-color: #000000;
+            color: #ffffff;
+            padding: 5px;
+        }
+
+        #header td {
+            padding-top: 3px;
+            padding-bottom: 3px;
+            text-align: left;
+        }
+
+        #items {
+            font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+            #items th {
+                font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+                border-collapse: collapse;
+                font-size: 8px;
+                background-color: #000000;
+                color: #ffffff;
+            }
+
+            #items td, #items th {
+                border: 1px solid #3d3e40;
+            }
+
+            #items th {
+                padding-top: 10px;
+                padding-bottom: 10px;
+                text-align: center;
+            }
+
+            #items td {
+                font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+                border-collapse: collapse;
+                font-size: 10px;
+                padding: 5px;
+            }
+
+        .column1 {
+            float: left;
+            width: 20.33%;
+            padding: 10px;
+            height: 150px;
+        }
+
+            .column1 p {
+                text-align: center;
+            }
+
+        .column2 {
+            float: left;
+            width: 50.33%;
+            padding: 10px;
+            height: 150px;
+        }
+
+        .column3 {
+            float: left;
+            width: 100%;
+            padding: 10px;
+            height: 150px;
+        }
+
+            .column3 .table {
+                border: 1px solid black;
+            }
+
+
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        .text-bold {
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .column2, p {
+            margin: 0px;
+            font-size: 12px;
+            text-align: justify;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="row">
+            <div class="column1">
+                <h2>Valticore</h2>
+                <p>S.A.C</p>
+            </div>
+            <div class="column2">
+                <p>Av Urubamba 513  Ate vitarte Lima- Lima- Ate</p>
+                <p>Telefono: 013499423</p>
+                <p>www.valticore.com</p>
+            </div>
+            <div class="column3">
+                <table class="table" id="factura">
+                    <thead>
+                        <tr>
+                            <th style="text-align:center">R.U.C 10476800418</th>
+                        </tr>
+                        <tr>
+                            <th style="text-align:center">GUIA REMISION</th>
+                        </tr>
+                        <tr>
+                            <th style="text-align:center">ELECTRONICA</th>
+                        </tr>
+                        <tr>
+                            <th style="text-align:center"> Nº F001-0000002</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </header>
+    <section>
+        <article class="header">
+            <table class="table" id="header" style="width:100%">
+                <thead>
+                    <tr>
+                        <th colspan="2">DATOS DEL TRABAJADOR</th>
+                        <th colspan="2">DESTINATARIO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="text-bold">FECHA  EMISION:</td>
+                        <td>01/12/2019</td>
+                        <td class="text-bold">NOMBRE/RAZON SOCIAL  :</td>
+                        <td>JEDION MELBIN</td>
+                    </tr>
+                    <tr>
+                        <td class="text-bold">FECHA TRASLADO:</td>
+                        <td>01/12/2019</td>
+                        <td class="text-bold">RUC/DNI:</td>
+                        <td>10476800418</td>
+                    </tr>
+                    <tr>
+                        <td class="text-bold">MOTIVO:</td>
+                        <td>VENTA</td>
+                        <td class="text-bold">DIRECCION:</td>
+                        <td>AV URUBAMBA 513 ATE VITARTE</td>
+                    </tr>
+                </tbody>
+            </table>
+            <table class="table" id="header" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>DOMICILIO PARTIDA</th>
+                        <th>DOMICILIO LLEGADA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>AV URUBAMBA 513 ATE VITARTE</td>
+                        <td>MZ B1 LT 09 URB. LA RONCADORA ATE</td>
+                    </tr>
+                </tbody>
+            </table>
+            <table class="table" id="header" style="width:100%">
+                <thead>
+                    <tr>
+                        <th colspan="2">UNID. TRANSPORTE Y CONDUCTOR</th>
+                        <th colspan="2">EMPRESA DE TRASNPORTE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="text-bold">MARCA Y PLACA:</td>
+                        <td>TOYOTA - PQ-5623</td>
+                        <td class="text-bold">NOMBRE/RAZON SOCIAL  :</td>
+                        <td>JEDION MELBIN PAUCAR</td>
+                    </tr>
+                    <tr>
+                        <td class="text-bold">N°CONST. INSC:</td>
+                        <td>21321</td>
+                        <td class="text-bold">RUC  :</td>
+                        <td>10476800418</td>
+                    </tr>
+                    <tr>
+                        <td class="text-bold">N°LICENCIA</td>
+                        <td>46206480</td>
+                    </tr>
+                </tbody>
+            </table>
+        </article>
+        <article>
+            <table class="table" id="items" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>CODIGO</th>
+                        <th>DESCRIPCION</th>
+                        <th>U.M.</th>>
+                        <th>CANTIDAD</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.listItem)
+                    {
+                        <tr>
+
+                            <td width="15%">@item.CodigoBien</td>
+                            <td width="90%">@item.Descripcion</td>
+                            <td width="15%">@item.UnidadMedida</td>
+                            <td width="20%">@item.Cantidad</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2">TIPO Y N° COMPROBANTE :</td>
+                        <td><b>N°OC :</b></td>
+                        <td><b>N° Pedido: </b></td>
+                    </tr>
+                </tfoot>
+                <tfoot>
+                    <tr>
+                        <td colspan="4"><b>OBSERVACION :</b></td>
+                    </tr>
+                    <tr>
+                        <th colspan="2">RESUMEN Y CODIGO DE BARRA</th>
+                        <th colspan="2">OBSERVACIONES DE LA SUNAT</th>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <td colspan="2">0 El Comprobante numero T001-0000001 ha sido aceptado</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4">
+                            Autorizado a ser emisor electronico mediante R.I. SUNAT N° 0180050000974
+                            Representación Impresa de la Guia de Remisión Electrónica, la misma que puede consultar en nuestra página web valticore.com
+                        </td>
+                    </tr>
+                </tfoot>
+                <tfoot>
+
+                </tfoot>
+            </table>
+        </article>
+    </section>
+    <footer></footer>
+</body>
+</html>

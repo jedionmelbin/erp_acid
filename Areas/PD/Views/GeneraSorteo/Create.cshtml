@@ -1,0 +1,257 @@
+﻿@model eRPBusiness.Transport.SorteoPaymentDTO
+@using eRPBusiness.Helpers
+@{
+
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>@ViewBag.Title</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                                   new ItemMenuBar(MenuBarButtonType.Participar),
+                                                   new ItemMenuBar(MenuBarButtonType.Exit)
+                                               })
+
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading"></div>
+            <div class="panel-body form-horizontal">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { @id = "form1" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="form-group">
+                        @Html.CRM().Select2List("SorteoId", Model.SorteoId, ViewBag.ListaSorteo, "col-lg-10", "Sorteo", "col-lg-2")
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().NumericTextBoxFor(m => m.Alternativa, "col-lg-4", "Alternativa", "col-lg-2").TextNumericType(NumericType.Integer).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+                        @Html.CRM().NumericTextBoxFor(m => m.Opcion, "col-lg-4", "Opciones", "col-lg-2").TextNumericType(NumericType.Integer).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().NumericTextBoxFor(m => m.Costo, "col-lg-4", "Costo", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { @readonly = "true" })
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().TextBoxButtonFor(m => m.NumeroRuc, "col-lg-5", "R.U.C", "col-lg-2").OnButtonClick("onChangeRucCliente()").FontButton("glyphicon glyphicon-search").Attributes(new { @placeholder = "R.U.C" })
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().Select2List("ClienteId", Model.ClienteId, ViewBag.ListarCliente, "col-lg-10", "Cliente", "col-lg-2")
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().TextBoxFor(m => m.Direccion, "col-md-10", "Direccion", "col-lg-2").Attributes(new { @placeholder = "Direccion", @readonly = "true" })
+                    </div>
+                    @Html.HiddenFor(m => m.EditAction)
+                    @Html.HiddenFor(m => m.Opciones)
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+            </div>
+            <div class="panel-body form-horizontal" id="payment"></div>
+        </div>
+    </div>
+</div>
+<script id="entry-option" type="text/x-handlebars-template">
+    {{#each optionsValues}}
+         <button type="button" onclick="fnSelectOption(this)" id="btnOptions_{{id}}" class="btn btn-default" style="margin:3px; height:55px; width:55px;" value="{{id}}"><b>{{id}}</b></button>
+    {{/each}}
+
+</script>
+
+<script type="text/javascript">
+    var _montoCartilla = "";
+    var listData = [];
+    $(document).ready(function () {
+
+        $("#SorteoId").select2({ placeholder: 'Busqueda de Sorteos programados',});
+
+         $("#ClienteId").select2({
+            ajax: {
+                url: '@Url.Action("GetCliente")',
+                dataType: 'json',
+                delay: 250,
+                type: 'POST',
+                data: function (params) {
+                    return {
+                        query: params.term // search ter
+                    };
+                },
+                processResults: function (data, params) {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.RazonSocial,
+                                id: item.ClienteId
+                            };
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Busqueda de clientes',
+            allowClear: true,
+            escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function () {
+                    return "Busqueda de cliente";
+                }
+            }
+         });
+
+        $('#ClienteId').on('select2:select', function (e) {
+            var data = e.params.data;
+
+            $.post('@Url.Action("BuscarPorId")', { id: data.id }, function (response) {
+                if (response.success) {
+                    $("#RazonSocial").val(response.data.RazonSocial);
+                    $("#Direccion").val(response.data.NombreVia);
+                    $("#NumeroRuc").val(response.data.NumeroDocumento);
+                } else {
+                    MsgAlert(3, response.message);
+                }
+            });
+        });
+
+         $('#SorteoId').on('select2:select', function (e) {
+            var data = e.params.data;
+
+            $.post('@Url.Action("BuscarSorteoId")', { id: data.id }, function (response) {
+                if (response.success) {
+                    $("#Costo").val(response.data.Costo);
+                    $("#Alternativa").val(response.data.Alternativa);
+                    $("#Opcion").val(response.data.Opciones);
+                     writeAltenativa();
+                } else {
+                    MsgAlert(3, response.message);
+                }
+            });
+         });
+
+        writeAltenativa();
+    });
+
+    function writeAltenativa() {
+        var payment = $("#entry-option").html();
+        var template = Handlebars.compile(payment);
+        var cantidad = parseInt($("#Alternativa").val());
+        var jsonOptions = [];
+        for (var i = 1; i <= cantidad; i++) {
+            jsonOptions.push( { id : i });
+         }
+        $('#payment').empty();
+        $('#payment').append(template({ optionsValues: jsonOptions }));
+
+         var listOption = $("#Opciones").val();
+         var opstSelect = listOption.split(",");
+         $.each(opstSelect, function (item, value) {
+             $("#btnOptions_" + value).css("background-color", "#FF504A");
+             $("#btnOptions_" + value).css("color", "#ffffff");
+             if (value != '') {
+                 listData.push(parseInt(value));
+             }
+      
+          });
+    }
+
+     function onChangeRucCliente() {
+        var rucCliente = $("#NumeroRuc").val();
+
+        $.post('@Url.Action("BuscarPorRuc")', { numeroRuc: rucCliente }, function (response) {
+            if (response.success) {
+                var data = {  id: response.data.ClienteId,  text: response.data.RazonSocial };
+                var newOption = new Option(data.text, data.id, false, false);
+                $('#ClienteId').append(newOption).trigger('change');
+                $("#NumeroRuc").val(response.data.NumeroDocumento);
+                $("#Direccion").val(response.data.NombreVia);
+            }
+        });
+    }
+
+    function fnSelectOption(control) {
+        debugger;
+        var _countCheck = parseInt($("#Opcion").val());
+        if (listData.length == 0) {
+            listData.push(parseInt(control.value));
+            $(control).css("background-color", "#FF504A");
+            $(control).css("color", "#ffffff");
+            $("#Opciones").val(listData.toString());
+
+        } else {
+
+             var result = _.find(listData, function (el, i, col) {
+                     return el === parseInt(control.value);
+             });
+            if (result > 0) {
+                _.remove(listData, function (currentObject) {
+                    return currentObject === result;
+                });
+                $(control).css("background-color", "#fff");
+                $(control).css("color", "#333");
+                $("#Opciones").val(listData.toString());
+            } else {
+                if (_countCheck == listData.length) { 
+                    MsgAlert(3, "El numero de opciones a superado... ")
+                    return false;
+                } 
+                listData.push(parseInt(control.value));
+                $(control).css("background-color", "#FF504A");
+                $(control).css("color", "#ffffff");
+                $("#Opciones").val(listData.toString());
+            }
+
+          
+        }
+       
+      
+    }
+
+    function onClickMenuBar(control) {
+        switch (control) {
+            case '@ButtonMenuBarActionConstant.PARTICIPATE':
+                saveData(control);
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                controllerGetAction('@Url.Action("Bandeja", "GeneraSorteo", new { area = "pd" })', null, 'workspace', false, false, null);
+                break;
+        }
+
+    }
+
+    function saveData() {
+
+        if (isEmptyElement("SorteoId", "Seleccione un sorteo programado"))
+            return false;
+
+        if (isEmptyElement("ClienteId", "Seleccione un cliente"))
+              return false;
+
+
+
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var jsonData = {
+            __RequestVerificationToken: token,
+             Header: JSON.stringify($('#form1').serializeObject()),
+            EditAction: $("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("Create", "GeneraSorteo", new { area = "pd" })", jsonData, false, false, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                controllerGetAction('@Url.Action("Bandeja", "GeneraSorteo", new { area = "pd" })', null, 'workspace', false, false, null);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+</script>

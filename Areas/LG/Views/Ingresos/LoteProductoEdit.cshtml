@@ -1,0 +1,214 @@
+﻿
+@{
+    ViewBag.Title = "FormaPagoEdit";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel">
+            <div class="panel-body">
+                <div class="row">
+                  
+                    <div class="col-lg-12">
+                        <table id="jqGridForma"></table>
+                        <div id="jqGridPagerFm"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+ 
+        $("#jqGridForma").jqGrid({
+            url: '@Url.Action("LoteProducto", "Ingresos")',
+            mtype: "POST",
+            postData: {
+                bienServicioId: function () { return $("#rowBienId").val(); },
+                movimientoAlmacenId: function () { return $("#MovimientoAlmacenId").val(); }
+            },
+            styleUI: 'Bootstrap',
+            datatype: "json",
+            colModel: [
+                {
+                    label: "+",
+                    name: "actions",
+                    width: 50,
+                    sortable: false,
+                    align: 'center',
+                    formatter: function (cellvalue, options, rowObject) {
+
+                        var _buttonNew = '<button type="button" value="' + options.rowId +'" onClick="fnAddRow(this)"><span class="glyphicon glyphicon-plus"></span></button>';
+                        var _buttonDel = '<button type="button" value="' + options.rowId +'" onClick="fnADelRow(this)"><span class="glyphicon glyphicon-minus"></span></button>';
+                        return _buttonNew + _buttonDel;
+                    }
+
+                },
+                {
+                    label: 'BienControlId', name: 'BienControlId', editable: false, hidden: true, formatter: 'integer'
+                },
+                {
+                    label: 'BienServicioId', name: 'BienServicioId', width: 250, editable: false, hidden:true
+                },
+                {
+                    label: 'Descripción', name: 'Descripcion', width: 250, editable: false, editoptions: {
+                        placeholder: "Descripción"
+                    }
+                },
+                {
+                    label: 'Nro Serie', name: 'NumeroSerie', width: 100, editable: true, editoptions: {
+                        placeholder: "Numero Serie"
+                    }
+                },
+                {
+                    label: 'Nro Lote', name: 'NumeroLote', width: 100, editable: true, editoptions: {
+                        placeholder: "Nro Lote"
+                    }
+                },
+                {
+                    label: 'Fecha Emision', name: 'FechaIngreso', width: 100, editable: true, editoptions: {
+                        placeholder: "DD/MM/YYYY",
+                       // readonly: "readonly",
+                        dataInit: function (elem, options) {
+                            $(elem).datetimepicker({
+                                format: 'D/MM/YYYY',
+                                locale: 'es',
+                            });
+                        }
+                    }
+                },
+                {
+                    label: 'Fecha Expira', name: 'FechaExpira', width: 100, editable: true, editoptions: {
+                        placeholder: "DD/MM/YYYY",
+                        dataInit: function (elem, options) {
+                            $(elem).datetimepicker({ format: 'D/MM/YYYY', locale: 'es' });
+                        }
+                    }
+                }
+               
+            ],
+            height: 300,
+            width: 840,
+            viewrecords: true,
+            pager: "#jqGridPagerFm",
+            beforeProcessing: function (data) {
+            },
+            loadComplete: function () {
+                var _validateMv = $("#MovimientoAlmacenId").val();
+                if (_validateMv === "0") {
+                    jQuery("#jqGridForma").jqGrid("clearGridData");
+                    var _rows = parseInt($("#countId").val());
+                    var _rowId = $("#rowId").val();
+                    var rowData = $('#jqGridDetalle').jqGrid('getRowData', _rowId);
+                    var jsonData = [];
+                    if (rowData.RowsLst != '') {
+                        jsonData = JSON.parse(rowData.RowsLst);
+                        if (!jQuery.isEmptyObject(jsonData)) {
+                            $.each(jsonData, function (item, value) {
+                                var newRowId = gridRowCount("jqGridForma");
+                                var setcelll = {
+                                    rowID: newRowId + 1,
+                                    initdata: {
+                                        BienServicioId: value.BienServicioId,
+                                        Descripcion: rowData.Descripcion,
+                                        NumeroSerie: value.NumeroSerie,
+                                        NumeroLote: value.NumeroLote,
+                                        FechaIngreso: value.FechaIngreso,
+                                        FechaExpira: value.FechaExpira,
+                                    },
+                                    position: "afterSelected"
+                                };
+                                jQuery("#jqGridForma").jqGrid('addRow', setcelll);
+                            });
+
+                        }
+                    } else {
+
+                        for (var i = 0; i < _rows; i++) {
+                            var newRowId = gridRowCount("jqGridForma");
+                            var rowData = $('#jqGridDetalle').jqGrid('getRowData', _rowId);
+                            var dataFromTheRow = jQuery('#jqGridForma').jqGrid('getRowData', newRowId);
+                            var _fechaEmision = $("#" + newRowId + "_FechaIngreso").val();
+                            var _fechaExpira = $("#" + newRowId + "_FechaExpira").val();
+
+                            var setcelll = {
+                                rowID: newRowId + 1,
+                                initdata: {
+                                    BienServicioId: rowData.BienServicioId,
+                                    Descripcion: rowData.Descripcion,
+                                    FechaIngreso: _fechaEmision,
+                                    FechaExpira: _fechaExpira
+                                },
+                                position: "afterSelected"
+                            };
+                            jQuery("#jqGridForma").jqGrid('addRow', setcelll);
+                        }
+
+                    }
+                }
+
+                var dataIDs = $("#jqGridForma").jqGrid('getDataIDs');
+                $.each(dataIDs, function (item, value) {
+                    $("#jqGridForma").jqGrid('editRow', value, true);
+                });
+
+            },
+            gridComplete: function () {
+
+            }
+        });
+
+
+    });
+
+    function fnAddRow(control) {
+        var newRowId;
+        newRowId = gridRowCount("jqGridForma");
+        var dataFromTheRow = jQuery('#jqGridForma').jqGrid('getRowData', newRowId);
+        var _fechaEmision = $("#" + newRowId + "_FechaIngreso").val();
+        var _fechaExpira = $("#" + newRowId + "_FechaExpira").val();
+
+        var setcelll = {
+            rowID: newRowId + 1,
+            initdata: {
+                BienServicioId: dataFromTheRow.BienServicioId,
+                Descripcion: dataFromTheRow.Descripcion,
+                FechaIngreso: _fechaEmision,
+                FechaExpira: _fechaExpira
+            },
+            position: "afterSelected"
+        };
+        jQuery("#jqGridForma").jqGrid('addRow', setcelll);
+    }
+
+    function fnNewRows() {
+        var _rows = parseInt($("#txtFila").val());
+        for (var i = 0; i < _rows; i++) {
+            var newRowId;
+            newRowId = gridRowCount("jqGridForma");
+            var dataFromTheRow = jQuery('#jqGridForma').jqGrid('getRowData', newRowId);
+            var _fechaEmision = $("#" + newRowId + "_FechaIngreso").val();
+            var _fechaExpira = $("#" + newRowId + "_FechaExpira").val();
+
+            var setcelll = {
+                rowID: newRowId + 1,
+                initdata: {
+                    BienServicioId: dataFromTheRow.BienServicioId,
+                    Descripcion: dataFromTheRow.Descripcion,
+                    FechaIngreso: _fechaEmision,
+                    FechaExpira: _fechaExpira
+                },
+                position: "afterSelected"
+            };
+            jQuery("#jqGridForma").jqGrid('addRow', setcelll);
+        }
+
+    }
+
+    function fnADelRow(control) {
+        $("#jqGridForma").jqGrid('delRowData', control.value);
+    }
+
+</script>

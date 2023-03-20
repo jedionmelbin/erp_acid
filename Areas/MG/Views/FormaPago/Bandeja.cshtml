@@ -1,0 +1,362 @@
+﻿@using eRPBusiness.Helpers
+@using eRPBusiness.Common
+@{
+    ViewData["Title"] = "Forma de venta";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label> Condición de pago</label>
+        </nav>
+    </div>
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="col-lg-11">
+                    @Html.CRM().TextBox("codigo", null, "col-lg-4", "Código", "col-lg-2").Attributes(new { @maxlength = "100", @placeholder = "Código" })
+                    @Html.CRM().TextBox("nombre", null, "col-lg-4", "Nombre", "col-lg-2").Attributes(new { @maxlength = "100", @placeholder = "Nombre" })
+                </div>
+                <div class="col-lg-1">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridBandeja').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('input:text').val(''); $('#jqGridBandeja').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                @Html.CRM().MenuBar("FormaVentaMenuBar", "onClickFormaVentaMenuBar", new ItemMenuBar[]{
+                                                new ItemMenuBar(MenuBarButtonType.New,  false ),
+                                                new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                new ItemMenuBar(MenuBarButtonType.Save,true),
+                                                new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                                            }, MenuBarType.Small)
+
+            </div>
+            <div class="panel-body" id="panel">
+                <table id="jqGridBandeja"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+    @Html.Hidden("esNuevo")
+</div>
+@using (Html.CRM().Popup("divFormaPago", "Forma de Pago", "onClickOkFormaPago", SizePopup.Default))
+{
+    <div id="divFormaPagoContent"></div>
+}
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridBandeja").jqGrid({
+            url: '@Url.Action("ListarBandeja", "FormaPago", new { area = "mg" })',
+            postData:{
+                codigo: function () { return $("#codigo").val() },
+                nombre: function () { return $("#nombre").val() },
+            },
+            mtype: "POST",
+            datatype: "json",
+            colModel: [
+                { label: '', name: 'FormaPagoId', hidden: true, key: true },
+                { label: '', name: 'Estado', hidden: true },
+                { label: 'Codigo', name: 'Codigo', width: 15, edittype: 'text', editable: true, editoptions: { maxlength: 4, placeholder: "Código" } },
+                { label: 'Nombre', name: 'Nombre', width: 100, edittype: 'text', editable: true, editoptions: { placeholder: "Nombre" } },
+                { label: 'Descripción', name: 'Descripcion', width: 100, edittype: 'text', editable: true, editoptions: { placeholder: "Descripcion" } },
+                { label: 'Periodo', name: 'Periodo', width: 15, edittype: 'text', editable: true, editoptions: { placeholder: "Periodo" } },
+                { label: 'Tipo Periodo', name: 'TipoPeriodo', width: 15, edittype: 'text', editable: true, editoptions: { placeholder: "Tipo Periodo" } },
+                { label: 'Estado', name: 'Estado', width: 15, align:'center', edittype: 'text', editable: false, formatter: colorCell  },
+                {
+                    label: "Eliminar",
+                    name: "actions",
+                    width: 10,
+                    sortable: false,
+                    align: 'center',
+                    formatter: function (cellvalue, options, rowObject) {
+                        return "<a href='#' id='" + options.rowId + "' onClick='fnDeleteRow(this)' ><span class='glyphicon glyphicon-trash'></span></a>";
+                    }
+
+                }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 200),
+            width: _widthPanel,
+            rowNum: 40,
+            rowList: [10, 20, 30],
+            onSelectRow: function (rowid) {
+                $("#FormaVentaMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.EDIT',
+                    disabled: false
+                });
+
+            },
+            pager: "#jqGridPager"
+        });
+
+        $("#divFormaPago").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            var row = getGridSelectedRow("jqGridBandeja");
+            var postData = {
+                editAction: $("#esNuevo").val(),
+                formaPagoId: row.FormaPagoId
+            };
+            controllerGetAction('@Url.Action("Create")', postData, 'divFormaPagoContent', false, false, null);
+        });
+        $('#divFormaPago').on('hidden.bs.modal', function (e) {
+            $('#divFormaPagoContent').empty();
+        });
+    });
+
+    function colorCell(cellvalue, options, rowObject) {
+        var backgroud = '', colorHex = '';
+        switch (rowObject.Estado) {
+            case 'I':
+                colorHex = '#FA4200';
+                cellvalue = "INACTIVO";
+                break;
+            case 'A':
+                colorHex = '#009494';
+                cellvalue = "ACTIVO";
+                break;
+        }
+        backgroud = '<span style="background-color: ' + colorHex + '; display: block; width: 100%; height: 100%; color:#fff; ">' + cellvalue + '</span>';
+        return backgroud;
+    }
+
+
+    function onClickFormaVentaMenuBar(control) {
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                $("#esNuevo").val('@DigitosConstante.UNO');
+                //var newRowId = gridRowCount("jqGridBandeja");
+                //var parameters = {
+                //    rowID: newRowId + 1,
+                //    initdata: {
+                //    },
+                //    position: "first"
+                //};
+                //$("#jqGridBandeja").jqGrid('addRow', parameters);
+                //actionNuevo();
+                $("#divFormaPago").modal('show');
+             break;
+            case "@ButtonMenuBarActionConstant.SAVE":
+                debugger;
+                var rowId = getGridSelectedRowId('jqGridBandeja');
+                var row = getGridSelectedRow('jqGridBandeja');
+                if (isEmptyElement(rowId + "_Codigo", "Ingrese el campo codigo"))
+                    return false;
+
+                if (isEmptyElement(rowId + "_Nombre", "Ingrese el campo nombre"))
+                    return false;
+
+                $("#jqGridBandeja").jqGrid('saveRow', rowId, {url: 'clientArray', aftersavefunc: function (id, response, options){
+                    var row = getGridSelectedRow("jqGridBandeja");
+
+                    var postData = {
+                        Row: JSON.stringify(row),
+                        EditAction: $("#esNuevo").val()
+                    };
+                    controllerSaveResponse('@Url.Action("Create", "FormaPago")', postData, true, true, function (response) {
+                        if (response.success) {
+                            MsgAlert(1, response.message);
+                            jQuery("#jqGridBandeja").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                        } else {
+                            MsgAlert(4, response.message);
+                        }
+                    });
+                }
+                });
+                actionSave();
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+               // actionEdit();
+                $("#esNuevo").val('@DigitosConstante.DOS');
+                var row = getGridSelectedRow('jqGridBandeja');
+                if (!isEmpty(row)) {
+                    //var rowId = getGridSelectedRowId("jqGridBandeja");
+                    //$('#jqGridBandeja').jqGrid('editRow', rowId);
+                    //lastsel=rowId;
+                    $("#divFormaPago").modal('show');
+                }else{
+                    MsgAlert(3, 'Selccione un registro');
+                }
+
+                break;
+            case '@ButtonMenuBarActionConstant.CANCEL':
+                actionCancel();
+                var rowid = getGridSelectedRowId("jqGridBandeja");
+                $('#jqGridBandeja').setGridParam({ datatype: 'json' });
+                $('#jqGridBandeja').trigger('reloadGrid');
+                lastsel = 0;
+                break;
+        }
+    }
+
+    function onClickOkFormaPago() {
+        if (isEmptyElement('Codigo', 'Ingrese codigo'))
+            return false;
+
+        if (isEmptyElement('Nombre', 'Ingrese nombre'))
+            return false;
+
+        var postData = {
+            Header: JSON.stringify($('#divFormaPagoContent').serializeObject()),
+            EditAction: $("#esNuevo").val()
+        };
+
+        controllerSaveResponse('@Url.Action("Create", "FormaPago")', postData, false, false, function (response) {
+            if (response.success) {
+                $("#jqGridBandeja").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                $("#divFormaPago").modal('hide');
+                MsgAlert(1, response.message);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+    function fnDeleteRow(control) {
+        var dataFromTheRow = jQuery('#jqGridBandeja').jqGrid('getRowData', control.id);
+          const swalWithBootstrapButtons = Swal.mixin({
+                      customClass: {
+                        confirmButton: 'btn btn-success',
+                        cancelButton: 'btn btn-danger'
+                      },
+                      buttonsStyling: false
+                    })
+
+                    swalWithBootstrapButtons.fire({
+                      title: 'Estás habilitar o inhabilitar este registro ?',
+                      text: "¡No podrás revertir esto!",
+                      icon: 'warning',
+                      showCancelButton: true,
+                      confirmButtonText: 'Si, Aceptar!',
+                      cancelButtonText: 'No, cancelar!',
+                      reverseButtons: true
+                    }).then((result) => {
+                        if (result.value) {
+                            var jsonData = {
+                                formaPagoId: dataFromTheRow.FormaPagoId
+                            };
+                        controllerSaveResponse("@Url.Action("Habilitar", "FormaPago", new { area = "mg" })", jsonData, true, true, function (response) {
+                            if (response.success) {
+                                //swalWithBootstrapButtons.fire(
+                                //    'Aceptado!',
+                                //    'Su inventario ha sido aprobado.',
+                                //    'success'
+                                //);
+                                $('#jqGridBandeja').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');
+                            } else {
+                                MsgAlert(4, response.message);
+                            }
+                        });
+
+                      } else if (
+                        result.dismiss === Swal.DismissReason.cancel
+                      ) {
+                        swalWithBootstrapButtons.fire(
+                          'Cancelled',
+                          'Tu forma de pago está seguro',
+                          'error'
+                        )
+                      }
+                    })
+        //alert(control.id);
+    }
+
+    function actionNuevo()
+    {
+        $("#FormaVentaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: true
+        });
+
+        $("#FormaVentaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: true
+        });
+
+        $("#FormaVentaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: false
+        });
+
+        $("#FormaVentaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: false
+        });
+
+    }
+
+    function actionEdit() {
+        $("#FormaVentaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: true
+        });
+        $("#FormaVentaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: true
+        });
+
+        $("#FormaVentaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: false
+        });
+
+        $("#FormaVentaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: false
+        });
+    }
+
+    function actionSave() {
+        $("#FormaVentaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: false
+        });
+        $("#FormaVentaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: true
+        });
+        $("#FormaVentaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: true
+        });
+        $("#FormaVentaMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: true
+        });
+    }
+
+        function actionCancel() {
+            $("#FormaVentaMenuBar").menuBar({
+                button: '@ButtonMenuBarNameConstant.EDIT',
+                disabled: true
+            });
+
+            $("#FormaVentaMenuBar").menuBar({
+                button: '@ButtonMenuBarNameConstant.SAVE',
+                disabled: true
+            });
+            $("#FormaVentaMenuBar").menuBar({
+                button: '@ButtonMenuBarNameConstant.NEW',
+                disabled: false
+            });
+            $("#FormaVentaMenuBar").menuBar({
+                button: '@ButtonMenuBarNameConstant.CANCEL',
+                disabled: true
+            });
+        }
+</script>
+
+

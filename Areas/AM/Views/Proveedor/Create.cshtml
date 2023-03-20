@@ -1,0 +1,559 @@
+@model eRPBusiness.Transport.ClienteDTO
+@using eRPBusiness.Helpers
+@using eRPBusiness.Common
+@{
+
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>@ViewBag.Title</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                                   new ItemMenuBar(MenuBarButtonType.Save),
+                                                   new ItemMenuBar(MenuBarButtonType.Exit)
+
+                                               })
+<div class="row">
+    <div class="col-lg-12 col-md-12 col-sm-12">
+        <ul class="nav nav-tabs" role="tablist" id="myTabs">
+            <li role="presentation" class="active"><a href="#datos" aria-controls="datos" role="tab" data-toggle="tab">Datos Personales</a></li>
+            <li role="presentation"><a href="#contacto" aria-controls="contacto" role="tab" data-toggle="tab">Contactos</a></li>
+            <li role="presentation"><a href="#direcciones" aria-controls="direcciones" role="tab" data-toggle="tab">Direcciones</a></li>
+        </ul>
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="datos">
+                <div class="row">
+                    @using (Html.BeginForm("", "", FormMethod.Post, new { @id = "form1" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="col-lg-6 form-horizontal">
+                            <div class="form-group">
+                                @Html.CRM().Select2List("DocumentoIdentidadId", Model.DocumentoIdentidadId, @ViewBag.ListaDocIdenti, "col-lg-5", "Documento", "col-lg-2")
+                                @Html.CRM().TextBoxButtonFor(m => m.NumeroDocumento, "col-lg-3", "Nro Doc.", "col-lg-2").OnButtonClick("onClickCliente(this)").FontButton("glyphicon glyphicon-search").Attributes(new { @placeholder = "DNI/RUC", @maxlength = "11" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().Select2List("TipoPersonaId", Model.TipoPersonaId, @ViewBag.TipoProvList, "col-lg-10", "Tipo", "col-lg-2")
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.RazonSocial, "col-lg-10", "Razon Social", "col-lg-2").Attributes(new { @placeholder = "Razon Social" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.NombreComercial, "col-lg-10", "Nom. Comercial", "col-lg-2").Attributes(new { @placeholder = "Nombre Comercial" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().DateTimePickerFor(m => m.FechaNacimiento, "col-lg-4", "Fecha Final", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Nacimiento" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().Select2List("PersonalId", Model.PersonalId, @ViewBag.ListarPersonal, "col-lg-10", "Asesor", "col-lg-2")
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.Telefono, "col-lg-4", "Telefono", "col-lg-2").Attributes(new { @placeholder = "Telefono" })
+                                @Html.CRM().TextBoxFor(m => m.Celular, "col-lg-4", "Celular", "col-lg-2").Attributes(new { @placeholder = "Celular" })
+                            </div>
+                        </div>
+                        <div class="col-lg-6 form-horizontal">
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.NombreVia, "col-lg-10", "Dirección", "col-lg-2").Attributes(new { @placeholder = "Dirección" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.NumeroVia, "col-lg-4", "Nro Via", "col-lg-2").Attributes(new { @placeholder = "Nro Via" })
+                                @Html.CRM().TextBoxFor(m => m.Interior, "col-lg-4", "Interior", "col-lg-2").Attributes(new { @placeholder = "Interior" })
+                            </div>
+                            <div class="form-group">
+                                @if (ViewBag.IsNew)
+                                {
+                                    @Html.CRM().Select2List("PaisId", null, @ViewBag.PaisList, "col-lg-4", "Pais", "col-lg-2", new { @onchange = "onChangePais(this);" })
+                                    @Html.CRM().Select2List("DepartamentoId", null, @ViewBag.DepartamentoList, "col-lg-4", "Departamento", "col-lg-2", new { @onchange = "onChangeDepartamento(this);", @disabled = "disabled" })
+                                }
+                                else
+                                {
+                                    @Html.CRM().Select2List("PaisId", Model.PaisId, @ViewBag.PaisList, "col-lg-4", "Pais", "col-lg-2", new { @onchange = "onChangeProvincia(this);" })
+                                    @Html.CRM().Select2List("DepartamentoId", Model.DepartamentoId, @ViewBag.DepartamentoList, "col-lg-4", "Departamento", "col-lg-2", new { @onchange = "onChangeDepartamento(this);" })
+                                }
+                            </div>
+                            <div class="form-group">
+                                @if (ViewBag.IsNew)
+                                {
+                                    @Html.CRM().Select2List("ProvinciaId", null, @ViewBag.ProvinciaList, "col-lg-4", "Provincia", "col-lg-2", new { @onchange = "onChangeProvincia(this);", @disabled = "disabled" })
+                                    @Html.CRM().Select2List("DistritoId", null, @ViewBag.DistritoList, "col-lg-4", "Distrito", "col-lg-2", new { @disabled = "disabled" })
+                                }
+                                else
+                                {
+                                    @Html.CRM().Select2List("ProvinciaId", Model.ProvinciaId, @ViewBag.ProvinciaList, "col-lg-4", "Provincia", "col-lg-2", new { @onchange = "onChangeProvincia(this);" })
+                                    @Html.CRM().Select2List("DistritoId", Model.DistritoId, @ViewBag.DistritoList, "col-lg-4", "Distrito", "col-lg-2")
+                                }
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.CorreoUno, "col-lg-10", "Correo", "col-lg-2").Attributes(new { @placeholder = "Correo principal" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.CorreoDos, "col-lg-10", "Correo Factura", "col-lg-2").Attributes(new { @placeholder = "Correo Facturación" })
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().TextBoxFor(m => m.PaginaWeb, "col-lg-10", "Web", "col-lg-2").Attributes(new { @placeholder = "Pagina Web" })
+                            </div>
+
+                            <div class="form-group">
+                                @Html.CRM().Select2List("FormaVentaId", Model.FormaVentaId, @ViewBag.FormaVentaList, "col-lg-10", "Cond Pago", "col-lg-2")
+                            </div>
+                            <div class="form-group">
+                                @Html.CRM().Select2List("MonedaId", Model.MonedaId, @ViewBag.MonedaList, "col-lg-4", "Moneda", "col-lg-2")
+                                @Html.CRM().Select2List("TipoPrecioId", Model.TipoPrecioId, @ViewBag.TipoPrecioList, "col-lg-4", "Tipo Precio", "col-lg-2")
+                            </div>
+                        </div>
+                        @Html.HiddenFor(m => m.ClienteId)
+                        @Html.HiddenFor(m => m.EditAction)
+                        @Html.Hidden("esNuevo")
+                    }
+
+
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="contacto">
+                <div class="row">
+                    <div class="col-lg-12">
+                        @Html.CRM().MenuBar("ContactoMenuBar", "onClickContactoMenuBar", new ItemMenuBar[]{
+                                                new ItemMenuBar(MenuBarButtonType.New, false),
+                                                new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                new ItemMenuBar(MenuBarButtonType.Delete,true)
+                                            }, MenuBarType.Small)
+                    </div>
+                    <div class="col-lg-12">
+                        <table id="jqGridContacto"></table>
+                        <div id="jqGridPager"></div>
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="direcciones">
+                <div class="row">
+                    <div class="col-lg-12">
+                        @Html.CRM().MenuBar("DireccionMenuBar", "onClickDireccionMenuBar", new ItemMenuBar[]{
+                                                new ItemMenuBar(MenuBarButtonType.New,  false ),
+                                                new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                new ItemMenuBar(MenuBarButtonType.Delete,true)
+                                            }, MenuBarType.Small)
+                    </div>
+                    <div class="col-lg-12">
+                        <table id="jqGridDireccion"></table>
+                        <div id="jqGridPagerDireccion"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.CRM().Popup("divContactoList", "Contacto", "onClickOkContacto", SizePopup.Default))
+{
+    <div id="divContactoContent"></div>
+}
+
+@using (Html.CRM().Popup("divDireccionList", "Dirección", "onClickOkDireccion", SizePopup.Default))
+{
+    <div id="divDireccionContent"></div>
+}
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#myTabs").width();
+
+    $(document).ready(function () {
+        $("#jqGridContacto").jqGrid({
+            url: '@Url.Action("ListarContacto", "Proveedor", new { area = "am" })',
+            mtype: "POST",
+            postData: {
+                ClienteId: function () { return $("#ClienteId").val() }
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'ContactoId', key: true, hidden: true },
+                { label: '', name: 'ClienteId', hidden: true },
+                { label: '', name: 'AreaId', hidden: true },
+                { label: 'Area', name: 'Area', width: 40 },
+                { label: 'Nombres', name: 'NombreContacto', width: 70 },
+                { label: 'Nro. Documento', name: 'NumeroDocumentoContacto', width: 25 },
+                { label: 'Telefono', name: 'TelefonoContacto', hidden: true },
+                { label: 'Celular', name: 'CelularContacto', hidden: true },
+                { label: 'Email', name: 'EmailContacto', width: 55 },
+                { label: 'Dirección', name: 'DireccionContacto', width: 100 }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            rowNum: 20,
+            height: (_heightGrid - 245),
+            width: (_widthPanel - 12),
+            rowList: [10, 20, 30],
+            onSelectRow: function (rowid) {
+                if (rowid == null || rowid == 0)
+                    return;
+
+                $("#ContactoMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.EDIT',
+                    disabled: false
+                });
+
+            },
+            pager: "#jqGridPager"
+        });
+
+        $("#jqGridDireccion").jqGrid({
+            url: '@Url.Action("ListarDireccion", "Proveedor", new { area = "am" })',
+            mtype: "POST",
+            postData: {
+                ClienteId: function () { return $("#ClienteId").val() }
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'DireccionId', key: true, hidden: true },
+                { label: 'Nombres', name: 'NombreDireccion', width: 50 },
+                { label: 'Referencia', name: 'Referencia', width: 40 },
+                { label: 'Pais', name: 'Pais', hidden: true },
+                { label: 'Departamento', name: 'Departamento', width: 20 },
+                { label: 'Provincia', name: 'Provincia', width: 20 },
+                { label: 'Distrito', name: 'Distrito', width: 30 },
+                { label: '', name: 'DistritoId', hidden: true },
+            ],
+            viewrecords: true,
+            loadonce: true,
+            rowNum: 20,
+            height: (_heightGrid - 245),
+            width: (_widthPanel - 12),
+            rowList: [10, 20, 30],
+            onSelectRow: function (rowid) {
+                if (rowid == null || rowid == 0)
+                    return;
+
+                $("#DireccionMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.EDIT',
+                    disabled: false
+                });
+
+            },
+            pager: "#jqGridPagerDireccion"
+        });
+
+        $("#divContactoList").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            var row = getGridSelectedRow('jqGridContacto');
+
+            var postData = {
+                editAction: $("#esNuevo").val(),
+                contactoId: row.ContactoId,
+            };
+            controllerGetAction('@Url.Action("ContactoEdit", "Proveedor")', postData, 'divContactoContent', false, false, null);
+        });
+
+        $("#divDireccionList").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            var row = getGridSelectedRow('jqGridDireccion');
+            var postData = {
+                editAction: $("#esNuevo").val(),
+                direccionId: row.DireccionId,
+            };
+            controllerGetAction('@Url.Action("DireccionEdit", "Proveedor")', postData, 'divDireccionContent', false, false, null);
+        });
+
+        $('#divContactoList').on('hidden.bs.modal', function (e) {
+            $('#divContactoContent').empty();
+        });
+
+        $('#divDireccionList').on('hidden.bs.modal', function (e) {
+            $('#divDireccionContent').empty();
+        });
+
+
+    });
+
+
+    function onClickContactoMenuBar(key) {
+        var row = getGridSelectedRow("jqGridContacto");
+        switch (key) {
+            case '@ButtonMenuBarActionConstant.NEW':
+                $("#esNuevo").val("1")
+                $('#divContactoList').modal('show');
+                break;
+            case '@ButtonMenuBarActionConstant.EDIT':
+                if (!isEmpty(row)) {
+                    $("#esNuevo").val("2")
+                    $('#divContactoList').modal('show');
+                } else {
+                    MsgAlert(3, 'Seleccione un contacto');
+                }
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+
+                break;
+        }
+    }
+    function onClickDireccionMenuBar(key) {
+        var row = getGridSelectedRow("jqGridDireccion");
+        switch (key) {
+            case '@ButtonMenuBarActionConstant.NEW':
+                $("#esNuevo").val("1")
+                $('#divDireccionList').modal('show');
+                break;
+            case '@ButtonMenuBarActionConstant.EDIT':
+                if (!isEmpty(row)) {
+                    $("#esNuevo").val("2")
+                    $('#divDireccionList').modal('show');
+                } else {
+                    MsgAlert(3, 'Seleccione una dirección');
+                }
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+
+                break;
+        }
+    }
+
+    function onClickMenuBar(key) {
+        switch (key) {
+            case '@ButtonMenuBarActionConstant.SAVE':
+                saveData(key);
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                controllerGetAction('@Url.Action("Bandeja", "Proveedor", new { area = "AM" })', null, 'workspace', false, false, null);
+                break;
+        }
+
+    };
+    function saveData(key) {
+        if (isEmptyElement("DocumentoIdentidadId", "Seleccione documento identidad"))
+            return false;
+
+        if (isEmptyElement("NumeroDocumento", "Ingrese numero documento identidad"))
+            return false;
+
+        if (isEmptyElement("TipoPersonaId", "Seleccione tipo proveedor"))
+            return false;
+
+        if (isEmptyElement("RazonSocial", "Ingrese el campo Razon Social"))
+            return false;
+
+        //if (isEmptyElement("Nombres", "Ingrese el campo nombres y apellidos"))
+        //    return false;
+
+        if (isEmptyElement("PersonalId", "Seleccione Asesor"))
+            return false;
+
+        //if (isEmptyElement("FormaVentaId", "Seleccione forma de venta"))
+        //    return false;
+
+        if (isEmptyElement("MonedaId", "Seleccione Moneda"))
+            return false;
+
+        //if (isEmptyElement("PaisId", "Seleccione País"))
+        //    return false;
+
+        //if (isEmptyElement("DepartamentoId", "Seleccione Departamento"))
+        //    return false;
+
+        //if (isEmptyElement("ProvinciaId", "Seleccione Provincia"))
+        //    return false;
+
+        //if (isEmptyElement("DistritoId", "Seleccione Distrito"))
+        //    return false;
+
+
+
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var data = $('#jqGridContacto').getRowData();
+        var direcion = $('#jqGridDireccion').getRowData();
+
+        var jsonData = {
+            __RequestVerificationToken: token,
+            Header: JSON.stringify($('#form1').serializeObject()),
+            EditAction: $("#EditAction").val(),
+            Row: JSON.stringify(data),
+            Detail: JSON.stringify(direcion),
+        };
+        controllerSaveResponse("@Url.Action("Create", "Proveedor", new { area = "AM" })", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                controllerGetAction('@Url.Action("Bandeja", "Proveedor", new { area = "AM" })', null, 'workspace', false, false, null);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    };
+
+    function onClickOkContacto() {
+
+        if (isEmptyElement("NombreContacto", "Ingrese el campo nombres y apellidos"))
+            return false;
+
+        //if (isEmptyElement("NumeroDocumentoContacto", "Ingrese el campo numero documento"))
+        //    return false;
+
+        if (isEmptyElement("AreaId", "Seleccione area"))
+            return false;
+
+        if (isEmptyElement("TelefonoContacto", "Ingrese el campo telefono"))
+            return false;
+
+        var newRowId = gridRowCount("jqGridDireccion");
+        var count = newRowId + 1;
+
+        var setcelll = {
+            rowID: newRowId + 1,
+            initdata: {
+                ContactoId: 0,
+                AreaId: $("#AreaId").val(),
+                Area: $("#AreaId option:selected").text(),
+                ClienteId: $("#ClienteId").val(),
+                NombreContacto: $("#NombreContacto").val(),
+                NumeroDocumentoContacto: $("#NumeroDocumentoContacto").val(),
+                TelefonoContacto: $("#TelefonoContacto").val(),
+                CelularContacto: $("#CelularContacto").val(),
+                EmailContacto: $("#EmailContacto").val(),
+                DireccionContacto: $("#DireccionContacto").val(),
+            },
+            position: "afterSelected"
+        }
+        console.log(setcelll);
+        jQuery("#jqGridContacto").jqGrid('addRow', setcelll);
+        $('#divContactoList').modal('hide');
+
+        if ($("#EditAction").val() == '@DigitosConstante.DOS') {
+            var row = getGridSelectedRow("jqGridContacto");
+            var postData = {
+                Header: JSON.stringify($('#form1').serializeObject()),
+                Detail: JSON.stringify($('#divContactoContent').serializeObject()),
+                EditAction: $("#esNuevo").val()
+            };
+
+            controllerSaveResponse('@Url.Action("ContactoGuardar", "Proveedor")', postData, false, false, function (response) {
+                if (response.success) {
+                    $('#divContactoList').modal('hide');
+                    $("#jqGridContacto").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                    MsgAlert(1, response.message);
+                } else {
+                    MsgAlert(2, response.message);
+                }
+            });
+        }
+
+
+    };
+
+    function onClickOkDireccion() {
+        if (isEmptyElement("NombreDireccion", "Ingrese el campo nombre"))
+            return false;
+
+        if (isEmptyElement("PaisDireccionId", "Seleccione el campo pais"))
+            return false;
+
+        if (isEmptyElement("DepartamentoContactoId", "Seleccione el campo departamento"))
+            return false;
+
+        if (isEmptyElement("ProvinciaContactoId", "Seleccione el campo provincia"))
+            return false;
+
+        if (isEmptyElement("DistritoContactoId", "Seleccione el campo distrito"))
+            return false;
+
+
+
+         var postData = {
+                Header: JSON.stringify($('#form1').serializeObject()),
+                Detail: JSON.stringify($('#divDireccionContent').serializeObject()),
+                EditAction: $("#esNuevo").val()
+            };
+
+            controllerSaveResponse('@Url.Action("DireccionGuardar", "Proveedor")', postData, false, false, function (response) {
+                if (response.success) {
+                    $('#divDireccionList').modal('hide');
+                    $("#jqGridDireccion").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                    MsgAlert(1, response.message);
+                } else {
+                    MsgAlert(2, response.message);
+                }
+            });
+
+    }
+      function onChangePais(control) {
+        $.post('@Url.Action("GetDepartamento", "Cliente")',
+            {
+                paisId: control.value
+            }, function (response) {
+                $('#DepartamentoId').find('option').remove().end();
+                $("#DepartamentoId").addItems(response.data);
+                $("#DepartamentoId").prop("disabled", false);
+                $("#DepartamentoId").prop("selectedIndex", 1);
+                onChangeDepartamento(control)
+            });
+    };
+
+    function onChangeDepartamento(control) {
+
+        $.post('@Url.Action("GetProvincia", "Cliente")',
+         {
+             departamentoId: control.value
+         }, function (response) {
+             $('#ProvinciaId').find('option').remove().end();
+             $("#ProvinciaId").addItems(response.data);
+             $("#ProvinciaId").prop("disabled", false);
+             $("#ProvinciaId").prop("selectedIndex", 1);
+             onChangeProvincia(document.getElementById("ProvinciaId"));
+
+         });
+    };
+
+    function onChangeProvincia(control) {
+
+        $.post('@Url.Action("GetDistrito", "Cliente")',
+         {
+             provinciaId: control.value
+         }, function (response) {
+             $('#DistritoId').find('option').remove().end();
+             $("#DistritoId").addItems(response.data);
+             $("#DistritoId").prop("selectedIndex", 1);
+             $("#DistritoId").prop("disabled", false);
+         });
+    }
+
+        function onClickCliente(control) {
+        var value = $("#NumeroDocumento").val();
+
+        if (isEmptyElement("NumeroDocumento", "Ingrese el campo numero numero documento"))
+            return false;
+
+        let timerInterval
+        Swal.fire({
+            title: 'Espere estamos consultando !',
+            html: 'En unos momentos <strong></strong> se cerrara.',
+            timer: 2000,
+            onBeforeOpen: () => {
+                Swal.showLoading()
+            },
+            onClose: () => {
+            }
+        }).then((result) => {
+
+        });
+
+        $.post('@Url.Action("GetClienteSunat", "Cliente")', {
+            numeroruc: value,
+            tipoDoc: '27'
+        }, function (response) {
+            if (response.success) {
+                $("#RazonSocial").val(response.data.Nombre);
+                $("#NombreComercial").val(response.data.Nombre);
+                $("#Nombres").val(response.data.Nombres);
+                $("#NumeroDocumento").val(response.data.NumeroDocumento);
+                $("#NombreVia").val(response.data.Direccion);
+
+            } else {
+                var json = JSON.parse(response.data);
+                MsgAlert(3, json.error);
+            }
+        });
+    }
+</script>

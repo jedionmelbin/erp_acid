@@ -1,0 +1,53 @@
+﻿@using eRPBusiness.Helpers
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="col-lg-10 form-horizontal">
+                    <div class="form-group">
+                        @Html.CRM().TextBox("NombreContacto", null, "col-lg-10", "Nombre", "col-lg-2").Attributes(new { @placeholder = "Nombres" })
+                    </div>
+                </div>
+                <div class="col-lg-2 form-horizontal text-right">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("btnContacto", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridContacto').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <table id="jqGridContacto"></table>
+    <div id="jqPagerContacto"></div>
+</div>
+<script type="text/javascript">
+    $("#jqGridContacto").jqGrid({
+        url: '@Url.Action("ListarContacto", "Cotizacion", new { area = "op" })',
+        mtype: "POST",
+        postData: {
+            ClienteId: function () { return $("#ClienteId").val(); }
+        },
+        datatype: "json",
+        colModel: [
+            { label: '', name: 'ContactoId', key: true, hidden: true },
+            { label: 'Nombre', name: 'NombreContacto', width: 50 },
+            { label: 'Nro Documento', name: 'NumeroDocumentoContacto', width: 20 },
+            { label: 'Telefono', name: 'TelefonoContacto', width: 20 },
+            { label: 'Email', name: 'EmailContacto', width: 28,hidden: true  },
+        ],
+        viewrecords: true,
+        loadonce: true,
+        rowList: [10, 20, 30],
+        height: 200,
+        width: 570,
+        rowNum: 20,
+        ondblClickRow: function (rowId) {
+            var rowData = jQuery(this).getRowData(rowId);
+        },
+        pager: "#jqPagerContacto"
+    });
+
+
+</script>

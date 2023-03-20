@@ -1,0 +1,40 @@
+﻿@model eRPBusiness.Transport.CajaChicaMovimientoDTO
+@using eRPBusiness.Helpers;
+@using eRPBusiness.Common;
+@{
+    ViewBag.Title = "Create";
+}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { @id = "form1" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("PersonalId", Model.PersonalId, @ViewBag.LstPersonal, "col-lg-7 col-md-7", "Cajero", "col-lg-3")
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("TipoMovimientoId", Model.TipoMovimientoId, @ViewBag.LstTipoMovimiento, "col-lg-7 col-md-7", "Tipo Movimiento", "col-lg-3")
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().DateTimePickerFor(m => m.FechaInicio, "col-lg-5", "Fecha Emisión", "col-lg-3").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Emisión", @disabled = "disabled" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("MonedaId", Model.MonedaId, @ViewBag.LstMoneda, "col-lg-7 col-md-7", "Moneda", "col-lg-3")
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().NumericTextBoxFor(m => m.Monto, "col-lg-3", "Monto", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2)
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Concepto, "col-lg-9", "Concepto", "col-lg-3").Attributes(new {@placeholder = "Concepto movimiento" })
+                        </div>
+                    </div>
+                    @Html.HiddenFor(m => m.CajaChicaMovimientoId)
+                }
+            </div>
+        </div>
+    </div>
+
+</div>

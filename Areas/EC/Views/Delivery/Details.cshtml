@@ -1,0 +1,61 @@
+﻿@model eRPBusiness.Transport.DeliveryDetalleDto
+@using eRPBusiness.Helpers
+@{
+    ViewBag.Title = "Categoria";
+}
+
+<div class="panel panel-default">
+    <div class="panel-body form-horizontal" id="panel">
+        <div class="form-group">
+            @Html.CRM().DropDownList("DeliveryId", Model.DeliveryId, @ViewBag.LstDeliveryList, "col-lg-10", "Delivery", "col-lg-2", new { })
+        </div>
+        <div class="form-group">
+            @Html.CRM().DropDownList("PaisId", null, @ViewBag.PaisList, "col-lg-4", "Pais", "col-lg-2", new { @onchange = "onChangePais(this);" })
+            @Html.CRM().DropDownList("DepartamentoId", null, @ViewBag.DepartamentoList, "col-lg-4", "Departamento", "col-lg-2", new { @onchange = "onChangeDepartamento(this);", @disabled = "disabled" })
+        </div>
+        <div class="form-group">
+            @Html.CRM().DropDownList("ProvinciaId", null, @ViewBag.ProvinciaList, "col-lg-4", "Provincia", "col-lg-2", new { @onchange = "onChangeProvincia(this);", @disabled = "disabled" })
+            @Html.CRM().DropDownList("DistritoId", null, @ViewBag.DistritoList, "col-lg-4", "Distrito", "col-lg-2", new { @disabled = "disabled" })
+        </div>
+        <div class="form-group">
+            @Html.CRM().NumericTextBoxFor(m => m.CostoEnvio, "col-lg-4", "Costo", "col-lg-2").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2).Attributes(new { })
+        </div>
+        @Html.HiddenFor(m => m.DetalleDeliveryId)
+    </div>
+</div>
+<script type="text/javascript">
+      function onChangePais(control) {
+        $.post('@Url.Action("GetDepartamento", "Delivery")',
+            {
+                paisId: control.value
+            }, function (response) {
+                $('#DepartamentoId').find('option').remove().end();
+                $("#DepartamentoId").addItems(response.data);
+                $("#DepartamentoId").prop("disabled", false);
+            });
+    };
+
+    function onChangeDepartamento(control) {
+
+        $.post('@Url.Action("GetProvincia", "Delivery")',
+         {
+             departamentoId: control.value
+         }, function (response) {
+             $('#ProvinciaId').find('option').remove().end();
+             $("#ProvinciaId").addItems(response.data);
+             $("#ProvinciaId").prop("disabled", false);
+         });
+    };
+
+    function onChangeProvincia(control) {
+
+        $.post('@Url.Action("GetDistrito", "Delivery")',
+         {
+             provinciaId: control.value
+         }, function (response) {
+             $('#DistritoId').find('option').remove().end();
+             $("#DistritoId").addItems(response.data);
+             $("#DistritoId").prop("disabled", false);
+         });
+    }
+</script>

@@ -1,0 +1,17 @@
+﻿@model eRPBusiness.Transport.CampanaDTO
+@{
+    ViewBag.Title = "PreviewImage";
+}
+
+<div class="row">
+    <div class="col-sm-6 col-md-4">
+        <div class="thumbnail">
+            <img src="@Model.UrlMin" alt="@Model.Descripcion">
+        </div>
+    </div>
+    <div class="col-sm-6 col-md-4">
+        <div class="thumbnail">
+            <img src="@Model.UrlMax" alt="@Model.Descripcion">
+        </div>
+    </div>
+</div>

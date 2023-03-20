@@ -1,0 +1,161 @@
+﻿@using eRPBusiness.Helpers
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="col-lg-10 form-horizontal" id="modalDiv">
+                    <div class="form-group">
+                        @Html.CRM().TextBox("codigoProducto", null, "col-lg-4", "Código", "col-lg-2").Attributes(new { @placeholder = "Código" })
+                        @Html.CRM().TextBox("codigoComercial", null, "col-lg-4", "Cod. Comercial", "col-lg-2").Attributes(new { @placeholder = "Código Comercial" })
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().TextBox("marcaProducto", null, "col-lg-4", "Marca", "col-lg-2").Attributes(new { @placeholder = "Marca" })
+                        @Html.CRM().TextBox("nroLote", null, "col-lg-4", "Nro Lote", "col-lg-2").Attributes(new { @placeholder = "Nro Lote" })
+
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().TextBox("descripcionProd", null, "col-lg-10", "Descripción", "col-lg-2").Attributes(new { @placeholder = "Descripción" })
+                    </div>
+                </div>
+                <div class="col-lg-2 form-horizontal text-right">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridProducto').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('#modalDiv input:text').val(''); $('#jqGridProducto').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div>
+    <table id="jqGridProducto"></table>
+    <div id="jqPagerProducto"></div>
+</div>
+<script type="text/javascript">
+    $("#jqGridProducto").jqGrid({
+        url: '@Url.Action("ListarProducto", "Cotizacion", new { area = "op" })',
+        mtype: "POST",
+        postData: {
+            codigo: function () { return $("#codigoProducto").val(); },
+            codigoComercial: function () { return $("#codigoComercial").val(); },
+            marca: function () { return $("#marcaProducto").val(); },
+            descripcion: function () { return $("#descripcionProd").val(); }
+        },
+        datatype: "json",
+        colModel: [
+            { label: '', name: 'BienAlmacenId', key: true, hidden: true },
+            { label: '', name: 'BienServicioId',hidden: true },
+            { label: 'Código', name: 'Codigo', width: 30 },
+            { label: 'Cód. Comercial', name: 'CodigoComercial', width: 33 },
+            { label: 'Descripcion', name: 'Descripcion', width: 150 },
+            { label: 'U.M', name: 'UnidadMedida', width: 20 },
+            { label: '', name: 'UnidadMedidaId', hidden: true },
+            {
+                label: 'Stock', name: 'StockSistema', width: 25, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                    dataInit: function (elem, options) {
+                        $(elem).inputmask('decimal', { digits: 2 });
+                    }
+                }
+            },
+            { label: 'Precio Venta', name: 'PrecioVenta', hidden: true, formatter: 'integer', formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 } },
+            { label: 'PrecioCompraSn', name: 'PrecioCompraSn', hidden: true },
+            { label: 'PrecioCompraInc', name: 'PrecioCompraInc', hidden: true },
+            { label: 'PrecioVentaSn', name: 'PrecioVentaSn', hidden: true },
+            { label: 'PrecioVentaInc', name: 'PrecioVentaInc', hidden: true },
+        ],
+        viewrecords: true,
+        loadonce: true,
+        multiselect: true,
+        rowList: [10, 20, 30],
+        height: 220,
+        width: 880,
+        rowNum: 20,
+        ondblClickRow: function (rowId) {
+            var rowData = jQuery(this).getRowData(rowId);
+        },
+        loadComplete: function () {
+            var rows = $(this).getDataIDs();
+            $.each(rows, function (item, value) {
+                jQuery("#jqGridProducto").setCell(value, 'StockSistema', '', { 'color': 'red', 'font-weight': 'bold' });
+            });
+        },
+        //subGrid: true,
+        //subGridRowExpanded: showChildGrid, subGridOptions: {
+        //    reloadOnExpand: false,
+        //    selectOnExpand: true
+        //},
+        pager: "#jqPagerProducto"
+    });
+
+    function showChildGrid(parentRowID, parentRowKey) {
+        var rowData = jQuery("#jqGridProducto").getRowData(parentRowKey);
+        var childGridID = parentRowID + "_table";
+        var childGridPagerID = parentRowID + "_pager";
+        var childGridURL = parentRowKey + ".json";
+        $('#' + parentRowID).append('<table id=' + childGridID + '></table><div id=' + childGridPagerID + ' class=scroll></div>');
+
+        $("#" + childGridID).jqGrid({
+            url: '@Url.Action("ListarPrecio", "Cotizacion", new { area = "op" })',
+            mtype: "POST",
+            postData: {
+                bienAlmacenId: rowData["BienAlmacenId"],
+                bienServicioId: rowData["BienServicioId"]
+            },
+            datatype: "json",
+            colModel: [
+                { label: '', name: 'BienPrecioId', hidden: true },
+                { label: '', name: 'BienAlmacenId', hidden: true },
+                { label: '', name: 'TipoPrecioId', hidden: true },
+                { label: 'Tipo Precio', name: 'Nombre', width: 8 },
+                {
+                    label: 'Descuento %', name: 'Margen', width: 5, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', { digits: 2 });
+                        }
+                    }
+                },
+                {
+                    label: 'Precio sin Impuesto', name: 'PrecioSinIgv', width: 7, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', { digits: 2 });
+                        }
+                    }
+                },
+                {
+                    label: 'Precio Nacional', name: 'PrecioNacional', width: 5, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', { digits: 2 });
+                        }
+                    }
+                },
+                {
+                    label: 'Precio Dolares', name: 'PrecioDolares', width: 5, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', { digits: 2 });
+                        }
+                    }
+                }
+            ],
+            loadonce: true,
+            width: 750,
+            height: '100%',
+            scrollPopUp: true,
+            scrollLeftOffset: "83%",
+            page: 1,
+            emptyrecords: 'Scroll to bottom to retrieve new page',
+            pager: "#" + childGridPagerID
+        });
+
+
+    }
+
+</script>

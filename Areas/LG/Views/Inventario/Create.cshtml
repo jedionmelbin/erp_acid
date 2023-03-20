@@ -1,0 +1,917 @@
+﻿@model eRPBusiness.Transport.MovimientoAlmacenDTO
+@using eRPBusiness.Helpers;
+@using eRPBusiness.Common;
+@{
+
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>@ViewBag.Title</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+new ItemMenuBar(MenuBarButtonType.Save),
+new ItemMenuBar(MenuBarButtonType.Print,true),
+new ItemMenuBar(MenuBarButtonType.Exit)
+})
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { @id = "form1" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Codigo, "col-lg-4", "Nro Ingreso", "col-lg-2").Attributes(new { @placeholder = "Nro Ingreso", @readonly = "true" })
+                            @Html.CRM().DateTimePickerFor(m => m.FechaMovimiento, "col-lg-4", "F. Ingreso", "col-lg-2").PickerType(DateTimePickerType.Date).Attributes(new { })
+                        </div>
+
+                        <div class="form-group">
+                            @if (ViewBag.IsNew)
+                            {
+                                @Html.CRM().Select2List("TipoMovimientoId", Model.TipoMovimientoId, @ViewBag.TipoMovimimentoList, "col-lg-4", "Movimiento", "col-lg-2", new { @onchange = "onChangeMovimiento(this)" })
+                                @Html.CRM().Select2List("TipoOperacionId", Model.TipoOperacionId, @ViewBag.TipoOperacionList, "col-lg-4", "Operación", "col-lg-2")
+                            }
+                            else
+                            {
+                                @Html.CRM().Select2List("TipoMovimientoId", Model.TipoMovimientoId, @ViewBag.TipoMovimimentoList, "col-lg-4", "Movimiento", "col-lg-2", new { @onchange = "onChangeMovimiento(this)", @disabled = "disabled" })
+                                @Html.CRM().Select2List("TipoOperacionId", Model.TipoOperacionId, @ViewBag.TipoOperacionList, "col-lg-4", "Operación", "col-lg-2", new { @disabled = "disabled" })
+                            }
+                        </div>
+                        <div class="form-group">
+                            @if (ViewBag.IsNew)
+                            {
+                                @Html.CRM().Select2List("MonedaId", Model.MonedaId, @ViewBag.MonedaList, "col-lg-4", "Moneda", "col-lg-2")
+                                @Html.CRM().Select2List("ImpuestoId", Model.ImpuestoId, @ViewBag.ImpuestoList, "col-lg-4", "IGV", "col-lg-2",new {@onchange= "onClickOkImpuesto(this)" })
+                            }
+                            else
+                            {
+                                @Html.CRM().Select2List("MonedaId", Model.MonedaId, @ViewBag.MonedaList, "col-lg-4", "Moneda", "col-lg-2", new { @disabled = "disabled" })
+                                @Html.CRM().Select2List("ImpuestoId", Model.ImpuestoId, @ViewBag.ImpuestoList, "col-lg-4", "IGV", "col-lg-2", new { @disabled = "true" })
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @Html.CRM().Select2List("AlmacenId", Model.AlmacenId, @ViewBag.almacenList, "col-lg-10", "Almacen", "col-lg-2", new { @disabled = "disabled" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextAreaFor(m => m.Observacion, "col-md-10", "Observación", "col-lg-2").Attributes(new { @placeholder = "Observación" })
+                        </div>
+                    </div>
+                    @Html.HiddenFor(m => m.MovimientoAlmacenId)
+                    @Html.HiddenFor(m => m.EstadoOperacionId)
+                    @Html.HiddenFor(m => m.EditAction)
+                    @Html.Hidden("rowId")
+                    @Html.Hidden("rowBienId")
+                    @Html.Hidden("countId")
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                @Html.CRM().MenuBar("BienesMenuBar", "onClickBienesMenuBar", new ItemMenuBar[]{
+                                                                            new ItemMenuBar(MenuBarButtonType.New,  ViewBag.Enabled ),
+                                                                            new ItemMenuBar(MenuBarButtonType.Edit,Model.EstadoInventario),
+                                                                            new ItemMenuBar(MenuBarButtonType.Save,true),
+                                                                            new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                                                                        }, MenuBarType.Small)
+            </div>
+            <div class="panel-body" id="panel">
+                <table id="jqGridDetalle"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+@using (Html.CRM().Popup("myModalCliente", "Lista de Clientes", "onClickOkCliente", SizePopup.Large))
+{
+    <div id="divClienteContent"></div>
+}
+@using (Html.CRM().Popup("myModalProducto", "Bienes y Servicios", "onClickOkProducto", SizePopup.Large))
+{
+    <div id="divProductoContent"></div>
+}
+
+@using (Html.CRM().Popup("myModalLoteProducto", "Control Producto", "onClickOkLote", SizePopup.Large))
+{
+    <div id="divLoteProdContent"></div>
+}
+
+
+<script type="text/javascript">
+    var _widthPanel = $("#panel").width();
+    var _heightGrid = getHeightForResize(100);
+
+
+    $(document).ready(function () {
+        var unidadList = localStorage.getItem('unidadList');
+        var marcaLista = localStorage.getItem('marcaLista');
+
+        if (jQuery.isEmptyObject(unidadList)) {
+            $.post("@Url.Action("ListUnidadMedida")", function (response) {
+                localStorage.setItem('unidadList', addItem(response));
+            });
+        }
+        if (jQuery.isEmptyObject(marcaLista)) {
+            $.post("@Url.Action("ListarMarca")", function (response) {
+                localStorage.setItem('marcaLista', addJqItem(response.data));
+            });
+        }
+
+        $("#jqGridDetalle").jqGrid({
+            url: '@Url.Action("ListarItem", "Inventario", new { area = "lg" })',
+            postData: {
+                movimientoAlmacenId: function () { return $("#MovimientoAlmacenId").val(); }
+            },
+            mtype: "POST",
+            datatype: "json",
+            colModel: [
+                { label: '', name: 'MovimientoAlmacenBienId', formatter: 'integer', hidden: true,key: true  },
+                { label: '', name: 'MovimientoAlmacenId', hidden: true, formatter: 'integer' },
+                { label: '', name: 'BienServicioId', hidden: true, formatter: 'integer'},
+                { label: '', name: 'BienAlmacenId', hidden: true, formatter: 'integer' },
+                { label: '', name: 'Control', hidden: true, formatter: 'integer' },
+                { label: 'Código', name: 'Codigo', width: 15, sortable: false },
+                { label: 'Cód Comercial', name: 'CodigoComercial', width: 20, sortable: false },
+                { label: 'Descripción', name: 'Descripcion', width: 75, sortable: false },
+                { label: 'U.M', name: 'UnidadMedidaId', width: 30, edittype: 'select', formatter: 'select', sortable: false, editable: true },
+                {
+                    label: 'LT', name: 'Lote', width: 6, sortable: false, align: 'center', formatter: function (cellvalue, options, rowObject) {
+                        return '<button type="button" data-value="' + options.rowId + '" onclick="onRowLote(this)" value="' + rowObject.BienServicioId + '"><span class="glyphicon glyphicon-list-alt"></span></button>';
+                    }
+                },
+                { label: 'Marca', name: 'MarcaId', width: 30, edittype: 'select', formatter: 'select', sortable: false, editable: true, hidden: true },
+                {
+                    label: 'Peso Neto', name: 'PesoNeto', width: 20, editable: true, formatter: 'integer', align: 'right', sortable: false, hidden: true,
+                     formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                         dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', {
+                                 placeholder: "0",
+                                 digits: 2,
+                                 digitsOptional: false,
+                                 autoGroup: true,
+                                 allowPlus: false,
+                                 allowMinus: false,
+                                 clearMaskOnLostFocus: false,
+                                 removeMaskOnSubmit: true
+                             });
+                         }
+                     }
+                 },
+                {
+                    label: 'Peso Bruto', name: 'PesoBruto', width: 20, editable: true, formatter: 'integer', align: 'right', sortable: false, hidden: true,
+                     formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                         dataInit: function (elem, options) {
+                             $(elem).inputmask('decimal', {
+                                 placeholder: "0",
+                                 digits: 2,
+                                 digitsOptional: false,
+                                 autoGroup: true,
+                                 allowPlus: false,
+                                 allowMinus: false,
+                                 clearMaskOnLostFocus: false,
+                                 removeMaskOnSubmit: true
+                             });
+
+                         }
+                     }
+                 },
+                {
+                     label: 'Costo Unitario', name: 'ValorUnitario', width: 15, editable: true, formatter: 'integer', align: 'right', sortable: false,
+                     formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                         dataInit: function (elem, options) {
+                             $(elem).inputmask('decimal', {
+                                 placeholder: "0",
+                                 digits: 2,
+                                 digitsOptional: false,
+                                 autoGroup: true,
+                                 allowPlus: false,
+                                 allowMinus: false,
+                                 clearMaskOnLostFocus: false,
+                                 removeMaskOnSubmit: true
+                             });
+                             $(elem).blur(function () {
+                                 var rowId = $(elem).parent().parent().attr('id');
+                                 var row = $('#jqGridDetalle').jqGrid("getLocalRow", rowId);
+                                 var valorUnitario = stringToDecimal($(elem).val());
+                                 var cantidad = $("#" + rowId + "_Cantidad").val();
+                                 if (isNaN(valorUnitario))
+                                     valorUnitario = 0;
+
+                                 var _diferencia = stringToDecimal($("#" + rowId + "_Diferencia").val());
+                                 var _totalCostoDirecto = valorUnitario * _diferencia;
+
+                                 if (cantidad > 0)
+                                     $("#" + rowId + "_SubTotal").val(_totalCostoDirecto);
+
+                                var ids = jQuery("#jqGridDetalle").jqGrid('getDataIDs');
+                                var _importe = 0;
+                                $.each(ids, function (item, value) {
+                                    _importe += stringToDecimal($("#" + value + "_SubTotal").val());
+                                    $("#jqGridDetalle").jqGrid('footerData', 'set', { Importe: _importe });
+                                });
+
+                             });
+                         }
+                     }
+                },
+                {
+                    label: 'Stock Sistema', name: 'StockSistema', width: 18, editable: false, formatter: 'integer', align: 'right', sortable: false, editable: true,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        readonly: 'readonly',
+                        dataInit: function (elem, options) {
+                           $(elem).inputmask('decimal', {
+                                placeholder: "0",
+                                digits: 2,
+                                digitsOptional: false,
+                                autoGroup: true,
+                                allowPlus: false,
+                                allowMinus: false,
+                                clearMaskOnLostFocus: false,
+                                removeMaskOnSubmit: true
+                            });
+                        }
+                    }
+                },
+                {
+                    label: 'Stock Fisico', name: 'Cantidad', width: 18, editable: true, formatter: 'integer', align: 'right', sortable: false, formatoptions: {
+                        decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2
+                    }, editoptions: {
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', {
+                                placeholder: "0",
+                                digits: 2,
+                                digitsOptional: false,
+                                autoGroup: true,
+                                allowPlus: false,
+                                allowMinus: false,
+                                clearMaskOnLostFocus: false,
+                                removeMaskOnSubmit: true
+                            });
+                            $(elem).blur(function () {
+
+                                var rowId = $(elem).parent().parent().attr('id');
+                               // var row = $('#jqGridDetalle').jqGrid("getLocalRow", rowId);
+                                var cantidad = stringToDecimal($(elem).val());
+                                var valorUnitario =stringToDecimal($("#" + rowId + "_ValorUnitario").val());
+                                var stockSistema = stringToDecimal($("#" + rowId + "_StockSistema").val());
+
+                                if (isNaN(valorUnitario))
+                                    valorUnitario = 0;
+
+                                var diferencia = cantidad - stockSistema;
+                                $("#" + rowId + "_Diferencia").val(diferencia);
+
+                                var _diferencia = stringToDecimal($("#" + rowId + "_Diferencia").val());
+                                var _subTotal = parseFloat(valorUnitario * _diferencia);
+                                 if (cantidad > 0)
+                                    $("#" + rowId + "_Importe").val(_subTotal);
+
+
+                                var ids = jQuery("#jqGridDetalle").jqGrid('getDataIDs');
+                                var _importe = 0;
+                                $.each(ids, function (item, value) {
+                                    _importe += stringToDecimal($("#" + value + "_Importe").val());
+                                    $("#jqGridDetalle").jqGrid('footerData', 'set', { Importe: _importe });
+                                });
+
+                            });
+                        }
+                    }
+                },
+                {
+                    label: 'Diferencia', name: 'Diferencia', width: 18, editable: false, formatter: 'integer', align: 'right', sortable: false, editable: true,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        readonly: 'readonly',
+                        dataInit: function (elem, options) {
+                           $(elem).css('color', 'red');
+                           $(elem).inputmask('decimal', {
+                                placeholder: "0",
+                                digits: 2,
+                                digitsOptional: true,
+                                autoGroup: true,
+                                allowPlus: true,
+                                allowMinus: true,
+                                clearMaskOnLostFocus: false,
+                                removeMaskOnSubmit: true,
+                                radixPoint: ".",
+                                //integerDigits: 2
+
+                            });
+
+
+                        }
+                    }
+                },
+                {
+                    label: 'Importe', name: 'Importe', width: 17, editable: false, formatter: 'integer', align: 'right', sortable: false, editable: true,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }, editoptions: {
+                        readonly: 'readonly',
+                        dataInit: function (elem, options) {
+                            $(elem).inputmask('decimal', {
+                                placeholder: "0",
+                                digits: 2,
+                                digitsOptional: true,
+                                autoGroup: true,
+                                allowPlus: true,
+                                allowMinus: true,
+                                clearMaskOnLostFocus: true,
+                                removeMaskOnSubmit: true
+                            });
+                        }
+                    }
+                },
+                { label: 'Observación', name: 'Observacion', width: 30, sortable: false, editable: true, editoptions: { placeholder: 'Observación' } },
+                {
+                    label: "Row",
+                    name: "RowsLst",
+                    hidden: true,
+                },
+                {
+                     label: "Eliminar",
+                     name: "actions",
+                     width: 10,
+                     sortable: false,
+                     align:'center',
+                     formatter: function (cellvalue, options, rowObject) {
+                          return "<a href='#' id='" + options.rowId + "' onClick='fnDeleteRow(this)' ><span class='glyphicon glyphicon-trash'></span></a>";
+                     }
+                     /*formatter: "actions",
+                     formatoptions: {
+                         keys: true,
+                         editOptions: {},
+                         addOptions: {},
+                         delOptions: {
+                             beforeSubmit: function (rowid) {
+                                 $(this).jqGrid('delRowData', rowid);
+                             }
+                         }
+                     }*/
+                 }
+
+            ],
+            viewrecords: true,
+            rownumbers: true,
+            footerrow: true,
+            rowList: [10, 20, 30],
+            loadonce: true,
+            beforeProcessing: function (data) {
+                $(this).setColProp('UnidadMedidaId', { editoptions: { value: unidadList } });
+                $(this).setColProp('MarcaId', { editoptions: { value: marcaLista } });
+            },
+            loadComplete: function () {
+                var grid = $(this);
+                precioVenta = grid.jqGrid('getCol', 'PrecioVenta', false, 'sum');
+                cantidad = grid.jqGrid('getCol', 'Cantidad', false, 'sum');
+                stockSistema = grid.jqGrid('getCol', 'StockSistema', false, 'sum');
+                stockFisico = grid.jqGrid('getCol', 'StockFisico', false, 'sum');
+                valorUnitario = grid.jqGrid('getCol', 'ValorUnitario', false, 'sum');
+                diferencia = grid.jqGrid('getCol', 'Diferencia', false, 'sum');
+                subTotal = grid.jqGrid('getCol', 'Importe', false, 'sum');
+
+                grid.jqGrid('footerData', 'set', {
+                    Producto: 'Sub Total',
+                    Cantidad: cantidad,
+                    StockSistema: stockSistema,
+                    StockFisico: stockFisico,
+                    Diferencia: diferencia,
+                    ValorUnitario: valorUnitario,
+                    Importe: subTotal
+                });
+
+                //var dataIDs = $("#jqGridDetalle").jqGrid('getDataIDs');
+                //$.each(dataIDs, function (item, value) {
+                //    $("#jqGridDetalle").jqGrid('editRow', value, true);
+                //});
+            },
+            pager: "#jqGridPager",
+            height: (_heightGrid - 365),
+            width: _widthPanel
+        });
+
+
+        $("#myModalLoteProducto").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            controllerGetAction('@Url.Action("LoteProductoEdit", "Inventario")', null, 'divLoteProdContent', false, false, function () { });
+        });
+
+        $('#myModalLoteProducto').on('hidden.bs.modal', function (e) {
+            $('#divLoteProdContent').empty();
+        });
+
+        $("#myModalProducto").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            var _productoBusqueda = $("#Descripcion").val();
+            controllerGetAction('@Url.Action("ProductoEdit", "Inventario")', null, 'divProductoContent', false, false, function () {
+                jQuery("#descripcionProd").val(_productoBusqueda);
+                jQuery("#buttonBuscar").click();
+            });
+        });
+        $('#myModalProducto').on('hidden.bs.modal', function (e) {
+            $('#divProductoContent').empty();
+        });
+
+
+        $("#TotalPedido, #Impuesto, #SubTotal").inputmask({
+            alias: "decimal",
+            allowMinus: false,
+            allowPlus: false,
+            autoGroup: true,
+            radixPoint: ".",
+            groupSeparator: ",",
+            groupSize: 3,
+            digits: "2",
+            integerDigits: "14",
+            digitsOptional: false
+        });
+
+
+    });
+
+     function fnDeleteRow(control) {
+         $("#jqGridDetalle").jqGrid('delRowData', control.id);
+         var ids = jQuery("#jqGridDetalle").jqGrid('getDataIDs');
+         var _importe = 0;
+         $.each(ids, function (item, value) {
+             _importe += stringToDecimal($("#" + value + "_Importe").val());
+             $("#jqGridDetalle").jqGrid('footerData', 'set', { Importe: _importe });
+         });
+     }
+
+    function onClickMenuBar(key) {
+        var editAction = $("#EditAction").val();
+        switch (key) {
+            case '@ButtonMenuBarActionConstant.SAVE':
+                InsertData();
+                break;
+            case '@ButtonMenuBarActionConstant.DELETE':
+                break;
+            case '@ButtonMenuBarActionConstant.EXIT':
+                controllerGetAction('@Url.Action("Bandeja", "Inventario", new { area = "LG" })', null, 'workspace', false, false, null);
+                break;
+        }
+    }
+
+
+
+    function InsertData() {
+        var data = $('#jqGridDetalle').getRowData();
+        if (jQuery.isEmptyObject(data)) {
+            MsgAlert(3, 'Selecciona bien y servicios.');
+            return false;
+        }
+
+        //if (isEmptyElement("DocumentoComercialId", "Seleccione documento comercial"))
+        //    return false;
+
+        if (isEmptyElement("MonedaId", "Seleccione moneda."))
+            return false;
+
+        if (isEmptyElement("FechaMovimiento", "Seleccione fecha"))
+            return false;
+
+        if (isEmptyElement("AlmacenId", "Seleccione un almacen."))
+            return false;
+
+
+        gridDataIDs('jqGridDetalle').forEach(function (index) {
+            $("#jqGridDetalle").jqGrid('saveRow', index, { url: 'clientArray' });
+        });
+
+        var form = $('#form1');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var disabled = form.find('select:disabled').removeAttr('disabled');
+        var allData = $('#jqGridDetalle').getRowData();
+        var jsonData = {
+            __RequestVerificationToken: token,
+            Header: JSON.stringify($('#form1').serializeObject()),
+            Row: JSON.stringify(allData),
+            EditAction: $("#EditAction").val(),
+            Detail: JSON.stringify($('#form3').serializeObject())
+        };
+        controllerSaveResponse("@Url.Action("Create", "Inventario", new { area = "lg" })", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                controllerGetAction('@Url.Action("Bandeja", "Inventario", new { area = "lg" })', null, 'workspace', false, false, null);
+            } else {
+                MsgAlert(4, response.message);
+            }
+            disabled.attr('disabled', 'disabled');
+        });
+    }
+
+
+    function onClickProducto() {
+        $.post('@Url.Action("GetProducto", "Inventario")', {
+            codigo: $("#Producto").val()
+        }, function (response) {
+            if (response.success) {
+                $("#ProductoId").val(response.data.ProductoId);
+                $("#Producto").val(response.data.Codigo);
+                $("#Descripcion").val(response.data.Descripcion);
+                $("#PrecioVenta").val(response.data.PrecioVenta);
+            } else {
+                MsgAlert(3, response.message);
+            }
+        });
+    };
+
+    function onClickRowCliente(row) {
+        $("#ClienteId").val(row.ClienteId);
+        $("#Cliente").val(row.Codigo);
+        $("#NumeroRuc").val(row.NumeroRuc);
+        $("#RazonSocial").val(row.RazonSocial);
+        $("#Direccion").val(row.Direccion);
+        $("#myModalCliente").modal('hide');
+    };
+
+    function onClickRowProducto(row) {
+        $("#ProductoId").val(row.ProductoId);
+        $("#Producto").val(row.Codigo);
+        $("#Descripcion").val(row.Descripcion);
+        $("#myModalProducto").modal('hide');
+    };
+
+
+     function onClickOkImpuesto() {
+
+
+
+          var jsonList = [];
+          var selectedIDs = $('#jqGridDetalle').jqGrid('getGridParam', 'data');
+            $.each(selectedIDs, function (item, value) {
+                jsonList.push(value);
+            });
+
+            var rowList = _.map(jsonList, 'BienServicioId');
+            var rowObject = [];
+            jQuery.ajax({
+                type: 'POST',
+                url: '@Url.Action("ListarBienPrecio")',
+                dataType: 'json',
+                cache: false,
+                data: {
+                    data: JSON.stringify(rowList),
+                    monedaId: $("#MonedaId").val(),
+                    impuestoId: $("#ImpuestoId").val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $('#jqGridDetalle').jqGrid('clearGridData');
+                        $.each(response.data.lista, function (item, value) {
+                            var bienServicios = {
+                                MovimientoAlmacenBienId: 0,
+                                MovimientoAlmacenId: 0,
+                                BienAlmacenId: value.BienAlmacenId,
+                                BienServicioId: value.BienServicioId,
+                                Codigo: value.Codigo,
+                                CodigoComercial: value.CodigoComercial,
+                                Descripcion: value.Descripcion,
+                                MarcaId: value.MarcaId,
+                                Control: 0,
+                                UnidadMedidaId: value.UnidadMedidaId,
+                                PrecioVenta: value.PrecioVenta,
+                                Cantidad: cantidad,
+                                ValorUnitario: value.ValorUnitario,
+                                Importe: cantidad * value.ValorUnitario,
+                                StockSistema: value.StockSistema,
+                                Cantidad: value.StockSistema
+                            };
+                            rowObject.push(bienServicios);
+                        });
+                    } else {
+                        MsgAlert(3, response.message);
+                    }
+
+                },
+                async: false
+            });
+
+            var newRowId;
+            $.each(rowObject, function (item, value) {
+                newRowId = gridRowCount("jqGridDetalle");
+                var count = newRowId + 1;
+                var cantidad = 1;
+                var setcelll = {
+                    rowID: newRowId + 1,
+                    initdata: {
+                        MovimientoAlmacenBienId: 0,
+                        MovimientoAlmacenId: 0,
+                        BienAlmacenId: value.BienAlmacenId,
+                        BienServicioId: value.BienServicioId,
+                        Codigo: value.Codigo,
+                        CodigoComercial: value.CodigoComercial,
+                        Descripcion: value.Descripcion,
+                        MarcaId: value.MarcaId,
+                        Control: 0,
+                        UnidadMedidaId: value.UnidadMedidaId,
+                        PrecioVenta: value.PrecioVenta,
+                        Cantidad: cantidad,
+                        ValorUnitario: value.ValorUnitario,
+                        Importe: cantidad * value.ValorUnitario,
+                        StockSistema: value.StockSistema,
+                        Cantidad: value.StockSistema
+                    },
+                    position: "afterSelected"
+                };
+                jQuery("#jqGridDetalle").jqGrid('addRow', setcelll);
+            });
+    }
+
+    function onClickOkProducto() {
+
+
+         var rowKey = jQuery("#jqGridProducto").getGridParam("selrow");
+        if (!isEmpty(rowKey)) {
+
+            var jsonList = [];
+            var selectedIDs = jQuery("#jqGridProducto").getGridParam("selarrrow");
+            $.each(selectedIDs, function (item, value) {
+                var rows = jQuery('#jqGridProducto').getRowData(value);
+                jsonList.push(jQuery('#jqGridProducto').getRowData(value));
+            });
+
+            var rowList = _.map(jsonList, 'BienServicioId');
+            var rowObject = [];
+            jQuery.ajax({
+                type: 'POST',
+                url: '@Url.Action("ListarBienPrecio")',
+                dataType: 'json',
+                cache: false,
+                data: {
+                    data: JSON.stringify(rowList),
+                    monedaId: $("#MonedaId").val(),
+                    impuestoId: $("#ImpuestoId").val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $.each(response.data.lista, function (item, value) {
+                            var bienServicios = {
+                                MovimientoAlmacenBienId: 0,
+                                MovimientoAlmacenId: 0,
+                                BienAlmacenId: value.BienAlmacenId,
+                                BienServicioId: value.BienServicioId,
+                                Codigo: value.Codigo,
+                                CodigoComercial: value.CodigoComercial,
+                                Descripcion: value.Descripcion,
+                                MarcaId: value.MarcaId,
+                                Control: 0,
+                                UnidadMedidaId: value.UnidadMedidaId,
+                                PrecioVenta: value.PrecioVenta,
+                                Cantidad: cantidad,
+                                ValorUnitario: value.ValorUnitario,
+                                Importe: cantidad * value.ValorUnitario,
+                                StockSistema: value.StockSistema,
+                                Cantidad: value.StockSistema
+                            };
+                            rowObject.push(bienServicios);
+                        });
+                    } else {
+                        MsgAlert(3, response.message);
+                    }
+
+                },
+                async: false
+            });
+
+            var newRowId;
+            $.each(rowObject, function (item, value) {
+                newRowId = gridRowCount("jqGridDetalle");
+                var count = newRowId + 1;
+                var cantidad = 1;
+                var setcelll = {
+                    rowID: newRowId + 1,
+                    initdata: {
+                        MovimientoAlmacenBienId: 0,
+                        MovimientoAlmacenId: 0,
+                        BienAlmacenId: value.BienAlmacenId,
+                        BienServicioId: value.BienServicioId,
+                        Codigo: value.Codigo,
+                        CodigoComercial: value.CodigoComercial,
+                        Descripcion: value.Descripcion,
+                        MarcaId: value.MarcaId,
+                        Control: 0,
+                        UnidadMedidaId: value.UnidadMedidaId,
+                        PrecioVenta: value.PrecioVenta,
+                        Cantidad: cantidad,
+                        ValorUnitario: value.ValorUnitario,
+                        Importe: cantidad * value.ValorUnitario,
+                        StockSistema: value.StockSistema,
+                        Cantidad: value.StockSistema
+                    },
+                    position: "afterSelected"
+                };
+                jQuery("#jqGridDetalle").jqGrid('addRow', setcelll);
+            });
+
+            jQuery("#myModalProducto").modal('hide');
+
+        } else {
+            MsgAlert(2, 'Seleccione almenos un articulo.');
+        }
+
+        /* CAMPS OGLIGARORIOS */
+        /*
+        var unidadList = localStorage.getItem('unidadList');
+        var marcaLista = localStorage.getItem('marcaLista');
+
+        var rowKey = jQuery("#jqGridProducto").getGridParam("selrow");
+        if (!isEmpty(rowKey)) {
+            var selectedIDs = jQuery("#jqGridProducto").getGridParam("selarrrow");
+
+            var rowObject = [];
+            $.each(selectedIDs, function (item, value) {
+                rowObject.push(jQuery('#jqGridProducto').getRowData(value));
+            });
+
+
+            var newRowId;
+            var _costoUnitario = 0;
+            var _cantidad = 0;
+            var _subTotal = 0;
+            $.each(rowObject, function (item, value) {
+
+                newRowId = gridRowCount("jqGridDetalle");
+                var count = newRowId + 1;
+                var cantidad = 0;
+                var setcelll = {
+                    rowID: newRowId + 1,
+                    initdata: {
+                        MovimientoAlmacenBienId: 0,
+                        MovimientoAlmacenId: 0,
+                        BienAlmacenId: value.BienAlmacenId,
+                        BienServicioId: value.BienServicioId,
+                        Codigo: value.Codigo,
+                        CodigoComercial: value.CodigoComercial,
+                        Descripcion: value.Descripcion,
+                        MarcaId: value.MarcaId,
+                        Control: 0,
+                        UnidadMedidaId: value.UnidadMedidaId,
+                        PrecioVenta: value.PrecioVenta,
+                        Cantidad: cantidad,
+                        ValorUnitario: value.PrecioCompraSn,
+                        Importe: cantidad * value.PrecioCompraSn,
+                        StockSistema: value.StockSistema,
+                        Cantidad: value.StockSistema
+                    },
+                    position: "afterSelected"
+                };
+
+                _costoUnitario += parseFloat(value.PrecioCompraSn);
+                _cantidad += cantidad;
+                _subTotal += cantidad * parseFloat(value.PrecioCompraSn);
+
+                jQuery("#jqGridDetalle").jqGrid('addRow', setcelll);
+                //jQuery("#jqGridDetalle").jqGrid('saveRow', count, setcelll);
+                jQuery('#jqGridDetalle').jqGrid('footerData', 'set', { Producto: 'Total', ValorUnitario: _costoUnitario, Cantidad: _cantidad, Importe: _subTotal });
+                jQuery("#myModalProducto").modal('hide');
+            });
+
+        } else {
+            MsgAlert(2, 'Seleccione almenos un articulo.');
+        }*/
+
+    }
+
+    function onClickBienesMenuBar(key) {
+        switch (key) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                $('#myModalProducto').modal('show');
+                break;
+            case "@ButtonMenuBarActionConstant.SAVE":
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                //var row = getGridSelectedRow('jqGridDetalle');
+                var dataIDs = $("#jqGridDetalle").jqGrid('getDataIDs');
+                $.each(dataIDs, function (item, value) {
+                    $("#jqGridDetalle").jqGrid('editRow', value, true);
+                });
+                break;
+            case '@ButtonMenuBarActionConstant.CANCEL':
+                break;
+        }
+    }
+
+   function onChangeMovimiento(control) {
+        $.post('@Url.Action("GetTipoOperacion", "Inventario")',
+         {
+             tipoMovimientoId: control.value
+         }, function (response) {
+             $('#TipoOperacionId').find('option').remove().end();
+             $("#TipoOperacionId").addItems(response.data);
+             $("#TipoOperacionId").prop("disabled", false);
+         });
+        }
+
+    function onRowLote(control) {
+        var rowId = $(control).attr("data-value");
+        var rowData = $('#jqGridDetalle').jqGrid('getRowData', rowId);
+        var _cantidad = $("#" + rowId + "_Cantidad").val()
+        if (_cantidad === undefined) {
+            _cantidad = rowData.Cantidad;
+        }
+
+        //debugger;
+        //var rowData = $('#jqGridDetalle').jqGrid('getRowData', rowId);
+        //if (rowData.RowsLst !== "") {
+        //    var jsonRow = JSON.parse(rowData.RowsLst);
+        //}
+
+        $("#rowId").val(rowId);
+        $("#rowBienId").val(control.value);
+        $("#countId").val(_cantidad);
+        $("#myModalLoteProducto").modal('show');
+    }
+
+
+
+    function onClickOkLote() {
+
+      var _validate = false;
+      var _rowId = parseInt($("#rowId").val());
+        gridDataIDs('jqGridForma').forEach(function (index) {
+          var _numeroSerie = $("#"+index+"_NumeroSerie").val();
+          var _lote = $("#" + index + "_NumeroLote").val();
+          var _fechaExpira = $("#" + index + "_FechaExpira").val();
+          var _fechaIngreso = $("#" + index + "_FechaIngreso").val();
+
+            if (_lote !== "" && _fechaExpira !== "" && _numeroSerie !== "" && _fechaIngreso !== "") {
+              _validate = true;
+              $("#" + index + "_NumeroLote").css("border", "1px solid green");
+              $("#" + index + "_FechaExpira").css("border", "1px solid green");
+              $("#" + index + "_NumeroSerie").css("border", "1px solid green");
+              $("#" + index + "_FechaIngreso").css("border", "1px solid green");
+          } else {
+              _validate = false;
+              $("#" + index + "_NumeroLote").css("border", "1px solid red");
+              $("#" + index + "_FechaExpira").css("border", "1px solid red");
+              $("#" + index + "_NumeroSerie").css("border", "1px solid red");
+              $("#" + index + "_FechaIngreso").css("border", "1px solid red");
+          }
+      });
+
+      if (!_validate) {
+          MsgAlert(3, 'Por favor completa los campos requerido.');
+          return;
+      } else {
+          gridDataIDs('jqGridForma').forEach(function (index) {
+              $("#jqGridForma").jqGrid('saveRow', index, { url: 'clientArray' });
+          });
+          $("#myModalLoteProducto").modal('hide');
+        }
+
+
+        var _validateMv = $("#MovimientoAlmacenId").val();
+        if (_validateMv != "0") {
+            gridDataIDs('jqGridForma').forEach(function (index) {
+                $("#jqGridForma").jqGrid('saveRow', index, { url: 'clientArray' });
+            });
+
+            var form = $('#form1');
+            var token = $('input[name="__RequestVerificationToken"]', form).val();
+            var allData = $('#jqGridForma').getRowData();
+            $.each(allData, function (item, value) {
+                value.actions = '';
+            });
+            var jsonData = {
+                __RequestVerificationToken: token,
+                Header: JSON.stringify($('#form1').serializeObject()),
+                Row: JSON.stringify(allData),
+            };
+            controllerSaveResponse("@Url.Action("CreateLote", "Inventario", new { area = "lg" })", jsonData, true, true, function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    $('#jqGridDetalle').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                    $("#myModalLoteProducto").modal('hide');
+                } else {
+                    MsgAlert(4, response.message);
+                }
+            });
+        } else {
+
+            var jsonArray = $('#jqGridForma').getRowData();
+            var jsonData = [];
+            $.each(jsonArray, function (item, value) {
+                value.actions = '';
+                value.Descripcion = '';
+                jsonData.push(value);
+            });
+
+
+            var jString = JSON.stringify(jsonData);
+            $("#jqGridDetalle").jqGrid("setCell", _rowId, "RowsLst", jString);
+        }
+
+    }
+</script>

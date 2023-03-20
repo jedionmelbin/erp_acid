@@ -1,0 +1,45 @@
+﻿@using eRPBusiness.Helpers
+<div class="row">
+    <div class="col-lg-12">
+        <table id="jqGridOrdenCompra"></table>
+        <div id="jqPagerCompra"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $("#jqGridOrdenCompra").jqGrid({
+        url: '@Url.Action("ListarOrdenCompra", "Compras", new { area = "op" })',
+        mtype: "POST",
+        postData: {
+
+        },
+        datatype: "json",
+        colModel: [
+            { label: 'Id', name: 'OrdenCompraId', key: true, hidden: true },
+            { label: 'Id', name: 'OrdenCompra', hidden: true },
+            { label: 'Codigo', name: 'Codigo', width: 13, formatter: colorBold, align: 'center' },
+            { label: 'Fecha Emision', name: 'FechaEmision', width: 13 },
+            { label: 'Fecha Entrega', name: 'FechaEntrega', width: 13 },
+            { label: 'Documento', name: 'NumeroDocumento', width: 15 },
+            { label: 'Razon Social', name: 'RazonSocial', width: 50 }
+        ],
+        viewrecords: false,
+        loadonce: true,
+        rowList: [10, 20, 30],
+        height: 300,
+        width: 870,
+        rowNum: 20,
+        rownumbers: true,
+        ondblClickRow: function (rowId) {
+            var rowData = jQuery(this).getRowData(rowId);
+            onClickOkOrdenCom(rowData);
+        },
+        pager: "#jqPagerCompra"
+    });
+
+    function colorBold(cellvalue, options, rowObject) {
+        var backgroud = '<b>' + cellvalue + '</b>';
+        return backgroud;
+    }
+
+</script>

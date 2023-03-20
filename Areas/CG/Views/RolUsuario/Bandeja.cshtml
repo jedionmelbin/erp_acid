@@ -1,0 +1,429 @@
+﻿
+@using eRPBusiness.Common;
+@using eRPBusiness.Helpers
+@{
+    ViewBag.Title = "Bandeja";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label>Rol Usuario</label>
+        </nav>
+    </div>
+</div>
+<div class="row">
+
+    <div class="col-lg-12 col-md-12">
+        <ul class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Rol</a></li>
+            <li role="presentation"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">Rol Usuario</a></li>
+            <li role="presentation"><a href="#rolMenu" aria-controls="rolMenu" role="tab" data-toggle="tab">Rol Opción</a></li>
+        </ul>
+
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="home">
+                <div class="row">
+                    <div class="col-md-12 form-horizontal">
+                        <div class="panel panel-default" id="tabs">
+                            <div class="panel-heading">
+                                @Html.CRM().MenuBar("RolMenuBar", "onClickRolMenuBar", new ItemMenuBar[]{
+                                                                     new ItemMenuBar(MenuBarButtonType.New,false),
+                                                                     new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                                     new ItemMenuBar(MenuBarButtonType.Save,true),
+                                                                     new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                                                                 }, MenuBarType.Small)
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-lg-12" id="panel">
+                                        <table id="jqGrid"></table>
+                                        <div id="jqGridPager"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="profile">
+
+                <div class="row">
+                    <div class="col-md-12 form-horizontal">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                @Html.CRM().MenuBar("RolUsuarioBar", "onClickRolUsuarioMenuBar", new ItemMenuBar[]{
+                                                                     new ItemMenuBar(MenuBarButtonType.New,false),
+                                                                     new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                                     new ItemMenuBar(MenuBarButtonType.Save,true),
+                                                                     new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                                                                 }, MenuBarType.Small)
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-lg-12" id="panel">
+                                        <table id="jqGridMov"></table>
+                                        <div id="jqGridPagerMov"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="rolMenu">
+                <div class="row">
+                    <div class="col-md-12 form-horizontal">
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("RolesId", null, @ViewBag.LstRoles, "col-lg-4", "Rol", "col-lg-2", new { @onchange = "onChangeRol(this)" })
+                        </div>
+                    </div>
+                    <div class="col-md-12 form-horizontal">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                @Html.CRM().MenuBar("RolMenuBar", "onClickRolMenuMenuBar", new ItemMenuBar[]{
+                                                                     new ItemMenuBar(MenuBarButtonType.New,false),
+                                                                     new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                                     new ItemMenuBar(MenuBarButtonType.Save,true),
+                                                                     new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                                                                 }, MenuBarType.Small)
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-lg-12" id="panel">
+                                        <table id="jqGridOpcion"></table>
+                                        <div id="jqGridPagerRolOp"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+@Html.Hidden("EditAction")
+@Html.Hidden("rowId")
+
+@using (Html.CRM().Popup("myModalRol", "Crear Rol", "onClickRol", SizePopup.Small))
+{
+    <div id="modalContentRol"></div>
+}
+
+@using (Html.CRM().Popup("myModalUsuario", "Crear Usuario", "onClickUsuario", SizePopup.Medium))
+{
+    <div id="modalContentUsuario"></div>
+}
+@using (Html.CRM().Popup("myModalRolOpcion", "Rol Opción", "onClickRolOpcion", SizePopup.Medium))
+{
+    <div id="modalContentRolOpcion"></div>
+}
+<script type="text/javascript">
+       var _widthPanel = $("#panel").width();
+       var _heightGrid = getHeightForResize(75);
+        $(document).ready(function () {
+            $("#jqGrid").jqGrid({
+                url: '@Url.Action("ListarBandeja","RolUsuario")',
+                mtype: "POST",
+                datatype: "json",
+                colModel: [
+                    { label: 'RolId', name: 'RolId', key: true, width: 10},
+                    { label: 'Codigo', name: 'Codigo', width: 20 },
+                    { label: 'Nombre', name: 'Nombre', width: 40 }
+                ],
+				width: _widthPanel,
+				height: (_heightGrid - 300),
+                viewrecords: true,
+                loadonce: true,
+                rowNum: 20,
+                rowList: [10, 20, 30],
+                pager: "#jqGridPager"
+            });
+
+            $("#jqGridMov").jqGrid({
+                url: '@Url.Action("ListarRolUsuario")',
+                mtype: "POST",
+                datatype: "json",
+                colModel: [
+                    { label: 'RolUsuarioId', name: 'RolUsuarioId', key: true, hidden: true },
+                    { label: 'Usuario', name: 'UserName', width: 60 },
+                    { label: 'Nombre', name: 'Nombre', width: 60 },
+                    { label: 'Código Rol', name: 'Codigo', width: 40 },
+                    { label: 'Rol', name: 'Rol', width: 40 }
+                ],
+                width: _widthPanel,
+                height: (_heightGrid - 300),
+                viewrecords: true,
+                loadonce: true,
+                rowNum: 20,
+                rowList: [10, 20, 30],
+                pager: "#jqGridPagerMov"
+            });
+
+            $("#jqGridOpcion").jqGrid({
+                url: '@Url.Action("ListarRolOpcion")',
+                mtype: "POST",
+                postData: {
+                    rolId: function () { return $("#RolesId").val() }
+                },
+                datatype: "json",
+                colModel: [
+                    { label: 'Id', name: 'Id', key: true, hidden: true },
+                    { label: 'RolMenuId', name: 'RolMenuId', hidden: true },
+                    { label: 'Codigo', name: 'Codigo', width: 60, hidden: true },
+                    { label: 'Rol', name: 'Rol', width: 60 },
+                    { label: 'Menu', name: 'Nombre', width: 60 },
+                    { label: 'Area', name: 'Area', width: 60 },
+                    { label: 'Orden', name: 'Orden', width: 60 },
+                    {
+                        label: "Eliminar",
+                        name: "actions",
+                        width: 10,
+                        sortable: false,
+                        align: 'center',
+                        formatter: function (cellvalue, options, rowObject) {
+                            var _control = "";
+                            _control = "<a href='#' id='" + options.rowId + "' rel='" + rowObject.RolMenuId + "' onClick='fnDeleteRolRow(this)' ><span class='glyphicon glyphicon-trash'></span></a>";
+                            return _control;
+                        }
+
+                    }
+                ],
+                width: _widthPanel,
+                height: (_heightGrid - 300),
+                viewrecords: true,
+                loadonce: true,
+                rowNum: 20,
+                rowList: [10, 20, 30],
+                pager: "#jqGridPagerRolOp"
+            });
+
+
+
+              $("#myModalRol").on('show.bs.modal', function () {
+                    $(this).find('input:text').val('');
+                    var postData = {
+                        //EditAction: $("#EditAction").val(),
+                        //vehiculoId: $("#rowId").val()
+                    };
+                controllerGetAction('@Url.Action("RolEdit", "RolUsuario")', postData, 'modalContentRol', false, false, null);
+              });
+
+              $("#myModalUsuario").on('show.bs.modal', function () {
+                    $(this).find('input:text').val('');
+                    var postData = {
+                        //EditAction: $("#EditAction").val(),
+                        //vehiculoId: $("#rowId").val()
+                    };
+                  controllerGetAction('@Url.Action("RolUserEdit", "RolUsuario")', postData, 'modalContentUsuario', false, false, null);
+              });
+
+             $("#myModalRolOpcion").on('show.bs.modal', function () {
+                    $(this).find('input:text').val('');
+                    var postData = {
+                    };
+                 controllerGetAction('@Url.Action("RolOpcionEdit", "RolUsuario")', postData, 'modalContentRolOpcion', false, false, null);
+              });
+
+        });
+
+    function fnDeleteRolRow(control) {
+             var jsonData = {
+                id: control.rel
+            };
+            var _succces = false;
+            controllerPostJsonSync('@Url.Action("DeleteRolItem")', jsonData, false, false, function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    $("#jqGridOpcion").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                } else {
+                    MsgAlert(3, response.message);
+                }
+            });
+
+    }
+    function onChangeRol() {
+        $('#jqGridOpcion').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+    }
+   function checkRolMenuFormatter(cellvalue, options, row)
+   {
+      if(row.isLeaf == false)
+         return '';
+      else
+         return '<input type="checkbox" '+(cellvalue == "0"?'':'checked')+'/>';
+   }
+
+   function checkRolMenuUnFormatter(cellvalue, options,cell)
+   {
+      if(cell.childNodes.length > 0)
+         return cell.childNodes[0].checked ? 1 : 0;
+      else
+         return 0;
+   }
+
+
+    function onChangeMenu() {
+      $('#tree').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+    }
+
+    function onClickRolMenuBar(control) {
+        var postData = {
+            editAction: '',
+            rolId: 0
+        };
+        var row = getGridSelectedRow("jqGrid");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                 postData.editAction = '@EditActionConstant.NEW';
+                 $("#EditAction").val(@EditActionConstant.NEW)
+                 $("#myModalRol").modal('show');
+
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    postData.editAction = '@EditActionConstant.EDIT';
+                    $("#EditAction").val(@EditActionConstant.EDIT);
+                    $("#rowId").val(row.RolId);
+                    $("#myModalRol").modal('show');
+                } else {
+                    MsgAlert(2, 'Seleccione un Rol');
+                }
+                break;
+        }
+    }
+
+    function onClickRolUsuarioMenuBar(control) {
+          var postData = {
+            editAction: '',
+            rolUsuarioId: 0
+        };
+        var row = getGridSelectedRow("jqGridMov");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                 postData.editAction = '@EditActionConstant.NEW';
+                 $("#EditAction").val(@EditActionConstant.NEW)
+                $("#myModalUsuario").modal('show');
+
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    postData.editAction = '@EditActionConstant.EDIT';
+                    $("#EditAction").val(@EditActionConstant.EDIT);
+                    $("#rowId").val(row.RolId);
+                    $("#myModalUsuario").modal('show');
+                } else {
+                    MsgAlert(2, 'Seleccione un Rol Usuario');
+                }
+                break;
+        }
+    }
+
+    function onClickRolMenuMenuBar(control) {
+         var postData = {
+            editAction: '',
+        };
+        var row = getGridSelectedRow("jqGridOpcion");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                 postData.editAction = '@EditActionConstant.NEW';
+                 $("#EditAction").val(@EditActionConstant.NEW)
+                $("#myModalRolOpcion").modal('show');
+
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    postData.editAction = '@EditActionConstant.EDIT';
+                    $("#EditAction").val(@EditActionConstant.EDIT);
+                    $("#rowId").val(row.RolId);
+                    $("#myModalRolOpcion").modal('show');
+                } else {
+                    MsgAlert(2, 'Seleccione un Rol Usuario');
+                }
+                break;
+        }
+    }
+
+    function onClickRol() {
+
+        if (isEmptyElement("Codigo", "Ingrese codigo"))
+            return false;
+
+
+        if (isEmptyElement("Nombre", "Ingrese nombre rol"))
+            return false;
+
+        var jsonData = {
+            Header: JSON.stringify($('#modalContentRol').serializeObject()),
+            EditAction:$("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("CreateRol", "RolUsuario")", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $('#jqGrid').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                 $("#myModalRol").modal('hide');
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+     function onClickUsuario() {
+
+        if (isEmptyElement("UsuarioId", "Seleccione usuario"))
+            return false;
+
+
+        if (isEmptyElement("RolId", "Seleccione rol"))
+            return false;
+
+        var jsonData = {
+            Header: JSON.stringify($('#modalContentUsuario').serializeObject()),
+            EditAction:$("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("CreateRolUsuario", "RolUsuario")", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $('#jqGridMov').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                $("#myModalUsuario").modal('hide');
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+    function onClickRolOpcion() {
+
+        var jsonData = {
+            Header: JSON.stringify($('#modalContentRolOpcion').serializeObject()),
+            EditAction:$("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("CreateRolOpcion", "RolUsuario")", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $('#jqGridOpcion').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                $("#myModalRolOpcion").modal('hide');
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+    function fnRowViw(control)
+    {
+        debugger;
+        var postData = {
+            editAction: '',
+            rolId: control.rel
+        };
+        controllerGetAction('@Url.Action("EditMenu", "RolUsuario")', postData, 'workspace', true, true, null);
+    }
+</script>

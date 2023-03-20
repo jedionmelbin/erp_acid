@@ -1,0 +1,279 @@
+﻿@model eRPBusiness.Transport.ClienteDTO
+@using eRPBusiness.Helpers
+@{
+
+}
+
+<div class="row">
+
+    <div class="col-lg-12">
+        <ul class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Cliente</a></li>
+            <li role="presentation"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">Dirección</a></li>
+            <li role="presentation"><a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">Contacto</a></li>
+        </ul>
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="home">
+                <div class="row">
+                    @Html.HiddenFor(m => m.ClienteId)
+                    @Html.HiddenFor(m => m.EditAction)
+                    <div class="col-lg-12 form-horizontal">
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("DocumentoIdentidadId", Model.DocumentoIdentidadId, @ViewBag.ListaDocIdenti, "col-lg-4", "Documento", "col-lg-2")
+                            @Html.CRM().TextBoxButtonFor(m => m.NumeroDocumento, "col-lg-4", "Nro Doc.", "col-lg-2").OnButtonClick("onClickClienteRUC(this)").FontButton("glyphicon glyphicon-search").Attributes(new { @placeholder = "DNI/RUC", @maxlength = "11" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("TipoPersonaId", Model.TipoPersonaId, @ViewBag.TipoProvList, "col-lg-10", "Tipo", "col-lg-2")
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.RazonSocial, "col-lg-10", "Razon Social", "col-lg-2").Attributes(new { @placeholder = "Razon Social" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.NombreComercial, "col-lg-10", "Nom. Comercial", "col-lg-2").Attributes(new { @placeholder = "Nombre Comercial" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Nombres, "col-lg-10", "Nombres", "col-lg-2").Attributes(new { @placeholder = "Nombres" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.ApellidoPaterno, "col-lg-10", "Ape. Paterno", "col-lg-2").Attributes(new { @placeholder = "Apellido Paterno" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.ApellidoMaterno, "col-lg-10", "Ape. Paterno", "col-lg-2").Attributes(new { @placeholder = "Apellido Materno" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("PersonalId", Model.PersonalId, @ViewBag.ListarPersonal, "col-lg-10", "Asesor", "col-lg-2")
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.Telefono, "col-lg-4", "Telefono", "col-lg-2").Attributes(new { @placeholder = "Telefono" })
+                            @Html.CRM().TextBoxFor(m => m.Celular, "col-lg-4", "Celular", "col-lg-2").Attributes(new { @placeholder = "Celular" })
+                        </div>
+                    </div>
+                    <div class="col-lg-12 form-horizontal">
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.NombreVia, "col-lg-10", "Dirección", "col-lg-2").Attributes(new { @placeholder = "Dirección" })
+                        </div>
+                        <div class="form-group">
+                            @if (ViewBag.IsNew)
+                            {
+                                @Html.CRM().DropDownList("PaisId", null, @ViewBag.PaisList, "col-lg-4", "Pais", "col-lg-2", new { @onchange = "onChangePais(this);" })
+                                @Html.CRM().DropDownList("DepartamentoId", null, @ViewBag.DepartamentoList, "col-lg-4", "Departamento", "col-lg-2", new { @onchange = "onChangeDepartamento(this);", @disabled = "disabled" })
+                            }
+                            else
+                            {
+                                @Html.CRM().DropDownList("PaisId", Model.PaisId, @ViewBag.PaisList, "col-lg-4", "Pais", "col-lg-2", new { @onchange = "onChangeProvincia(this);" })
+                                @Html.CRM().DropDownList("DepartamentoId", Model.DepartamentoId, @ViewBag.DepartamentoList, "col-lg-4", "Departamento", "col-lg-2", new { @onchange = "onChangeDepartamento(this);" })
+                            }
+                        </div>
+                        <div class="form-group">
+                            @if (ViewBag.IsNew)
+                            {
+                                @Html.CRM().DropDownList("ProvinciaId", null, @ViewBag.ProvinciaList, "col-lg-4", "Provincia", "col-lg-2", new { @onchange = "onChangeProvincia(this);", @disabled = "disabled" })
+                                @Html.CRM().DropDownList("DistritoId", null, @ViewBag.DistritoList, "col-lg-4", "Distrito", "col-lg-2", new { @disabled = "disabled" })
+                            }
+                            else
+                            {
+                                @Html.CRM().DropDownList("ProvinciaId", Model.ProvinciaId, @ViewBag.ProvinciaList, "col-lg-4", "Provincia", "col-lg-2", new { @onchange = "onChangeProvincia(this);" })
+                                @Html.CRM().DropDownList("DistritoId", Model.DistritoId, @ViewBag.DistritoList, "col-lg-4", "Distrito", "col-lg-2")
+                            }
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.CorreoUno, "col-lg-10", "Correo", "col-lg-2").Attributes(new { @placeholder = "Correo principal" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.CorreoDos, "col-lg-10", "Correo Factura", "col-lg-2").Attributes(new { @placeholder = "Correo Facturación" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.PaginaWeb, "col-lg-10", "Web", "col-lg-2").Attributes(new { @placeholder = "Pagina Web" })
+                        </div>
+
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("FormaVentaId", Model.FormaVentaId, @ViewBag.FormaVentaList, "col-lg-4", "Forma Pago", "col-lg-2")
+                            @Html.CRM().DropDownList("MonedaId", Model.MonedaId, @ViewBag.MonedaList, "col-lg-4", "Moneda", "col-lg-2")
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().DropDownList("TipoPrecioId", Model.TipoPrecioId, @ViewBag.TipoPrecioList, "col-lg-4", "Tipo Precio", "col-lg-2")
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="profile">
+                <div class="row">
+                    <div class="col-lg-12 form-horizontal">
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.DireccionClienteDTO.NombreDireccion, "col-lg-10", "Ubicación", "col-lg-2").Attributes(new { @placeholder = "Ubicación" })
+                        </div>
+                        <div class="form-group">
+                            @Html.CRM().TextBoxFor(m => m.DireccionClienteDTO.Referencia, "col-lg-10", "Referencia", "col-lg-2").Attributes(new { @placeholder = "Referencia" })
+                        </div>
+                        <div class="form-group">
+                            @if (ViewBag.IsNew)
+                            {
+                                @Html.CRM().DropDownList("PaisDireccionId", null, @ViewBag.PaisList, "col-lg-4", "Pais", "col-lg-2", new { @onchange = "onChangeDireccionPais(this);" })
+                                @Html.CRM().DropDownList("DepartamentoContactoId", null, @ViewBag.DepartamentoList, "col-lg-4", "Departamento", "col-lg-2", new { @onchange = "onChangeDepartamentoDireccion(this);" })
+                            }
+                            else
+                            {
+                                @Html.CRM().DropDownList("PaisDireccionId", Model.PaisId, @ViewBag.PaisList, "col-lg-4", "Pais", "col-lg-2", new { @onchange = "onChangeDireccionPais(this);" })
+                                @Html.CRM().DropDownList("DepartamentoContactoId", Model.DepartamentoId, @ViewBag.DepartamentoList, "col-lg-4", "Departamento", "col-lg-2", new { @onchange = "onChangeDepartamentoDireccion(this);" })
+                            }
+
+                        </div>
+                        <div class="form-group">
+                            @if (ViewBag.IsNew)
+                            {
+                                @Html.CRM().DropDownList("ProvinciaContactoId", null, @ViewBag.ProvinciaList, "col-lg-4", "Provincia", "col-lg-2", new { @onchange = "onChangeProvinciaDireccion(this);", @disabled = "disabled" })
+                                @Html.CRM().DropDownList("DistritoContactoId", null, @ViewBag.DistritoList, "col-lg-4", "Distrito", "col-lg-2", new { @disabled = "disabled" })
+                            }
+                            else
+                            {
+
+                                @Html.CRM().DropDownList("ProvinciaContactoId", Model.ProvinciaId, @ViewBag.ProvinciaList, "col-lg-4", "Provincia", "col-lg-2", new { @onchange = "onChangeProvinciaDireccion(this);" })
+                                @Html.CRM().DropDownList("DistritoContactoId", Model.DistritoId, @ViewBag.DistritoList, "col-lg-4", "Distrito", "col-lg-2")
+                            }
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Fiscal</label>
+                            @Html.CRM().CheckBoxFor(m => m.DireccionClienteDTO.Fiscal, "col-lg-4", "")
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="messages">...</div>
+        </div>
+    </div>
+
+</div>
+
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+    });
+
+     function onChangePais(control) {
+        $.post('@Url.Action("GetDepartamento", "Cliente")',
+            {
+                paisId: control.value
+            }, function (response) {
+                $('#DepartamentoId').find('option').remove().end();
+                $("#DepartamentoId").addItems(response.data);
+                $("#DepartamentoId").prop("disabled", false);
+                $("#DepartamentoId").prop("selectedIndex", 1);
+                onChangeDepartamento(control)
+            });
+    }
+
+
+     function onChangeDireccionPais(control) {
+        $.post('@Url.Action("GetDepartamento", "Cliente")',
+            {
+                paisId: control.value
+            }, function (response) {
+                $('#DepartamentoContactoId').find('option').remove().end();
+                $("#DepartamentoContactoId").addItems(response.data);
+                $("#DepartamentoContactoId").prop("disabled", false);
+                $("#DepartamentoContactoId").prop("selectedIndex", 1);
+                onChangeDepartamentoDireccion(control)
+            });
+    }
+
+     function onChangeDepartamentoDireccion(control) {
+
+        $.post('@Url.Action("GetProvincia", "Cliente")',
+         {
+             departamentoId: control.value
+         }, function (response) {
+             $('#ProvinciaContactoId').find('option').remove().end();
+             $("#ProvinciaContactoId").addItems(response.data);
+             $("#ProvinciaContactoId").prop("disabled", false);
+             $("#ProvinciaContactoId").prop("selectedIndex", 1);
+             onChangeProvinciaDireccion(document.getElementById("ProvinciaContactoId"));
+         });
+    };
+
+    function onChangeProvinciaDireccion(control) {
+
+        $.post('@Url.Action("GetDistrito", "Cliente")',
+         {
+             provinciaId: control.value
+         }, function (response) {
+             $('#DistritoContactoId').find('option').remove().end();
+             $("#DistritoContactoId").addItems(response.data);
+             $("#DistritoContactoId").prop("disabled", false);
+             $("#DistritoContactoId").prop("selectedIndex", 1);
+         });
+    }
+
+
+    function onChangeDepartamento(control) {
+
+        $.post('@Url.Action("GetProvincia", "Cliente")',
+         {
+             departamentoId: control.value
+         }, function (response) {
+             $('#ProvinciaId').find('option').remove().end();
+             $("#ProvinciaId").addItems(response.data);
+             $("#ProvinciaId").prop("disabled", false);
+             $("#ProvinciaId").prop("selectedIndex", 1);
+             onChangeProvincia(document.getElementById("ProvinciaId"));
+
+         });
+    };
+
+    function onChangeProvincia(control) {
+
+        $.post('@Url.Action("GetDistrito", "Cliente")',
+         {
+             provinciaId: control.value
+         }, function (response) {
+             $('#DistritoId').find('option').remove().end();
+             $("#DistritoId").addItems(response.data);
+             $("#DistritoId").prop("selectedIndex", 1);
+             $("#DistritoId").prop("disabled", false);
+         });
+    }
+
+    function onClickClienteRUC(control) {
+
+        var value = $("#NumeroDocumento").val();
+
+        if (isEmptyElement("NumeroDocumento", "Ingrese el campo numero numero documento"))
+            return false;
+
+        let timerInterval
+        Swal.fire({
+            title: 'Espere estamos consultando !',
+            html: 'En unos momentos <strong></strong> se cerrara.',
+            timer: 1500,
+            onBeforeOpen: () => {
+                Swal.showLoading()
+            },
+            onClose: () => {
+            }
+        }).then((result) => {
+
+        });
+
+        $.post('@Url.Action("GetClienteSunat", "Cliente")', {
+            numeroruc: value,
+            tipoDoc: $("#DocumentoIdentidadId").val()
+        }, function (response) {
+                if (response.success) {
+                    if (!jQuery.isEmptyObject(response.data)) {
+                        $("#RazonSocial").val(response.data.Nombre);
+                        $("#NombreComercial").val(response.data.Nombre);
+                        $("#Nombres").val(response.data.Nombres);
+                        $("#ApellidoPaterno").val(response.data.ApellidoPaterno);
+                        $("#ApellidoMaterno").val(response.data.ApellidoMaterno);
+                        $("#NumeroRuc").val(response.data.NumeroDocumento);
+                        $("#NombreVia").val(response.data.Direccion);
+                    }
+
+            } else {
+                MsgAlert(3, response.message);
+            }
+        });
+    }
+</script>

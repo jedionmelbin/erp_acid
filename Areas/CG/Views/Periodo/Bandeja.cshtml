@@ -1,0 +1,527 @@
+﻿@model eRPBusiness.Web.Models.PeriodoViewModel
+@using eRPBusiness.Helpers
+@using eRPBusiness.Common
+@{
+    ViewBag.Title = "Bandeja";
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label> Configuracion de Periodo</label>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist" id="myTabs">
+            <li role="presentation" class="active"><a href="#periodo" aria-controls="periodo" role="tab" data-toggle="tab">Periodo</a></li>
+            <li role="presentation"><a href="#periodoEmpresa" aria-controls="periodoEmpresa" role="tab" data-toggle="tab">Periodo Empresa</a></li>
+            <li role="presentation"><a href="#tablas" aria-controls="tablas" role="tab" data-toggle="tab">Formato de Codigo</a></li>
+            <li role="presentation"><a href="#periodoCorrelativo" aria-controls="periodoCorrelativo" role="tab" data-toggle="tab">Correlativo</a></li>
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="periodo">
+                <div class="row">
+                    <div class="col-lg-12">
+                        @Html.CRM().MenuBar("PeriodoMenuBar", "onClickPeriodoMenuBar", new ItemMenuBar[]{
+                                                new ItemMenuBar(MenuBarButtonType.New,  false ),
+                                                new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                new ItemMenuBar(MenuBarButtonType.Delete,true)
+                                            }, MenuBarType.Small)
+                    </div>
+                    <div class="col-lg-12">
+                        <table id="jqGridPeriodo"></table>
+                        <div id="jqGridPagerPeriodo"></div>
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="periodoEmpresa">
+                <div class="row">
+                    <div class="col-lg-6 col-md-6 form-horizontal">
+                        <div class="panel">
+                            <div class="panel-body">
+                                <div class="form-group">
+                                    @Html.CRM().DropDownList("PeriodoEmpreId", Model.PeriodoId, @ViewBag.ListPeriodoList, "col-lg-10", "Periodo", "col-lg-2", new { @onchange = "onChangePeriodoEmpresa(this)" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        @Html.CRM().MenuBar("PeriodoEmpresaMenuBar", "onClickPeriodoEmpresaMenuBar", new ItemMenuBar[]{
+                                                new ItemMenuBar(MenuBarButtonType.New,  false ),
+                                                new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                new ItemMenuBar(MenuBarButtonType.Delete,true)
+                                            }, MenuBarType.Small)
+                    </div>
+                    <div class="col-lg-12">
+                        <table id="jqGridPeriodoEmpresa"></table>
+                        <div id="jqGridPagerPeriodoEmpresa"></div>
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="tablas">
+                <div class="row">
+                    <div class="col-lg-12">
+                        @Html.CRM().MenuBar("TablasMenuBar", "onClickTablaMenuBar", new ItemMenuBar[]{
+                                                new ItemMenuBar(MenuBarButtonType.New,  false ),
+                                                new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                new ItemMenuBar(MenuBarButtonType.Delete,true)
+                                            }, MenuBarType.Small)
+                    </div>
+                    <div class="col-lg-12">
+                        <table id="jqGridTabla"></table>
+                        <div id="jqGridPagerTabla"></div>
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="periodoCorrelativo">
+                <div class="row">
+                    <div class="col-lg-6 col-md-6 form-horizontal">
+                        <div class="panel">
+                            <div class="panel-body">
+                                <div class="form-group">
+                                    @Html.CRM().DropDownList("PeriodoCorreId", Model.PeriodoId, @ViewBag.ListPeriodoList, "col-lg-10", "Periodo", "col-lg-2", new { @onchange = "onChangePeriodo(this)"})
+                                </div>
+                                <div class="form-group">
+                                    @Html.CRM().DropDownList("SucursalId", Model.SucursalId, @ViewBag.SucursalList, "col-lg-10", "Sucursal", "col-lg-2", new { @onchange = "onChangeSucursals(this)" })
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        @Html.CRM().MenuBar("periodoCorrevMenuBar", "onClickperiodoCorrelativoMenuBar", new ItemMenuBar[]{
+                                                new ItemMenuBar(MenuBarButtonType.New,  false ),
+                                                new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                new ItemMenuBar(MenuBarButtonType.Delete,true)
+                                            }, MenuBarType.Small)
+                    </div>
+                    <div class="col-lg-12">
+                        <table id="jqGridPeriodoCorrelativo"></table>
+                        <div id="jqGridPagerPeriodoCorrelativo"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <input type="hidden" name="EditAction" id="EditAction" />
+</div>
+@using (Html.CRM().Popup("divPeriodo", "Periodo", "onClickPeriodoGuardar", SizePopup.Default))
+{
+    <div id="divContentPeriodo"></div>
+}
+@using (Html.CRM().Popup("divTabla", "Entidad", "onClickTablaGuardar", SizePopup.Default))
+{
+    <div id="divContentTabla"></div>
+}
+@using (Html.CRM().Popup("divPeriodoEmpresa", "Periodo Empresa", "onClickPeriodoEmpresaGuardar", SizePopup.Default))
+{
+    <div id="divContentPeriodoEmpresa"></div>
+}
+@using (Html.CRM().Popup("divCorrelativo", "Correlativo", "onClickCorrelativoGuardar", SizePopup.Default))
+{
+    <div id="divContentCorrelativo"></div>
+}
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#myTabs").width();
+    $(document).ready(function () {
+        $("#jqGridPeriodo").jqGrid({
+            url: '@Url.Action("ListarPeriodo", "Periodo", new { area = "CG" })',
+            mtype: "POST",
+            postData: {
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'PeriodoId', key: true, hidden: true },
+                { label: 'Periodo', name: 'Periodo', width: 20 },
+                { label: 'Nombre', name: 'Nombre', width: 60 }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            rowNum: 20,
+            height: (_heightGrid - 400),
+            width: (_widthPanel - 12),
+            rowList: [10, 20, 30],
+            onSelectRow: function (rowid) {
+                if (rowid == null || rowid == 0)
+                    return;
+
+                $("#PeriodoMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.EDIT',
+                    disabled: false
+                });
+            },
+            pager: "#jqGridPagerPeriodo"
+        });
+
+        $("#jqGridPeriodoEmpresa").jqGrid({
+            url: '@Url.Action("ListarPeriodoEmpresa", "Periodo", new { area = "CG" })',
+            mtype: "POST",
+            postData: {
+                periodoId: function () { return $("#PeriodoEmpreId").val() }
+            },
+            datatype: "json",
+            colModel: [
+                { label: '', name: 'PeriodoEmpresaId', key: true, hidden: true },
+                { label: 'Periodo', name: 'Periodo', width: 10 },
+                { label: 'RUC', name: 'NumeroRuc', width: 30 },
+                { label: 'Empresa', name: 'RazonSocial', width: 50 },
+                { label: 'Sucursal', name: 'Sucursal', width: 60 }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            rowNum: 20,
+            height: (_heightGrid - 400),
+            width: (_widthPanel - 12),
+            rowList: [10, 20, 30],
+            onSelectRow: function (rowid) {
+                if (rowid == null || rowid == 0)
+                    return;
+
+                $("#PeriodoEmpresaMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.EDIT',
+                    disabled: false
+                });
+            },
+            pager: "#jqGridPagerPeriodoEmpresa"
+        });
+
+        $("#jqGridTabla").jqGrid({
+            url: '@Url.Action("ListarTabla", "Periodo", new { area = "CG" })',
+            mtype: "POST",
+            postData: {
+            },
+            datatype: "json",
+            colModel: [
+                { label: '', name: 'TablaId', key: true, hidden: true },
+                { label: 'Código', name: 'Codigo', width: 20 },
+                { label: 'Nombre', name: 'Nombre', width: 60 },
+                { label: 'Formato', name: 'Formato', width: 60 }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            rowNum: 20,
+            height: (_heightGrid - 400),
+            width: (_widthPanel - 12),
+            rowList: [10, 20, 30],
+            onSelectRow: function (rowid) {
+                if (rowid == null || rowid == 0)
+                    return;
+
+                $("#TablasMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.EDIT',
+                    disabled: false
+                });
+            },
+            pager: "#jqGridPagerTabla"
+        });
+
+
+        $("#jqGridPeriodoCorrelativo").jqGrid({
+            url: '@Url.Action("ListarPeriodoCorrelativo", "Periodo", new { area = "CG" })',
+            mtype: "POST",
+            postData: {
+                sucursalId: function () { return $("#SucursalId").val() },
+                periodoId: function () { return $("#PeriodoCorreId").val() }
+            },
+            datatype: "json",
+            colModel: [
+                { label: '', name: 'Id', key: true, hidden: true },
+                { label: '', name: 'PeriodoCorrelativoId',hidden: true },
+                { label: 'Periodo', name: 'PeriodoEjucion', width: 20,align:'center' },
+                { label: 'Sede', name: 'PeriodoEmpresa', width: 60 },
+                { label: 'Tipo Documento', name: 'Tabla', width: 60 },
+                { label: 'Correlativo', name: 'Correlativo', width: 20 },
+                {
+                    label: "Eliminar",
+                    name: "actions",
+                    width: 10,
+                    sortable: false,
+                    align: 'center',
+                    formatter: function (cellvalue, options, rowObject) {
+                        var _control = "";
+                        _control = "<a href='#' id='" + options.rowId + "' rel='" + rowObject.PeriodoCorrelativoId + "' onClick='fnDeleteRolRow(this)' ><span class='glyphicon glyphicon-trash'></span></a>";
+                        return _control;
+                    }
+
+                }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            rowNum: 20,
+            height: (_heightGrid - 400),
+            width: (_widthPanel - 12),
+            rowList: [10, 20, 30],
+            onSelectRow: function (rowid) {
+                if (rowid == null || rowid == 0)
+                    return;
+
+                $("#periodoCorrevMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.EDIT',
+                    disabled: false
+                });
+            },
+            pager: "#jqGridPagerPeriodoCorrelativo"
+        });
+
+        $("#divPeriodo").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            var row = getGridSelectedRow("jqGridPeriodo");
+            var postData = {
+                editAction: $("#EditAction").val(),
+                periodoId: row.PeriodoId
+            };
+            controllerGetAction('@Url.Action("PeriodoEdit", "Periodo")', postData, 'divContentPeriodo', false, false, null);
+        });
+
+
+        $('#divPeriodo').on('hidden.bs.modal', function (e) {
+            $('#divContentPeriodo').empty();
+        });
+
+        $("#divTabla").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            var row = getGridSelectedRow("jqGridTabla");
+            var postData = {
+                editAction: $("#EditAction").val(),
+                tablaId: row.TablaId
+            };
+            controllerGetAction('@Url.Action("TablaEdit", "Periodo")', postData, 'divContentTabla', false, false, null);
+        });
+
+
+        $('#divTabla').on('hidden.bs.modal', function (e) {
+            $('#divContentTabla').empty();
+        });
+
+        $("#divPeriodoEmpresa").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+            var row = getGridSelectedRow("jqGridPeriodoEmpresa");
+            var postData = {
+                editAction: $("#EditAction").val(),
+                periodoEmpresaId: row.PeriodoEmpresaId
+            };
+            controllerGetAction('@Url.Action("PeriodoEmpresaEdit", "Periodo")', postData, 'divContentPeriodoEmpresa', false, false, null);
+        });
+
+        $('#divPeriodoEmpresa').on('hidden.bs.modal', function (e) {
+            $('#divContentPeriodoEmpresa').empty();
+        });
+
+        $("#divCorrelativo").on('show.bs.modal', function () {
+            $(this).find('input:text').val('');
+             var row = getGridSelectedRow("jqGridPeriodoCorrelativo");
+            var postData = {
+                editAction: $("#EditAction").val(),
+                periodoCorrelativoId: row.PeriodoCorrelativoId
+            };
+            controllerGetAction('@Url.Action("CorrelativoEdit", "Periodo")', postData, 'divContentCorrelativo', false, false, null);
+        });
+
+        $('#divCorrelativo').on('hidden.bs.modal', function (e) {
+            $('#divContentCorrelativo').empty();
+        });
+    });
+
+     function fnDeleteRolRow(control) {
+             var jsonData = {
+                id: control.rel
+            };
+            var _succces = false;
+            controllerPostJsonSync('@Url.Action("DeleteSecunItem")', jsonData, false, false, function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    $("#jqGridPeriodoCorrelativo").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                } else {
+                    MsgAlert(3, response.message);
+                }
+            });
+
+    }
+
+    function onClickPeriodoMenuBar(control) {
+        var row = getGridSelectedRow("jqGridPeriodo");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                $("#EditAction").val("@EditActionConstant.NEW");
+                $("#divPeriodo").modal('show');
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    $("#EditAction").val("@EditActionConstant.EDIT");
+                    $("#divPeriodo").modal('show');
+                } else {
+                    MsgAlert(3, 'Seleccione un periodo.');
+                }
+
+                break;
+        }
+    }
+
+    function onClickTablaMenuBar(control) {
+       var row = getGridSelectedRow("jqGridTabla");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                $("#EditAction").val("@EditActionConstant.NEW");
+                $("#divTabla").modal('show');
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    $("#EditAction").val("@EditActionConstant.EDIT");
+                    $("#divTabla").modal('show');
+                } else {
+                    MsgAlert(3, 'Seleccione entidad.');
+                }
+
+                break;
+        }
+    };
+
+    function onClickPeriodoEmpresaMenuBar(control) {
+        var row = getGridSelectedRow("jqGridPeriodoEmpresa");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                $("#EditAction").val("@EditActionConstant.NEW");
+                $("#divPeriodoEmpresa").modal('show');
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    $("#EditAction").val("@EditActionConstant.EDIT");
+                    $("#divPeriodoEmpresa").modal('show');
+                } else {
+                    MsgAlert(3, 'Seleccione un periodo empresa.');
+                }
+
+                break;
+        }
+    };
+
+    function onClickperiodoCorrelativoMenuBar(control) {
+        var row = getGridSelectedRow("jqGridPeriodoCorrelativo");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                $("#EditAction").val("@EditActionConstant.NEW");
+                $("#divCorrelativo").modal('show');
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    $("#EditAction").val("@EditActionConstant.EDIT");
+                    $("#divCorrelativo").modal('show');
+                } else {
+                    MsgAlert(3, 'Seleccione un periodo.');
+                }
+
+                break;
+        }
+    }
+
+    function onClickTablaGuardar() {
+        if (isEmptyElement('Codigo', 'Ingrese codigo'))
+            return false;
+
+        if (isEmptyElement('Nombre', 'Ingrese nombre'))
+            return false;
+
+        var postData = {
+            Header: JSON.stringify($('#divContentTabla').serializeObject()),
+            EditAction: $("#EditAction").val()
+        };
+
+        controllerSaveResponse('@Url.Action("Create", "Tabla",new {@area="CG" })', postData, false, false, function (response) {
+            if (response.success) {
+                $("#jqGridTabla").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                $("#divTabla").modal('hide');
+                MsgAlert(1, response.message);
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+    function onClickPeriodoGuardar() {
+        if (isEmptyElement("PeriodoEjucion", "Ingrese el campo periodo ejecución"))
+            return false;
+
+        if (isEmptyElement("Nombre", "Ingrese el campo nombre"))
+            return false;
+
+
+        var jsonData = {
+            Header: JSON.stringify($('#divContentPeriodo').serializeObject()),
+            EditAction: $("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("PeriodoGuardar", "Periodo")", jsonData, false, false, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $("#divPeriodo").modal('hide');
+                jQuery("#jqGridPeriodo").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    };
+
+    function onClickPeriodoEmpresaGuardar() {
+        if (isEmptyElement("PeriodoId", "Seleccione periodo."))
+            return false;
+
+        if (isEmptyElement("SucursalId", "Seleccione sucursal"))
+            return false;
+
+
+        var jsonData = {
+            Header: JSON.stringify($('#divContentPeriodoEmpresa').serializeObject()),
+            EditAction: $("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("PeriodoEmpresaGuardar", "Periodo")", jsonData, false, false, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $("#divPeriodoEmpresa").modal('hide');
+                jQuery("#jqGridPeriodoEmpresa").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+    function onClickCorrelativoGuardar() {
+
+        if (isEmptyElement("PeriodoEmpresaId", "Seleccione periodo."))
+            return false;
+
+        if (isEmptyElement("TablaId", "Seleccione documento"))
+            return false;
+
+
+        var jsonData = {
+            Header: JSON.stringify($('#divContentCorrelativo').serializeObject()),
+            EditAction: $("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("CorrelativoGuardar", "Periodo")", jsonData, false, false, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $("#divCorrelativo").modal('hide');
+                jQuery("#jqGridPeriodoCorrelativo").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+
+    function onChangeSucursals(control) {
+        jQuery("#jqGridPeriodoCorrelativo").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+    }
+    function onChangePeriodo(control) {
+        jQuery("#jqGridPeriodoCorrelativo").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+    }
+    function onChangePeriodoEmpresa() {
+        jQuery("#jqGridPeriodoEmpresa").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+    }
+</script>

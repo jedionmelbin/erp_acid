@@ -1,0 +1,42 @@
+﻿@model eRPBusiness.Transport.CajaChicaDTO
+@using eRPBusiness.Helpers;
+@using eRPBusiness.Common;
+@{
+    ViewBag.Title = "Create";
+}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                @using (Html.BeginForm("", "", FormMethod.Post, new { @id = "form1" }))
+                {
+                    @Html.AntiForgeryToken()
+                <div class="col-md-12">
+                    <div class="form-group">
+                        @Html.CRM().DropDownList("SucursalId", Model.SucursalId, @ViewBag.ListSucursal, "col-lg-7 col-md-7", "Sucursal", "col-lg-3")
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().DropDownList("PersonalId", Model.PersonalId, @ViewBag.ListPersonal, "col-lg-7 col-md-7", "Personal", "col-lg-3")
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().DateTimePickerFor(m => m.FechaInicio, "col-lg-5", "Fecha Emisión", "col-lg-3").PickerType(DateTimePickerType.Date).Attributes(new { @placeholder = "Fecha Emisión" ,@disabled="disabled"})
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().NumericTextBoxFor(m => m.MontoSoles, "col-lg-3", "Monto Soles", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2)
+                    </div>
+                    <div class="form-group">
+                        @Html.CRM().NumericTextBoxFor(m => m.MontoDolares, "col-lg-3", "Monto Dolares", "col-lg-3").TextNumericType(NumericType.Decimal).CantidadEnteros(14).CantidadDecimales(2)
+                    </div>
+                </div>
+                    @Html.HiddenFor(m => m.CajaChicaId)
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+       // $("#SucursalId").select2({ dropdownParent: $("#myModalCaja") });
+    });
+</script>

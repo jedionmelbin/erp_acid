@@ -1,0 +1,110 @@
+@using eRPBusiness.Helpers
+@{
+    ViewData["Title"] = "Index";
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label> Listado Personal</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                                   new ItemMenuBar(MenuBarButtonType.New),
+                                                   new ItemMenuBar(MenuBarButtonType.Edit),
+                                                   new ItemMenuBar(MenuBarButtonType.Delete,true)
+                                               })
+<div class="row">
+
+    <div class="col-lg-12" id="seachPanel">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal" id="panelSeach">
+                <div class="col-lg-11">
+                    <div class="form-group">
+                        @Html.CRM().TextBox("Documento", null, "col-lg-4", "Documento", "col-lg-2").Attributes(new { @maxlength = "100" }).Attributes(new { @placeholder = "Numero Documento" })
+                        @Html.CRM().TextBox("Nombre", null, "col-lg-4", "Nombre", "col-lg-2").Attributes(new { @maxlength = "100" }).Attributes(new { @placeholder = "Nombres" })
+                    </div>
+                </div>
+                <div class="col-lg-1">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridBandeja').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('input:text').val(''); $('#jqGridBandeja').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-body" id="panel">
+                <table id="jqGridBandeja"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridBandeja").jqGrid({
+            url: '@Url.Action("ListarBandeja", "Personal", new { area = "AM" })',
+            mtype: "POST",
+            postData: {
+                documento: function () { return $("#Documento").val() },
+                nombre: function () { return $("#Nombre").val() }
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'PersonalId', key: true, hidden: true },
+                { label: 'Nombres', name: 'Nombres', width: 70 },
+                { label: 'Nro Documento', name: 'NumeroDocumento', width: 35 },
+                { label: 'Telefono', name: 'Telefono', width: 35 },
+                { label: 'Email', name: 'EmailPersonal', width: 90 }
+
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 280),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            pager: "#jqGridPager"
+        });
+    });
+
+    function onClickMenuBar(control) {
+
+        var postData = {
+            editAction: '',
+            personalId: 0
+        };
+        var row = getGridSelectedRow("jqGridBandeja");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                postData.editAction = '@EditActionConstant.NEW';
+                controllerGetAction('@Url.Action("Create", "Personal", new { area = "AM" })', postData, 'workspace', true, true, null);
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                postData.editAction = '@EditActionConstant.EDIT';
+                var row = getGridSelectedRow('jqGridBandeja');
+                if (!isEmpty(row)) {
+                    postData.personalId = row.PersonalId;
+                    controllerGetAction('@Url.Action("Create", "Personal", new { area = "AM" })', postData, 'workspace', true, true, null);
+                } else {
+                    MsgAlert(2, 'Seleccione un personal');
+                }
+                break;
+        }
+    };
+
+
+</script>
+

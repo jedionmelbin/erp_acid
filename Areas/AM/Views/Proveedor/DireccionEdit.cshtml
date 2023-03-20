@@ -1,0 +1,80 @@
+﻿@using eRPBusiness.Helpers
+@model eRPBusiness.Transport.DireccionClienteDTO
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="form-group">
+                    @Html.CRM().TextBoxFor(m => m.NombreDireccion, "col-lg-10", "Ubicación", "col-lg-2").Attributes(new { @placeholder = "Ubicación" })
+                </div>
+
+                <div class="form-group">
+                    @Html.CRM().TextBoxFor(m => m.Referencia, "col-lg-10", "Referencia", "col-lg-2").Attributes(new { @placeholder = "Referencia" })
+                </div>
+                <div class="form-group">
+                    @if (ViewBag.IsNew)
+                    {
+                        @Html.CRM().DropDownList("PaisDireccionId", null, @ViewBag.PaisList, "col-lg-4", "Pais", "col-lg-2", new { @onchange = "onChangePais(this);" })
+                        @Html.CRM().DropDownList("DepartamentoContactoId", null, @ViewBag.DepartamentoList, "col-lg-4", "Departamento", "col-lg-2", new { @onchange = "onChangeDepartamento(this);" })
+                    }
+                    else
+                    {
+                        @Html.CRM().DropDownList("PaisDireccionId", Model.DistritoDTO.ProvinciaDTO.DepartamentoDTO.PaisId, @ViewBag.PaisList, "col-lg-4", "Pais", "col-lg-2", new { @onchange = "onChangePais(this);" })
+                        @Html.CRM().DropDownList("DepartamentoContactoId", Model.DistritoDTO.ProvinciaDTO.DepartamentoId, @ViewBag.DepartamentoList, "col-lg-4", "Departamento", "col-lg-2", new { @onchange = "onChangeDepartamento(this);" })
+                    }
+
+                </div>
+                <div class="form-group">
+                    @if (ViewBag.IsNew)
+                    {
+                        @Html.CRM().DropDownList("ProvinciaContactoId", null, @ViewBag.ProvinciaList, "col-lg-4", "Provincia", "col-lg-2", new { @onchange = "onChangeProvincia(this);", @disabled = "disabled" })
+                        @Html.CRM().DropDownList("DistritoContactoId", null, @ViewBag.DistritoList, "col-lg-4", "Distrito", "col-lg-2", new { @disabled = "disabled" })
+                    }
+                    else
+                    {
+
+                        @Html.CRM().DropDownList("ProvinciaContactoId", Model.DistritoDTO.ProvinciaDTO.ProvinciaId, @ViewBag.ProvinciaList, "col-lg-4", "Provincia", "col-lg-2", new { @onchange = "onChangeProvincia(this);" })
+                        @Html.CRM().DropDownList("DistritoContactoId", Model.DistritoId, @ViewBag.DistritoList, "col-lg-4", "Distrito", "col-lg-2")
+                    }
+                </div>
+                @Html.HiddenFor(m => m.DireccionId)
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function onChangePais(control) {
+        $.post('@Url.Action("GetDepartamento", "Cliente")',
+            {
+                paisId: control.value
+            }, function (response) {
+                $('#DepartamentoContactoId').find('option').remove().end();
+                $("#DepartamentoContactoId").addItems(response.data);
+                $("#DepartamentoContactoId").prop("disabled", false);
+            });
+    };
+
+    function onChangeDepartamento(control) {
+
+        $.post('@Url.Action("GetProvincia", "Cliente")',
+         {
+             departamentoId: control.value
+         }, function (response) {
+             $('#ProvinciaContactoId').find('option').remove().end();
+             $("#ProvinciaContactoId").addItems(response.data);
+             $("#ProvinciaContactoId").prop("disabled", false);
+         });
+    };
+
+    function onChangeProvincia(control) {
+
+        $.post('@Url.Action("GetDistrito", "Cliente")',
+         {
+             provinciaId: control.value
+         }, function (response) {
+             $('#DistritoContactoId').find('option').remove().end();
+             $("#DistritoContactoId").addItems(response.data);
+             $("#DistritoContactoId").prop("disabled", false);
+         });
+    }
+</script>

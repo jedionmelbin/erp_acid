@@ -1,0 +1,172 @@
+﻿@using eRPBusiness.Helpers
+@using eRPBusiness.Common
+@{
+    ViewData["Title"] = "Index";
+}
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label> Listado Campañas</label>
+        </nav>
+    </div>
+</div>
+
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                    new ItemMenuBar(MenuBarButtonType.New),
+                    new ItemMenuBar(MenuBarButtonType.Edit)
+                    })
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal" id="panelSeach">
+                <div class="col-lg-11">
+                    <div class="form-group">
+                        @Html.CRM().TextBox("Nombre", null, "col-lg-4", "Nombre", "col-lg-2").Attributes(new { @maxlength = "100", @placeholder = "Nombre" })
+                        @Html.CRM().TextBox("Descripcion", null, "col-lg-4", "Descripcion", "col-lg-2").Attributes(new { @maxlength = "100", @placeholder = "Descripcion" })
+                    </div>
+                </div>
+                <div class="col-lg-1">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridBandeja').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('input:text').val(''); $('#jqGridBandeja').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');$('#CategoriaId').val(null).trigger('change'); "))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-body" id="panel">
+                <table id="jqGridBandeja"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.CRM().Popup("myModal", "File Upload", "onClickOkFileUpload", SizePopup.Small))
+{
+    <div id="modalContent">
+        <form class="form-horizontal">
+            <div class="form-group">
+                <label class="control-label col-lg-2">Archivo</label>
+                <div class="col-lg-12">
+                    <input type="file" name="fileUpload" id="fileUpload" class="form-control" />
+                </div>
+            </div>
+        </form>
+    </div>
+}
+
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridBandeja").jqGrid({
+            url: '@Url.Action("ListarBandeja", "Campania", new { area = "ec" })',
+            mtype: "POST",
+            postData: {
+                descripcion: function () { return $("#Descripcion").val() },
+                
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'Id', name: 'CampanaId', key: true, hidden: true },
+                { label: 'Estado', name: 'Estado', hidden: true },
+                { label: 'Estado', name: 'LetraEstado', width: 15, formatter:colorCell,align:'center' },
+                { label: 'Nombre', name: 'Nombre', width: 50 },
+                { label: 'Descripcion', name: 'Descripcion', width: 60 },
+                { label: 'Fecha Inicio', name: 'FechaInicio', width: 20,align:'center' },
+                { label: 'Fecha Final', name: 'FechaFinal', width: 20, align: 'center' },
+                {
+                    label: 'Anular', name: 'Pdf', width: 10, align: 'center', formatter: function (cellvalue, options, rowObject) {
+                        var link = '<a href="#" rel="' + rowObject.CampanaId + '" onclick="fnRowDelete(this)"><span class="glyphicon glyphicon-trash"></span></a>';
+                        return link;
+                    }
+                }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 230),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            rownumbers: true, // show row numbers
+            pager: "#jqGridPager"
+        });
+    });
+
+    function onClickMenuBar(key) {
+
+        var postData = {
+            editAction: '',
+            campanaId: 0
+        };
+        var row = getGridSelectedRow("jqGridBandeja");
+        switch (key) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                postData.editAction = '@EditActionConstant.NEW';
+                controllerGetAction('@Url.Action("Create", "Campania", new { area = "ec" })', postData, 'workspace', true, true, null);
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    postData.editAction = '@EditActionConstant.EDIT';
+                    postData.campanaId = row.CampanaId;
+                    controllerGetAction('@Url.Action("Create", "Campania", new { area = "ec" })', postData, 'workspace', true, true, null);
+                } else {
+                    MsgAlert(3, 'Seleccione una campana');
+                }
+                break;
+             case "@ButtonMenuBarActionConstant.IMPORT_XLS":
+                $("#myModal").modal('show');
+                break;
+        }
+    }
+
+    function colorCell(cellvalue, options, rowObject) {
+        var backgroud = '', colorHex = '';
+        switch (rowObject.Estado) {
+            case '@EstadoConstante.ACTIVO':
+                colorHex = '#57D99C';
+                break;
+            case '@EstadoConstante.INACTIVO':
+                colorHex = '#F57043';
+                break;
+            default:
+                return cellvalue;
+                break;
+        }
+        backgroud = '<span style="background-color: ' + colorHex + '; display: block; width: 100%; height: 100%; color:#fff; ">' + rowObject.LetraEstado + '</span>';
+        return backgroud;
+    }
+
+    function fnRowDelete(control) {
+
+        alertify.confirm('Anular Campaña', 'Estas seguro de anular campana ?', function () {
+            //alertify.success('Ok');
+             var jsonData = {
+                 campanaId: control.rel
+            };
+            controllerSaveResponse("@Url.Action("GenerarBaja", "Campania")", jsonData, true, true, function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    jQuery("#jqGridBandeja").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                } else {
+                    MsgAlert(4, response.message);
+                }
+            });
+        }, function () {
+
+            alertify.error('Cancel');
+        });
+    }
+
+</script>
+

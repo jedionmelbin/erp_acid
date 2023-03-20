@@ -1,0 +1,154 @@
+﻿@using eRPBusiness.Helpers
+@using eRPBusiness.Common
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="col-lg-12">
+    <nav class="btn-toolbar text-left titleuser">
+        <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+        <label>Cuentas por pagar</label>
+    </nav>
+</div>
+
+
+<div class="row">
+    <div class="col-lg-12" id="seachPanel">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="col-lg-11">
+                    <div class="col-lg-10">
+                        <div class="form-group">
+                            @Html.CRM().TextBox("Codigo", null, "col-lg-4 col-md-4", "Código", "col-lg-2").Attributes(new { @placeholder = "Código" })
+                            @Html.CRM().TextBox("Descripcion", null, "col-lg-4", "Nombre", "col-lg-2").Attributes(new { @maxlength = "100", @placeholder = "Nombre" })
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+
+                    </div>
+                    @Html.Hidden("EditAction")
+                    @Html.Hidden("rowId")
+                </div>
+                <div class="col-lg-1">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridBienAlmacen').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('input:text').val('');$('#AlmacenId').val(null).trigger('change');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+
+            </div>
+            <div class="panel-body" id="panel">
+                <table id="jqGridCuenta"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridCuenta").jqGrid({
+            url: '@Url.Action("ListarBandeja", "CuentaCobrar", new { area = "CT" })',
+            mtype: "POST",
+            postData: {
+
+            },
+            datatype: "json",
+            colModel: [
+                { label: 'CreditoId', name: 'CreditoId', key: true, hidden: true },
+                { label: 'EmpresaId', name: 'EmpresaId', hidden: true, sortable: false },
+                { label: 'Empresa', name: 'Empresa', width: 20, sortable: false },
+                { label: 'RUC', name: 'NumeroRuc', width: 10, sortable: false },
+                { label: 'Cliente', name: 'Cliente', width: 20, sortable: false },
+                {
+                    label: 'Deuda Soles', name: 'ValorSoles', width: 10, sortable: false, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }
+                },
+                { label: 'Deuda Dolares', name: 'ValordDolares', width: 10, sortable: false,formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }
+                },
+                {
+                    label: 'Linea Credito', name: 'LineaCredito', width: 10, sortable: false, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }
+                },
+                {
+                    label: 'Credito Disponible', name: 'CreditoDispo', width: 10, sortable: false, formatter: 'integer', align: 'right', sortable: false,
+                    formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2 }
+                }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 220),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+
+            pager: "#jqGridPager"
+        });
+
+    });
+
+
+
+    function onClickBancoMenuBar(control) {
+
+        var postData = {
+            editAction: '',
+            bancoId: 0
+        };
+        var row = getGridSelectedRow("jqGridBanco");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                postData.editAction = '@EditActionConstant.NEW';
+                $("#EditAction").val(@EditActionConstant.NEW)
+                $("#myModalBanco").modal('show');
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                        $("#EditAction").val(@EditActionConstant.EDIT);
+                    $("#rowId").val(row.BancoId);
+                         $("#myModalBanco").modal('show');
+                } else {
+                    MsgAlert(3, 'Seleccione un inventario para ver el detalle');
+                }
+                break;
+            case "@ButtonMenuBarActionConstant.IMPORT_XLS":
+                $("#myModal").modal('show');
+                break;
+        }
+    }
+
+     function onClickBanco() {
+
+        if (isEmptyElement("Nombre", "Ingrese nombre"))
+            return false;
+
+
+        var jsonData = {
+            Header: JSON.stringify($('#modalContentBanco').serializeObject()),
+            EditAction:$("#EditAction").val()
+        };
+        controllerSaveResponse("@Url.Action("Create", "Bancos")", jsonData, true, true, function (response) {
+            if (response.success) {
+                MsgAlert(1, response.message);
+                $('#jqGridBanco').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                 $("#myModalBanco").modal('hide');
+            } else {
+                MsgAlert(4, response.message);
+            }
+        });
+    }
+</script>
+

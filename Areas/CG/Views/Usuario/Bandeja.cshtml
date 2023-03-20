@@ -1,0 +1,140 @@
+﻿@using eRPBusiness.Helpers
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label> Listado Usuarios</label>
+        </nav>
+    </div>
+</div>
+@Html.CRM().MenuBar("MenuBar", "onClickMenuBar", new ItemMenuBar[]{
+                                                   new ItemMenuBar(MenuBarButtonType.New),
+                                                   new ItemMenuBar(MenuBarButtonType.Edit),
+                                                   new ItemMenuBar(MenuBarButtonType.Delete,true)
+                                               })
+<div class="row">
+
+    <div class="col-lg-12" id="seachPanel">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="col-lg-11" id="panelSeach">
+                    <div class="form-group">
+                        @Html.CRM().TextBox("codigo", null, "col-lg-4", "Codigo", "col-lg-2").Attributes(new { @maxlength = "100", @placeholder = "Código" })
+                        @Html.CRM().TextBox("nombre", null, "col-lg-4", "Nombre", "col-lg-2").Attributes(new { @maxlength = "100", @placeholder = "Nombre" })
+                    </div>
+                </div>
+                <div class="col-lg-1">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridBandeja').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('input:text').val(''); $('#jqGridBandeja').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-body" id="panel">
+                <table id="jqGridBandeja"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridBandeja").jqGrid({
+            url: '@Url.Action("ListarBandeja", "Usuario", new { area = "CG" })',
+            mtype: "POST",
+            postData: {
+                codigo: function () { return $("#codigo").val() },
+                nombre: function () { return $("#nombre").val() }
+            },
+            datatype: "json",
+            colModel: [
+                { label: '', name: 'UsuarioId', key: true, hidden: true },
+                { label: '', name: 'PersonalId', hidden: true },
+                { label: 'Usuario', name: 'UserName', width: 20 },
+                { label: 'Nombre', name: 'Nombre', width: 60 },
+                { label: 'Empresa', name: 'Empresa', width: 50 },
+                { label: 'Sucursal', name: 'Sucursal', width: 50 },
+                { label: 'Almacen', name: 'Almacen', width: 40 },
+                {
+                    label: 'Eliminar', name: 'UsuarioId', width: 10, align: 'center', formatter: function (cellvalue, options, rowObject) {
+                        var link = '<a href="#" rel="' + rowObject.UsuarioId + '" onclick="fnRowDelete(this)"><span class="glyphicon glyphicon-trash"></span></a>';
+                        return link;
+                    }
+                }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            rownumbers: true, // show row numbers
+            height: (_heightGrid - 280),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            pager: "#jqGridPager"
+        });
+
+
+
+    });
+
+    function onClickMenuBar(control) {
+        var postData = {
+            editAction: '',
+            personalId: 0
+        };
+        var row = getGridSelectedRow("jqGridBandeja");
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                postData.editAction = '@EditActionConstant.NEW';
+                controllerGetAction('@Url.Action("Create", "Usuario", new { area = "cg" })', postData, 'workspace', true, true, null);
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                if (!isEmpty(row)) {
+                    postData.editAction = '@EditActionConstant.EDIT';
+                    postData.personalId = row.PersonalId;
+                    controllerGetAction('@Url.Action("Create", "Usuario", new { area = "cg" })', postData, 'workspace', true, true, null);
+                } else {
+                    MsgAlert(3, 'Seleccione un registro de usuario.');
+                }
+                break;
+        }
+    }
+
+
+    function fnRowDelete(control) {
+
+        alertify.confirm('Eliminar Usuario', 'Estas seguro de eliminar usuario ?', function () {
+            //alertify.success('Ok');
+             var jsonData = {
+                 usuarioId: control.rel
+            };
+            controllerSaveResponse("@Url.Action("Eliminar", "Usuario")", jsonData, true, true, function (response) {
+                if (response.success) {
+                    MsgAlert(1, response.message);
+                    jQuery("#jqGridBandeja").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                } else {
+                    MsgAlert(4, response.message);
+                }
+            });
+        }, function () {
+
+            alertify.error('Cancel');
+        });
+    }
+</script>
+

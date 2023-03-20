@@ -1,0 +1,237 @@
+﻿@using eRPBusiness.Helpers
+@using eRPBusiness.Common
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+<div class="row">
+    <div class="col-lg-12">
+        <nav class="btn-toolbar text-left titleuser">
+            <a href="#" data-toggle="sidebar"><span class="glyphicon glyphicon-option-vertical"></span></a>
+            <label> Documento Identidad</label>
+        </nav>
+    </div>
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body form-horizontal">
+                <div class="col-lg-11">
+                    @Html.CRM().TextBox("codigo", null, "col-lg-4", "Código", "col-lg-2").Attributes(new { @maxlength = "100", @placeholder = "Código" })
+                    @Html.CRM().TextBox("nombre", null, "col-lg-4", "Nombre", "col-lg-2").Attributes(new { @maxlength = "100", @placeholder = "Nombre" })
+                </div>
+                <div class="col-lg-1">
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar").ElementType(ButtonElementType.Button).Value("Buscar").OnClick("$('#jqGridBandeja').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                    <div class="form-group">
+                        @(Html.CRM().InputButton("buttonBuscar", new { Styles = "width:100%" }).ElementType(ButtonElementType.Button).Value("Limpiar").OnClick("$('input:text').val(''); $('#jqGridBandeja').jqGrid('setGridParam',{datatype:'json'}).trigger('reloadGrid');"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12" id="bandeja">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                @Html.CRM().MenuBar("DocumentoMenuBar", "onClickDocumentoMenuBar", new ItemMenuBar[]{
+                                                new ItemMenuBar(MenuBarButtonType.New,  false ),
+                                                new ItemMenuBar(MenuBarButtonType.Edit,true),
+                                                new ItemMenuBar(MenuBarButtonType.Save,true),
+                                                new ItemMenuBar(MenuBarButtonType.Cancel,true)
+                                            }, MenuBarType.Small)
+            </div>
+            <div class="panel-body" id="panel">
+                <table id="jqGridBandeja"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+    @Html.Hidden("esNuevo")
+</div>
+
+
+<script type="text/javascript">
+    var _heightGrid = getHeightForResize(75);
+    var _widthPanel = $("#panel").width();
+    $(document).ready(function () {
+
+        $("#jqGridBandeja").jqGrid({
+            url: '@Url.Action("ListarBandeja", "Documento", new { area = "MG" })',
+            postData:{
+                codigo: function () { return $("#codigo").val() },
+                nombre: function () { return $("#nombre").val() },
+            },
+            mtype: "POST",
+            datatype: "json",
+            colModel: [
+                { label: '', name: 'DocumentoIdentidadId', hidden: true },
+                { label: 'Codigo', name: 'Codigo', width: 50, edittype: 'text', editable: true, editoptions: { maxlength: 3, placeholder: "Código" } },
+                { label: 'Nombre', name: 'Nombre', width: 100, edittype: 'text', editable: true, editoptions: {placeholder: "Nombre" } }
+            ],
+            viewrecords: true,
+            loadonce: true,
+            height: (_heightGrid - 200),
+            width: _widthPanel,
+            rowNum: 20,
+            rowList: [10, 20, 30],
+            onSelectRow: function (rowid) {
+                $("#DocumentoMenuBar").menuBar({
+                    button: '@ButtonMenuBarNameConstant.EDIT',
+                    disabled: false
+                });
+
+            },
+            pager: "#jqGridPager"
+        });
+    });
+
+    function onClickDocumentoMenuBar(control) {
+        switch (control) {
+            case "@ButtonMenuBarActionConstant.NEW":
+                $("#esNuevo").val('@DigitosConstante.UNO');
+                var newRowId = gridRowCount("jqGridBandeja");
+                var parameters = {
+                    rowID: newRowId + 1,
+                    initdata: {
+                    },
+                    position: "first"
+                };
+                $("#jqGridBandeja").jqGrid('addRow', parameters);
+                actionNuevo();
+             break;
+            case "@ButtonMenuBarActionConstant.SAVE":
+                var rowId = getGridSelectedRowId('jqGridBandeja');
+                var row = getGridSelectedRow('jqGridBandeja');
+                if (isEmptyElement(rowId + "_Codigo", "Ingrese el campo codigo"))
+                    return false;
+
+                if (isEmptyElement(rowId + "_Nombre", "Ingrese el campo nombre"))
+                    return false;
+
+                $("#jqGridBandeja").jqGrid('saveRow', rowId, {url: 'clientArray', aftersavefunc: function (id, response, options){
+                    var row = getGridSelectedRow("jqGridBandeja");
+
+                    var postData = {
+                        Row: JSON.stringify(row),
+                        EditAction: $("#esNuevo").val()
+                    };
+                    controllerSaveResponse('@Url.Action("Create", "Documento")', postData, true, true, function (response) {
+                        if (response.success) {
+                            MsgAlert(1, response.message);
+                            jQuery("#jqGridBandeja").jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                        } else {
+                            MsgAlert(4, response.message);
+                        }
+                    });
+                }
+                });
+                actionSave();
+                break;
+            case "@ButtonMenuBarActionConstant.EDIT":
+                actionEdit();
+                $("#esNuevo").val('@DigitosConstante.DOS');
+                var row = getGridSelectedRow('jqGridBandeja');
+                if (!isEmpty(row)) {
+                    var rowId = getGridSelectedRowId("jqGridBandeja");
+                    $('#jqGridBandeja').jqGrid('editRow', rowId);
+                    lastsel=rowId;
+                }else{
+                    MsgAlert(3, 'Selccione un registro');
+                }
+
+                break;
+            case '@ButtonMenuBarActionConstant.CANCEL':
+                actionCancel();
+                var rowid = getGridSelectedRowId("jqGridBandeja");
+                $('#jqGridBandeja').setGridParam({ datatype: 'json' });
+                $('#jqGridBandeja').trigger('reloadGrid');
+                lastsel = 0;
+                break;
+        }
+    }
+
+    function actionNuevo()
+    {
+        $("#DocumentoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: true
+        });
+
+        $("#DocumentoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: true
+        });
+
+        $("#DocumentoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: false
+        });
+
+        $("#DocumentoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: false
+        });
+
+    }
+
+    function actionEdit() {
+        $("#DocumentoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: true
+        });
+        $("#DocumentoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: true
+        });
+
+        $("#DocumentoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: false
+        });
+
+        $("#DocumentoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: false
+        });
+    }
+
+    function actionSave() {
+         $("#DocumentoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.NEW',
+            disabled: false
+        });
+        $("#DocumentoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.EDIT',
+            disabled: true
+        });
+        $("#DocumentoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.SAVE',
+            disabled: true
+        });
+        $("#DocumentoMenuBar").menuBar({
+            button: '@ButtonMenuBarNameConstant.CANCEL',
+            disabled: true
+        });
+    }
+
+        function actionCancel() {
+            $("#DocumentoMenuBar").menuBar({
+                button: '@ButtonMenuBarNameConstant.EDIT',
+                disabled: true
+            });
+
+            $("#DocumentoMenuBar").menuBar({
+                button: '@ButtonMenuBarNameConstant.SAVE',
+                disabled: true
+            });
+            $("#DocumentoMenuBar").menuBar({
+                button: '@ButtonMenuBarNameConstant.NEW',
+                disabled: false
+            });
+            $("#DocumentoMenuBar").menuBar({
+                button: '@ButtonMenuBarNameConstant.CANCEL',
+                disabled: true
+            });
+        }
+</script>
+
