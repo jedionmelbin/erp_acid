@@ -53,3 +53,11 @@ Para realizar la instalación de manera local necesitamos los siguientes requisi
 - En la sección database debe ir la base de datos restaurado previamente del la carpeta app_data
 - En la seccion  "ID" debe ir el usuario de base datos
 - La ultima seccion Password: Contraseña de base de datos
+
+
+### Restaurar la base de datos SSQL
+
+Ingresamos al IDE SQL Manager y nos vamos al explorador y presionamos database y restaurar "File and FileGroups"  
+
+![image](https://user-images.githubusercontent.com/15756971/226461084-333e066b-51e5-4fe7-994d-28ac2199afc1.png)
+
