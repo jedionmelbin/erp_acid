@@ -23,3 +23,17 @@ El software se desarrolló  en el año 2014, con el fin de ayudar a las empresas
 - Gestión de seguridad
   - Empresas
   - Usuario
+
+
+## Instalación en servidores IIS
+Para realizar la instalación de manera local necesitamos los siguientes requisitos:
+
+### Software
+- Microsoft Net Framework 4.6 o superior
+- Microsoft Windows 10,11 o Windows Server 2012 o superior
+- Microsoft SQL Server 2014 o superior
+
+### Hardware
+- Servidor con 500 GB De disco HDD or SDD
+- Procesador de 2 Cores
+- Memoria RAM de 4GB o superior
