@@ -49,7 +49,7 @@ Para realizar la instalación de manera local necesitamos los siguientes requisi
   </connectionStrings>
 ```
 
--El la sección server debe poner la Ip del servidor de base de datos
--En la sección database debe ir la base de datos restaurado previamente del la carpeta app_data
--En la seccion  "ID" debe ir el usuario de base datos
--La ultima seccion Password: Contraseña de base de datos
+- El la sección server debe poner la Ip del servidor de base de datos
+- En la sección database debe ir la base de datos restaurado previamente del la carpeta app_data
+- En la seccion  "ID" debe ir el usuario de base datos
+- La ultima seccion Password: Contraseña de base de datos
