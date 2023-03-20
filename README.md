@@ -63,3 +63,6 @@ Ingresamos al IDE SQL Manager y nos vamos al explorador y presionamos database y
 
 Buscamos la ruta de la base de datos y renombramos y finalmente presionar ok.
 
+### Instalar sitio web
+Ingresar al 
+
