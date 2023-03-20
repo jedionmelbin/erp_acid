@@ -37,3 +37,19 @@ Para realizar la instalación de manera local necesitamos los siguientes requisi
 - Servidor con 500 GB De disco HDD or SDD
 - Procesador de 2 Cores
 - Memoria RAM de 4GB o superior
+
+
+### Configuración de Web config cadena de conexión al servidor de Base de datos MSSQL
+
+```
+  <connectionStrings>
+	  <!--Local -->
+	  <add name="DefaultConnection" connectionString="Server={{server}};Database={{base_de_Datos}};User ID=sa;Password=password;TrustServerCertificate=True;Trusted_Connection=False;Connection Timeout=60;Integrated Security=False;Persist Security Info=False;Encrypt=True;MultipleActiveResultSets=True;" providerName="System.Data.SqlClient" />
+	
+  </connectionStrings>
+```
+
+-El la sección server debe poner la Ip del servidor de base de datos
+-En la sección database debe ir la base de datos restaurado previamente del la carpeta app_data
+-En la seccion  "ID" debe ir el usuario de base datos
+-La ultima seccion Password: Contraseña de base de datos
