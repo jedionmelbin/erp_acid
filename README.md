@@ -2,6 +2,13 @@
 
 El software se desarrolló  en el año 2014, con el fin de ayudar a las empresas a gestionar sus recursos administrativos desde pequeños tiendas que manejan compras y ventas, con facturación electronica integrado a los servisio de SUNAT PERU, a continuación detallamos los módulos: 
 
+# Demo 
+
+Usuario: admin
+Password: 123456
+
+https://erpdev.azurewebsites.net/
+
 ## Modulos del sistema
 - Gestión de almacen
    - Ingresos
