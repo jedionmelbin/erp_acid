@@ -4,10 +4,10 @@ El software se desarrolló  en el año 2014, con el fin de ayudar a las empresas
 
 # Demo 
 
-Usuario: admin
-Password: 123456
+https://demo.app-valticore.com/
+user: admin
+Password: 1DeMVlt730
 
-https://erpdev.azurewebsites.net/
 
 ## Modulos del sistema
 - Gestión de almacen
