@@ -5,8 +5,8 @@ El software se desarrolló  en el año 2014, con el fin de ayudar a las empresas
 # Demo 
 
 https://demo.app-valticore.com/
-#user: admin
-#Password: 1DeMVlt730
+# user: admin
+# Password: 1DeMVlt730
 
 
 ## Modulos del sistema
